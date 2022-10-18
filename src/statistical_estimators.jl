@@ -167,6 +167,7 @@ end
 #####################################################
 
 # TODO implement EWSs below
+# check out https://www.early-warning-signals.org/
 function network_connectivity()
 end
 
