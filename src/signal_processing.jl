@@ -27,27 +27,27 @@ end
 
 Gets the center-windowed array of half-width `hw` at index `idx`
 """
-centered_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[ (idx - hw):( idx + hw ) ]
-centered_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[ :, (idx - hw):( idx + hw ) ]
-centered_wndw(X::CuArray{T, 2}, idx::Int, hw::Int) where {T<:Real} = X[ :, (idx - hw):( idx + hw ) ]
+centered_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[(idx-hw):(idx+hw)]
+centered_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
+centered_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
 
 """
     left_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the left-windowed array of half-width `hw` at index `idx`
 """
-left_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[ (idx - 2*hw):idx ]
-left_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[ :, (idx - 2*hw):idx ]
-left_wndw(X::CuArray{T, 2}, idx::Int, hw::Int) where {T<:Real} = X[ :, (idx - 2*hw):idx ]
+left_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[(idx-2*hw):idx]
+left_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
+left_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
 
 """
     right_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the right-windowed array of half-width `hw` at index `idx`
 """
-right_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[ :, idx:(idx + 2*hw) ]
-right_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[ idx:(idx + 2*hw) ]
-right_wndw(X::CuArray{T, 2}, idx::Int, hw::Int) where {T<:Real} = X[ :, idx:(idx + 2*hw) ]
+right_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, idx:(idx+2*hw)]
+right_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[idx:(idx+2*hw)]
+right_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, idx:(idx+2*hw)]
 
 # Multiple dispatch of the above-defined functions for internal use.
 centered_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (n_wndw+1):n_strd:(nt-n_wndw)
@@ -61,12 +61,12 @@ right_wndw(n_wndw::Int, n_strd::Int, nt::Int) = 1:n_strd:(nt-2*n_wndw)
 Trims an array (of dim < 3) along its last dimension.
 This is done in accordance with the windowing parameters `p` and the windowing function `wndw`.
 """
-function trim_wndw(x::Vector{T}, p::WindowingParams, wndw::Function) where {T<:Real} 
-    return x[ wndw(p.Nwndw, p.Nstrd, length(x)) ]
+function trim_wndw(x::Vector{T}, p::WindowingParams, wndw::Function) where {T<:Real}
+    return x[wndw(p.Nwndw, p.Nstrd, length(x))]
 end
 
 function trim_wndw(X::Matrix{T}, p::WindowingParams, wndw::Function) where {T<:Real}
-    return X[ :, wndw(p.Nwndw, p.Nstrd, size(X, 2)) ]
+    return X[:, wndw(p.Nwndw, p.Nstrd, size(X, 2))]
 end
 
 #####################################################
@@ -95,7 +95,7 @@ function slide_estimator(
     transition_indicator = fill(T(NaN), nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        transition_indicator[j1] = estimator( wndw( x, j2, p.Nwndw ) )
+        transition_indicator[j1] = estimator(wndw(x, j2, p.Nwndw))
     end
     return transition_indicator
 end
@@ -114,13 +114,13 @@ function slide_estimator(
     transition_indicator = fill(T(NaN), nl, nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        transition_indicator[:, j1] = estimator( wndw( X, j2, p.Nwndw ) )
+        transition_indicator[:, j1] = estimator(wndw(X, j2, p.Nwndw))
     end
     return transition_indicator
 end
 
 function slide_estimator(
-    X::CuArray{T, 2},
+    X::CuArray{T,2},
     p::WindowingParams,
     estimator::Function,
     wndw::Function,
@@ -133,9 +133,9 @@ function slide_estimator(
     transition_indicator = fill(T(NaN), nl, nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        transition_indicator[:, j1] = Array( estimator( wndw( X, j2, p.Nwndw ) ) )
+        transition_indicator[:, j1] = Array(estimator(wndw(X, j2, p.Nwndw)))
     end
-    return CuArray( transition_indicator )
+    return CuArray(transition_indicator)
 end
 
 #####################################################
@@ -175,7 +175,7 @@ function gettrend_rollkernel(
     wndw::Function,
     kernel::Function,
 ) where {T<:Real}
-    
+
     kernel = scaled_kernel(T, p, kernel)
     nt = length(x)
     strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
@@ -184,7 +184,7 @@ function gettrend_rollkernel(
     filtered_signal = fill(T(NaN), nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        filtered_signal[j1] = wndw( x, j2, p.Nwndw )' .* kernel
+        filtered_signal[j1] = wndw(x, j2, p.Nwndw)' .* kernel
     end
     return filtered_signal
 end
@@ -204,7 +204,7 @@ function gettrend_rollkernel(
     filtered_signal = fill(T(NaN), nl, nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        filtered_signal[:, j1] = wndw( X, j2, p.Nwndw )' .* kernel
+        filtered_signal[:, j1] = wndw(X, j2, p.Nwndw)' .* kernel
     end
     return filtered_signal
 end
@@ -217,12 +217,9 @@ function detrend(x::Vector{T}, x_trend::Vector{T}) where {T<:Real}
 end
 
 # TODO implement further ways to detrend the signal such as the one below.
-function gettrend_loess(x::Vector{T}, σ::Int) where {T<:Real}
-end
+function gettrend_loess(x::Vector{T}, σ::Int) where {T<:Real} end
 
-function gettrend_dfa(x::Vector{T}, σ::Int) where {T<:Real}
-end
+function gettrend_dfa(x::Vector{T}, σ::Int) where {T<:Real} end
 
-function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real}
-end
+function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 
