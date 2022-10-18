@@ -73,6 +73,75 @@ function trim_wndw(X::Matrix{T}, p::WindowingParams, wndw::Function) where {T<:R
 end
 
 #####################################################
+################ Sliding estimators #################
+#####################################################
+
+"""
+    slide_estimator(X::AbstractArray, p::WindowingParams, estimator::Function, wndw::Function)
+
+Slides the computation of `estimator` over the last dimension of an array (dim < 3).
+The type of windowing is specified by `wndw` and `p` (size and stride).
+If X is a CuArray, the computation takes place on the GPU.
+"""
+
+function slide_estimator(
+    x::Vector{T},
+    p::WindowingParams,
+    estimator::Function,
+    wndw::Function,
+) where {T<:Real}
+
+    nt = length(x)
+    strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
+    nidx = length(strided_idx)
+
+    transition_indicator = fill(T(NaN), nidx)
+    @inbounds for j1 in eachindex(strided_idx)
+        j2 = strided_idx[j1]
+        transition_indicator[j1] = estimator( wndw( x, j2, p.Nwndw ) )
+    end
+    return transition_indicator
+end
+
+function slide_estimator(
+    X::Matrix{T},
+    p::WindowingParams,
+    estimator::Function,
+    wndw::Function,
+) where {T<:Real}
+
+    nl, nt = size(X)
+    strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
+    nidx = length(strided_idx)
+
+    transition_indicator = fill(T(NaN), nl, nidx)
+    @inbounds for j1 in eachindex(strided_idx)
+        j2 = strided_idx[j1]
+        transition_indicator[:, j1] = estimator( wndw( X, j2, p.Nwndw ) )
+    end
+    return transition_indicator
+end
+
+function slide_estimator(
+    X::CuArray{T, 2},
+    p::WindowingParams,
+    estimator::Function,
+    wndw::Function,
+) where {T<:Real}
+
+    nl, nt = size(X)
+    strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
+    nidx = length(strided_idx)
+
+    transition_indicator = fill(T(NaN), nl, nidx)
+    @inbounds for j1 in eachindex(strided_idx)
+        j2 = strided_idx[j1]
+        transition_indicator[:, j1] = Array( estimator( wndw( X, j2, p.Nwndw ) ) )
+    end
+    return CuArray( transition_indicator )
+end
+
+#####################################################
 #################### Smoothing ######################
 #####################################################
 
