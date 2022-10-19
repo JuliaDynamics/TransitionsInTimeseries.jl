@@ -24,24 +24,3 @@ function benchmark_cpu_vs_gpu(Xcpu::Matrix{T}, Xgpu::CuArray{T,2}, func) where {
     bmgpu = @benchmark $func($Xgpu)
     return [StatsBase.mean(bmcpu.times), StatsBase.mean(bmgpu.times)]
 end
-
-function lineplot_benchmark(
-    nl_list::Vector{Int},
-    speedup_ratio,
-    function_list::Vector{Function},
-)
-    labels = string.(function_list)
-    fig = Figure()
-    ax = Axis(
-        fig[1, 1],
-        title = "Ratio of CPU vs. GPU run-time",
-        xscale = log10,
-        yscale = log10,
-    )
-    for i in axes(speedup_ratio, 1)
-        scatterlines!(ax, nl_list, speedup_ratio[i, :], label = labels[i])
-    end
-    hlines!(ax, [1.0f0], label = "Factor 1", color = :red)
-    axislegend(ax, position = :lt)
-    return fig, ax
-end
