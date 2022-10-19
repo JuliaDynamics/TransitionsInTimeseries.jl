@@ -116,21 +116,24 @@ If X is a CuArray, the computation takes place on the GPU.
 # AR1 coefficient of a vector x for white noise assumption.
 # M. Mudelsee, Climate Time Series Analysis, eq 2.4
 function ar1_whitenoise(x::Vector{T}) where {T<:Real}
-    return (x[2:end]' * x[1:end-1]) / (x[2:end]' * x[2:end])
+    return (x[2:end]' * x[1:end-1]) / (x[1:end-1]' * x[1:end-1])
 end
 
 # AR1 coefficients for a vertical stack of residuals X and white noise assumption.
 function ar1_whitenoise(X::Array{T}) where {T<:Real}
-    return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 2:end] .* X[:, 2:end], dims=2)
+    return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 1:end-1] .* X[:, 1:end-1], dims=2)
 end
 
 # GPU accelerated AR1 coefficients for a vertical stack of time series X for white noise assumption.
 function ar1_whitenoise(X::CuArray{T, 2}) where {T<:Real}
-    return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 2:end] .* X[:, 2:end], dims=2)
+    return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 1:end-1] .* X[:, 1:end-1], dims=2)
 end
 
 # TODO implement the TIs below.
 function ar1_ar1noise()
+end
+
+function ar1_uneven_tspacing()
 end
 
 function restoring_rate()
