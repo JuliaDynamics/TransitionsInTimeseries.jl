@@ -25,18 +25,20 @@ end
 
 function generate_stacked_fourier_surrogates(X::Matrix{T}, ns::Int) where {T<:Real}
     nx, nt = size(X)
-    stacked_surrogates = zeros(T, nx * ns, nt)
-    for i = 1:nx
-        stacked_surrogates[(i-1)*ns+1:i*ns, :] = generate_fourier_surrogates(X[i, :], ns)
-    end
+    F = repeat(rfft(X, 2), inner = (ns, 1))
+    stacked_surrogates = irfft(
+        F .* exp.(2 * π * im .* rand(nx * ns, size(F, 2))),
+        nt,
+        2,
+    )
     return stacked_surrogates
 end
 
 function generate_stacked_fourier_surrogates(X::CuArray{T,2}, ns::Int) where {T<:Real}
     nx, nt = size(X)
-    Fcuda = repeat(CUDA.CUFFT.rfft(X, 2), inner = (ns, 1))
+    F = repeat(CUDA.CUFFT.rfft(X, 2), inner = (ns, 1))
     stacked_surrogates = CUDA.CUFFT.irfft(
-        Fcuda .* exp.(2 * π * im .* CUDA.rand(nx * ns, size(Fcuda, 2))),
+        F .* exp.(2 * π * im .* CUDA.rand(nx * ns, size(F, 2))),
         nt,
         2,
     )
@@ -65,14 +67,6 @@ function ridge_regression(Y::Matrix{T}, t::Vector{T}; lambda = 0::Real) where {T
     return inv(T_bias_ext * T_bias_ext' + lambda .* I(2)) * T_bias_ext * transpose(Y)
 end
 
-function ridge_regression_slope(
-    Y::Matrix{T},
-    t::Vector{T};
-    lambda = 0::Real,
-) where {T<:Real}
-    return ridge_regression(Y, t; lambda)[1, :]
-end
-
 # GPU version of ridge regression. Y must be nt x ns.
 function ridge_regression(Y::CuArray{T,2}, t::Vector{T}; lambda = 0::Real) where {T<:Real}
     t = t .- t[1]
@@ -80,6 +74,19 @@ function ridge_regression(Y::CuArray{T,2}, t::Vector{T}; lambda = 0::Real) where
     return CuArray(inv(T_bias_ext * T_bias_ext' + lambda .* I(2))) *
            CuArray(T_bias_ext) *
            permutedims(Y)
+end
+
+"""
+    ridge_regression_slope(y::AbstractArray, t::Vector; lambda=0::Real)
+
+Get the slope of underlying ridge regression.
+"""
+function ridge_regression_slope(
+    Y::Matrix{T},
+    t::Vector{T};
+    lambda = 0::Real,
+) where {T<:Real}
+    return ridge_regression(Y, t; lambda)[1, :]
 end
 
 function ridge_regression_slope(
