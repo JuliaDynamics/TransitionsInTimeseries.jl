@@ -58,3 +58,9 @@ end
     @test sum(isapprox.(W, Wcpu, atol = T(1e-5))) == 2*nr
     @test sum(isapprox.(W, Wgpu, atol = T(1e-5))) == 2*nr
 end
+
+@testset "significance" begin
+    T = Float32
+    nrows, ncols = 100, 10
+    X = collect(1:nrows) * ones(T, ncols)'
+end
