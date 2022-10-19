@@ -1,5 +1,5 @@
 function benchmark_functions_over_size(
-    T,
+    T::Type,
     nt::Int,
     nl_list::Vector{Int},
     function_list::Vector{Function},
