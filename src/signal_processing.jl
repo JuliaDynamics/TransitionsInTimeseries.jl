@@ -149,7 +149,7 @@ Computes the rolling mean of the vector x.
 This is done according to the windowing parameters `p` and the function `wndw`.
 """
 function gettrend_rollmean(x::Vector{T}, p::WindowingParams, wndw::Function) where {T<:Real}
-    return slide_estimator(x, p, mean, wndw)
+    return slide_estimator(x, p, StatsBase.mean, wndw)
 end
 
 """
@@ -223,3 +223,9 @@ function gettrend_dfa(x::Vector{T}, σ::Int) where {T<:Real} end
 
 function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 
+#####################################################
+##################### Masking #######################
+#####################################################
+
+function strided_window_mask(p::WindowingParams)
+end
