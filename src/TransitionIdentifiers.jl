@@ -22,7 +22,7 @@ export ar1_whitenoise
 export lfps
 
 export generate_stacked_fourier_surrogates
-export ridge_regression
+export ridge_regression, ridge_regression_slope
 export percentile_significance
 export slide_idtrend
 
