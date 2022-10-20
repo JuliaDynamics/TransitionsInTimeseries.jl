@@ -54,6 +54,12 @@ centered_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (n_wndw+1):n_strd:(nt-n_wndw)
 left_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (2*n_wndw+1):n_strd:nt
 right_wndw(n_wndw::Int, n_strd::Int, nt::Int) = 1:n_strd:(nt-2*n_wndw)
 
+# These functions are for the mask generation
+# We leave the last index out (bottom 1 of each column) to account for dim reduction due to X[2:end] * X[1:end-1]
+centered_wndw(n_wndw::Int) = -n_wndw+1:n_wndw
+left_wndw(n_wndw::Int) = -2*n_wndw+1:0
+right_wndw(n_wndw::Int) = 1:2*n_wndw
+
 
 """
     trim_wndw(X::AbstractArray, p::WindowingParams, wndw::Function)
@@ -227,5 +233,10 @@ function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 ##################### Masking #######################
 #####################################################
 
-function strided_window_mask(p::WindowingParams)
+function window_mask(nt::Int, p::WindowingParams, wndw::Function)
+    return diagm( [i => ones(nt-abs(i)) for i in wndw(p.Nwndw)]... )
+end
+
+function strided_window_mask(nt::Int, p::WindowingParams, wndw::Function)
+    return Float32.( CuArray( window_mask(nt::Int, p::WindowingParams, wndw)[:, wndw(p.Nwndw, p.Nstrd, nt)] ) )
 end
