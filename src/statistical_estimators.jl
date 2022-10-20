@@ -129,6 +129,11 @@ function ar1_whitenoise(X::CuArray{T, 2}) where {T<:Real}
     return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 1:end-1] .* X[:, 1:end-1], dims=2)
 end
 
+# On example nt = 1000, ns = 10000: speedup is factor 10 compared to GPU + CPU loop.
+function ar1_whitenoise_acc(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
+    return ((X[:, 2:end] .* X[:, 1:end-1]) * M[1:end-1, :]) ./ ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
+end
+
 # TODO implement the TIs below.
 function ar1_ar1noise()
 end
