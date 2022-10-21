@@ -133,7 +133,7 @@ function percentile_significance(
 ) where {T<:Real}
 
     rep_ref = repeat(ref_stat, inner = (ns, 1))
-    return (kron(I(nx), ones(ns)') * (sur_stat .- rep_ref .< T(0))) ./ T(ns)
+    return (kron(I(nx), ones(T, ns)') * (sur_stat .- rep_ref .< T(0))) ./ T(ns)
 end
 
 function percentile_significance(
@@ -144,7 +144,7 @@ function percentile_significance(
 ) where {T<:Real}
 
     rep_ref = repeat(ref_stat, inner = (ns, 1))
-    return (CuArray(kron(I(nx), ones(ns)')) * (sur_stat .- rep_ref .< T(0))) ./ T(ns)
+    return (CuArray(kron(I(nx), ones(T, ns)')) * (sur_stat .- rep_ref .< T(0))) ./ T(ns)
 end
 
 #####################################################
