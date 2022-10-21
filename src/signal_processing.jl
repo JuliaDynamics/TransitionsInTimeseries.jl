@@ -215,6 +215,15 @@ function gettrend_rollkernel(
     return filtered_signal
 end
 
+function get_trend(
+    X::Matrix{T},
+    p::WindowingParams,
+    wndw::Function,
+    kernel::Function,
+) where {T}
+    return mapslices( x_ -> gettrend_rollkernel(x_, p, wndw, kernel), X; dims=2 )
+end
+
 """
     detrend(x::Vector{T}, x_trend::Vector{T})
 """
