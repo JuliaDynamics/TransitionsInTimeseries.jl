@@ -101,20 +101,12 @@ end
 ################### Kendall tau #####################
 #####################################################
 
-function slide_kendall_tau(x::Vector{T}, t::Vector{T}, hw::Int, stride::Int) where {T<:Real}
-
-    nx = length(x)
-    kt = fill(NaN, nx)
-    for i = (hw+1):stride:(nx-hw)
-        x_wndwd = centered_wndw(x, i, hw)
-        t_wndwd = centered_wndw(t, i, hw)
-        kt[i] = corkendall(t_wndwd, x_wndwd)
-    end
-    return kt
+function kendall_tau(y::Vector{T}, t::Vector{T}) where {T<:Real}
+    return StatsBase.corkendall(t, y)
 end
 
-function slide_kendall_tau(t::Vector{T}, S::Matrix{T}, hw::Int, stride::Int) where {T<:Real}
-    return mapslices(x -> slide_kendall_tau(t, x, hw, stride), S, dims = 2)
+function kendall_tau(Y::Matrix{T}, t::Vector{T}) where {T<:Real}
+    return mapslices(x -> StatsBase.corkendall(t, x), Y, dims = 2)
 end
 
 #####################################################
