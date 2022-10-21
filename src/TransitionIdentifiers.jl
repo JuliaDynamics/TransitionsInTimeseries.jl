@@ -23,6 +23,7 @@ export lfps
 
 export generate_stacked_fourier_surrogates
 export ridge_regression, ridge_regression_slope
+export kendall_tau
 export percentile_significance
 export slide_idtrend
 
