@@ -1,8 +1,31 @@
+#=
+Transition indicators can be classified in two families:
+- temporal
+- spatial
+
+The temporal indicators can be classified depending on the undlerying sampling:
+- even
+- uneven
+
+... or depending on the type of computation they imply:
+- statistical moments
+- regression
+- frequency analysis
+
+For the latter classification, the most common metrics are implemented here.
+TODO: implement temporal indicators on uneven sampling.
+TODO: implement spatial indicators.
+
+Finally, regression models rely on a noise assumption. The latter can be:
+- white
+- an AR1 process
+- a higher-order process which is jointly estimated during the regression
+TODO: implement beyond white-noise assumption.
+=#
+
 #####################################################
 # Statistical moments
 #####################################################
-
-# TODO thorough tests for each function.
 
 """
     mean(X::AbstractArray)
@@ -54,7 +77,6 @@ end
 Computes the skewness of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-
 function skw(x::Vector{T}) where {T<:Real}
     return StatsBase.skewness(x)
 end
@@ -78,6 +100,7 @@ function skw(X::CuArray{T, 2}) where {T<:Real}
     x_var = var(X)
     return skw(X, x_mean, x_var)
 end
+# TODO compare to skw of StatsBase
 
 """
     krt(X::AbstractArray)
@@ -85,7 +108,6 @@ end
 Computes the kurtosis of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-
 function krt(x::Vector{T}) where {T<:Real}
     return StatsBase.kurtosis(x)
 end
@@ -109,9 +131,10 @@ function krt(X::CuArray{T, 2}) where {T<:Real}
     x_var = var(X)
     return krt(X, x_mean, x_var)
 end
+# TODO compare to krt of StatsBase
 
 #####################################################
-# Regression models
+# Analytic regression models
 #####################################################
 
 """
@@ -142,12 +165,23 @@ function ar1_whitenoise_acc(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
     return ((X[:, 2:end] .* X[:, 1:end-1]) * M[1:end-1, :]) ./ ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
 end
 
-# TODO implement the TIs below.
+#####################################################
+# Analytic regression with correlated noise
+#####################################################
+
 function ar1_ar1noise()
 end
 
+#####################################################
+# Analytic regression uneven time spacing
+#####################################################
+
 function ar1_uneven_tspacing()
 end
+
+#####################################################
+# Numerical regression
+#####################################################
 
 function restoring_rate()
 end
@@ -182,7 +216,6 @@ end
 # Spatial identifiers
 #####################################################
 
-# TODO implement EWSs below
 # check out https://www.early-warning-signals.org/
 function network_connectivity()
 end

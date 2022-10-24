@@ -1,3 +1,13 @@
+#=
+For the recognition of transition, following routines are necessary:
+- Windowing
+- Sliding functions over time series
+- Smoothing and detrending
+- Masking (only for high-performance on GPU)
+
+They are implemented here.
+=#
+
 #####################################################
 # Windowing
 #####################################################
