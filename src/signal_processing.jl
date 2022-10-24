@@ -1,5 +1,5 @@
 #####################################################
-#################### Windowing ######################
+# Windowing
 #####################################################
 struct WindowingParams
     dt::Real
@@ -76,7 +76,7 @@ function trim_wndw(X::Matrix{T}, p::WindowingParams, wndw::Function) where {T<:R
 end
 
 #####################################################
-################ Sliding estimators #################
+# Sliding estimators
 #####################################################
 
 """
@@ -145,7 +145,7 @@ function slide_estimator(
 end
 
 #####################################################
-#################### Smoothing ######################
+# Smoothing
 #####################################################
 
 """
@@ -239,7 +239,7 @@ function gettrend_dfa(x::Vector{T}, σ::Int) where {T<:Real} end
 function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 
 #####################################################
-##################### Masking #######################
+# Masking
 #####################################################
 
 function window_mask(nt::Int, p::WindowingParams, wndw::Function)
