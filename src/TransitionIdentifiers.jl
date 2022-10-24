@@ -15,6 +15,10 @@ export centered_wndw, left_wndw, right_wndw, trim_wndw
 export slide_estimator
 export gettrend_rollmean, gettrend_rollkernel, detrend
 
+export uniform_kernel, triangular_kernel, parabolic_kernel
+export biweight_kernel, triweight_kernel, tricube_kernel
+export gaussian_kernel, cosine_kernel, logistic_kernel
+export sigmoid_kernel
 export scaled_kernel
 
 export mean, var, skw, krt
