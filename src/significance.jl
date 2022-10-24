@@ -1,5 +1,5 @@
 #####################################################
-############### Fourier surrogates ##################
+# Fourier surrogates
 #####################################################
 
 # Shift each frequency content by a random phase.
@@ -46,7 +46,7 @@ function generate_stacked_fourier_surrogates(X::CuArray{T,2}, ns::Int) where {T<
 end
 
 #####################################################
-################# Ridge regression ##################
+# Ridge regression
 #####################################################
 
 """
@@ -98,19 +98,28 @@ function ridge_regression_slope(
 end
 
 #####################################################
-################### Kendall tau #####################
+# Kendall tau
 #####################################################
 
 function kendall_tau(y::Vector{T}, t::Vector{T}) where {T<:Real}
     return StatsBase.corkendall(t, y)
 end
 
+# This implementation works fine for even time spacing
+# because the time vector does not need to be shifted.
+# TODO: make more general!
 function kendall_tau(Y::Matrix{T}, t::Vector{T}) where {T<:Real}
     return mapslices(x -> StatsBase.corkendall(t, x), Y, dims = 2)
 end
 
+# Scaling with mean (or other function) might be a better metric than
+# just the trend! Typically: AR1 needs to be close to 1.
+function scaled_kendall_tau(Y::Matrix{T}, t::Vector{T}; scaling::Function=StatsBase.mean) where {T<:Real}
+    return mapslices(x -> StatsBase.corkendall(t, x) * scaling(x), Y, dims = 2)
+end
+
 #####################################################
-############# Percentile significance ###############
+# Percentile significance 
 #####################################################
 """
     percentile_significance(ref_stat::AbstractArray, sur_stat::Matrix{T}, ns::Int, nx::Int)
@@ -140,7 +149,7 @@ function percentile_significance(
 end
 
 #####################################################
-############# Slide trend estimation ################
+# Slide trend estimations
 #####################################################
 """
     slide_idtrend(
@@ -195,4 +204,35 @@ function slide_idtrend(
         idtrend[:, j1] = estimator(wndw(X, j2, p.Nwndw), wndw(t, j2, p.Nwndw); kwargs...)
     end
     return idtrend
+end
+
+#####################################################
+# Predict transition
+#####################################################
+
+# TODO insert tolerance wrt lag
+function predict_transition(
+    indicator_list::Vector{Matrix{T}};
+    plevel=T(0.95),
+    nindicators::Int=length(indicator_list)
+) where {T}
+    P = stack_indicators(indicator_list)
+    S = sum_significant_indicators(P, plevel)
+    return threshold_indicator_significance(S, nindicators)
+end
+
+function stack_indicators(indicator_list::Vector{Matrix{T}}) where {T}
+    return cat(indicator_list..., dims=3)
+end
+
+function sum_percentiles(P::Array{T, 3}) where {T}
+    return reduce( +, P, dims=3 )
+end
+
+function sum_significant_indicators(P::Array{T, 3}, plevel::T) where {T}
+    return reduce( +, P .> plevel, dims=3 )
+end
+
+function threshold_indicator_significance(S::Array{T, 3}, nindicators::Int) where {T}
+    return (S .>= nindicators)[:,:,1]
 end
