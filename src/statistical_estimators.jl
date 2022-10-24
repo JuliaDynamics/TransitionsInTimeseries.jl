@@ -1,5 +1,5 @@
 #####################################################
-################ Statistical moments ################
+# Statistical moments
 #####################################################
 
 # TODO thorough tests for each function.
@@ -111,7 +111,7 @@ function krt(X::CuArray{T, 2}) where {T<:Real}
 end
 
 #####################################################
-################# Regression models #################
+# Regression models
 #####################################################
 
 """
@@ -156,7 +156,7 @@ function restoring_rate_gls()
 end
 
 #####################################################
-################ Frequency spectrum #################
+# Frequency spectrum
 #####################################################
 
 """
@@ -179,7 +179,7 @@ function lfps(X::CuArray{T, 2}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
 end
 
 #####################################################
-############### Spatial identifiers #################
+# Spatial identifiers
 #####################################################
 
 # TODO implement EWSs below
