@@ -23,9 +23,10 @@ export lfps
 
 export generate_stacked_fourier_surrogates
 export ridge_regression, ridge_regression_slope
-export kendall_tau
+export kendall_tau, scaled_kendall_tau
 export percentile_significance
 export slide_idtrend
+export predict_transition
 
 export compute_TIsignificance
 
