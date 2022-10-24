@@ -32,7 +32,7 @@ export percentile_significance
 export slide_idtrend
 export predict_transition
 
-export compute_TIsignificance
+export TIs_significance
 
 export benchmark_functions_over_size
 export benchmark_cpu_vs_gpu
