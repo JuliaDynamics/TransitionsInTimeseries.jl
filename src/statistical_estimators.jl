@@ -11,6 +11,14 @@ Computes the mean of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
 
+function mean(x::Vector{T}) where {T<:Real}
+    return StatsBase.mean(x)
+end
+
+function mean(x::Matrix{T}) where {T<:Real}
+    return StatsBase.mean(x, dims=2)
+end
+
 function mean(X::CuArray{T, 2}) where {T<:Real}
     return reduce( +, X, dims=2) ./ T(size(X, 2))
 end
