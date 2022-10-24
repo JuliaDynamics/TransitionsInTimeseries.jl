@@ -1,3 +1,7 @@
+#=
+TODO: test statistical moments (wrt. StatsBase)
+=#
+
 using Test, TransitionIdentifiers
 using DifferentialEquations, CUDA, CairoMakie
 
@@ -30,6 +34,7 @@ end
     θ_est_mat = ar1_whitenoise(x_mat)[1]
     θ_est_gpu = Array( ar1_whitenoise(x_gpu) )[1]
     θ = exp(dt * p[1])          # θ is time discrete equivalent of λ
+    # TODO: add the accelerated AR1
 
     @test isapprox(θ_est_vec, θ_est_mat)
     @test isapprox(θ_est_gpu, θ_est_mat)
