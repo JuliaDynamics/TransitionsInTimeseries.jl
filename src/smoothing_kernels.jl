@@ -15,6 +15,7 @@ Functions available for `kernel`:
     - sigmoid_kernel
 
 For now only centered window implemented.
+For more details about the kernels, refer to https://en.wikipedia.org/wiki/Kernel_(statistics).
 """
 # TODO implement for different window types.
 function scaled_kernel(
