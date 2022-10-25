@@ -14,6 +14,7 @@ export get_windowing_params
 export centered_wndw, left_wndw, right_wndw, trim_wndw
 export slide_estimator
 export gettrend_rollmean, get_trend, detrend
+export strided_window_mask
 
 export uniform_kernel, triangular_kernel, parabolic_kernel
 export biweight_kernel, triweight_kernel, tricube_kernel
