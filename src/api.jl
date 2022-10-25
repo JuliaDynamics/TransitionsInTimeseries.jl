@@ -1,6 +1,6 @@
 """
     function TIs_significance(
-        t::Vector{T},
+        ttrend::Vector{T},
         X::CuArray{T,2},
         pindctr::WindowingParams,
         pidtrend::WindowingParams,
@@ -11,14 +11,14 @@
         kwargs...,
     )
 
-Compute various transition identifiers (provided in `tis`) for a residual `X` over time `t`.
+Compute various transition identifiers (provided in `tis`) for a residual `X` over time `ttrend`.
 To track the process of transition prediction, one might want to access a verbose struct containing the surrogate data.
 However, the latter can be substantial for large number of variables.
 To avoid memory overflows one can choose the sparse output.
 """
 
 function identify_transition(
-    t::Vector{T},
+    ttrend::Vector{T},
     X::Union{Matrix{T}, CuArray{T,2}},
     pindctr::WindowingParams,
     pidtrend::WindowingParams,
@@ -27,6 +27,7 @@ function identify_transition(
     verbose::Bool = true,
     trend_measure::Function = ridge_regression_slope,
     window::Function = centered_wndw,
+    min_num_indicators::Int = length(tis),
     kwargs...,
 ) where {T}
 
@@ -35,7 +36,7 @@ function identify_transition(
     S = generate_stacked_fourier_surrogates(X, ns)
     ti_labels = string.(tis)
 
-    tindctr = trim_wndw(t, pindctr, window)
+    tindctr = trim_wndw(ttrend, pindctr, window)
     tidtrend = trim_wndw(tindctr, pidtrend, window)
 
     reference_ti = Dict{String,CuArray{T,2}}()
@@ -77,8 +78,9 @@ function identify_transition(
 
     indicator_trend_sigificance = [significance[label] for label in ti_labels]
     indicator_trend_sigificance3D = stack_indicators(indicator_trend_sigificance)
-    predictor_idx = predict_transition(indicator_trend_sigificance3D, nindicators=ni)
-    predictor_time = [tidtrend[predictor_idx[i,:]] for i in 1:nx]
+    positive_indicators = count_positive_indicators(indicator_trend_sigificance3D)
+    positive_idx = Array( positive_indicators .>= min_num_indicators / length(tis) )
+    predictor_time = [tidtrend[positive_idx[i,:]] for i in 1:nx]
 
     if verbose
         result = verboseTIresults{T}(
@@ -90,6 +92,7 @@ function identify_transition(
             reference_idtrend,
             surrogate_idtrend,
             significance,
+            positive_indicators,
             predictor_time,
         )
     else
@@ -99,6 +102,7 @@ function identify_transition(
             reference_ti,
             reference_idtrend,
             significance,
+            positive_indicators,
             predictor_time,
         )
     end
@@ -114,7 +118,8 @@ struct verboseTIresults{T}
     reference_idtrend::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
     surrogate_idtrend::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
     significance::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    predictor::Vector{Vector{T}}
+    positive_indicators::Union{Matrix{T}, CuArray{T,2}}
+    predictor_time::Vector{Vector{T}}
 end
 
 struct sparseTIresults{T}
@@ -123,7 +128,8 @@ struct sparseTIresults{T}
     reference_ti::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
     reference_idtrend::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
     significance::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    predictor::Vector{Vector{T}}
+    positive_indicators::Union{Matrix{T}, CuArray{T,2}}
+    predictor_time::Vector{Vector{T}}
 end
 
 # TODO replace indctr by idntfr?
