@@ -40,7 +40,7 @@ scale_x_kernel(T::Type, p::WindowingParams) = T.(-p.Nwndw:p.Nwndw) ./ p.Nwndw
 scale_y_kernel(u::Vector{T}) where {T} = u ./ sum(u)
 
 # Common smoothing kernels as found in https://en.wikipedia.org/wiki/Kernel_(statistics)
-uniform_kernel(u::Vector{T}) where {T} = fill( 1, length(u) )
+uniform_kernel(u::Vector{T}) where {T} = fill( T(1), length(u) )
 triangular_kernel(u::Vector{T}) where {T} = 1 .- abs.( u )
 parabolic_kernel(u::Vector{T}) where {T} = T(3/4) .* ( 1 .- u.^2 )
 biweight_kernel(u::Vector{T}) where {T} = T(15/16) .* ( 1 .- u.^2 ).^2
