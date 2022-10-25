@@ -211,11 +211,11 @@ end
 #####################################################
 
 # TODO insert tolerance wrt lag
-function predict_transition(
+function count_positive_indicators(
     indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
     plevel=T(0.95),
-    nindicators::Int=length(indicator_list),
-    threshold::Bool=true,
+    nindicators::Int=size(indicator_trend_significance3D, 3),
+    threshold::Bool=false,
 ) where {T}
     Σ = sum_significant_indicators(indicator_trend_significance3D, plevel)
     prediction = Σ ./ nindicators
@@ -234,7 +234,7 @@ function sum_percentiles(P::Union{Array{T, 3}, CuArray{T,3}}) where {T}
 end
 
 function sum_significant_indicators(P::Union{Array{T, 3}, CuArray{T,3}}, plevel::T) where {T}
-    return reduce( +, P .> plevel, dims=3 )[:,:,1]
+    return reduce( +, T.(P .> plevel), dims=3 )[:,:,1]
 end
 
 function threshold_indicator_significance(S::Union{Matrix{T}, CuArray{T,2}}) where {T}
