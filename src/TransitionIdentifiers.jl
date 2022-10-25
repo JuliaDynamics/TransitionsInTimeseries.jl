@@ -30,7 +30,7 @@ export ridge_regression, ridge_regression_slope
 export kendall_tau, scaled_kendall_tau
 export percentile_significance
 export slide_idtrend
-export predict_transition
+export count_positive_indicators
 
 export stack_indicators, identify_transition
 
