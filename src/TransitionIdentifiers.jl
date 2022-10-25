@@ -7,19 +7,18 @@ include("signal_processing.jl")
 include("smoothing_kernels.jl")
 include("statistical_estimators.jl")
 include("significance.jl")
-include("highlevel_TI_computation.jl")
+include("api.jl")
 include("benchmark.jl")
 
 export get_windowing_params
 export centered_wndw, left_wndw, right_wndw, trim_wndw
 export slide_estimator
-export gettrend_rollmean, gettrend_rollkernel, detrend
+export gettrend_rollmean, get_trend, detrend
 
 export uniform_kernel, triangular_kernel, parabolic_kernel
 export biweight_kernel, triweight_kernel, tricube_kernel
 export gaussian_kernel, cosine_kernel, logistic_kernel
-export sigmoid_kernel
-export scaled_kernel
+export sigmoid_kernel, scaled_kernel
 
 export mean, var, skw, krt
 export ar1_whitenoise
@@ -32,7 +31,7 @@ export percentile_significance
 export slide_idtrend
 export predict_transition
 
-export TIs_significance
+export stack_indicators, identify_transition
 
 export benchmark_functions_over_size
 export benchmark_cpu_vs_gpu
