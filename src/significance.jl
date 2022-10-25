@@ -212,27 +212,31 @@ end
 
 # TODO insert tolerance wrt lag
 function predict_transition(
-    indicator_list::Vector{Matrix{T}};
+    indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
     plevel=T(0.95),
-    nindicators::Int=length(indicator_list)
+    nindicators::Int=length(indicator_list),
+    threshold::Bool=true,
 ) where {T}
-    P = stack_indicators(indicator_list)
-    S = sum_significant_indicators(P, plevel)
-    return threshold_indicator_significance(S, nindicators)
+    Σ = sum_significant_indicators(indicator_trend_significance3D, plevel)
+    prediction = Σ ./ nindicators
+    if threshold
+        prediction = threshold_indicator_significance(prediction)
+    end
+    return prediction
 end
 
-function stack_indicators(indicator_list::Vector{Matrix{T}}) where {T}
+function stack_indicators(indicator_list::Any)
     return cat(indicator_list..., dims=3)
 end
 
-function sum_percentiles(P::Array{T, 3}) where {T}
-    return reduce( +, P, dims=3 )
+function sum_percentiles(P::Union{Array{T, 3}, CuArray{T,3}}) where {T}
+    return reduce( +, P, dims=3 )[:,:,1]
 end
 
-function sum_significant_indicators(P::Array{T, 3}, plevel::T) where {T}
-    return reduce( +, P .> plevel, dims=3 )
+function sum_significant_indicators(P::Union{Array{T, 3}, CuArray{T,3}}, plevel::T) where {T}
+    return reduce( +, P .> plevel, dims=3 )[:,:,1]
 end
 
-function threshold_indicator_significance(S::Array{T, 3}, nindicators::Int) where {T}
-    return (S .>= nindicators)[:,:,1]
+function threshold_indicator_significance(S::Union{Matrix{T}, CuArray{T,2}}) where {T}
+    return isapprox.(S, 1)
 end
