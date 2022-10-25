@@ -200,7 +200,7 @@ function gettrend_rollkernel(
     filtered_signal = fill(T(NaN), nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        filtered_signal[j1] = wndw(x, j2, p.Nwndw)' .* kernel
+        filtered_signal[j1] = wndw(x, j2, p.Nwndw)' * kernel
     end
     return filtered_signal
 end
@@ -220,7 +220,7 @@ function gettrend_rollkernel(
     filtered_signal = fill(T(NaN), nl, nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        filtered_signal[:, j1] = wndw(X, j2, p.Nwndw)' .* kernel
+        filtered_signal[:, j1] = wndw(X, j2, p.Nwndw)' * kernel
     end
     return filtered_signal
 end
