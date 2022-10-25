@@ -76,7 +76,7 @@ function identify_transition(
     end
 
     indicator_trend_sigificance = [significance[label] for label in ti_labels]
-    indicator_trend_sigificance3D = cat(indicator_trend_sigificance..., dims=3)
+    indicator_trend_sigificance3D = stack_indicators(indicator_trend_sigificance)
     predictor_idx = predict_transition(indicator_trend_sigificance3D, nindicators=ni)
     predictor_time = [tidtrend[predictor_idx[i,:]] for i in 1:nx]
 
