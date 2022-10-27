@@ -6,8 +6,9 @@ include("utils.jl")
 include("signal_processing.jl")
 include("smoothing_kernels.jl")
 include("statistical_estimators.jl")
+include("trend_estimation.jl")
 include("significance.jl")
-include("api.jl")
+include("indicate_transition.jl")
 include("benchmark.jl")
 
 export get_windowing_params
@@ -32,7 +33,7 @@ export percentile_significance
 export slide_idtrend
 export count_positive_indicators
 
-export stack_indicators, identify_transition
+export stack_indicators, indicate_transition
 
 export benchmark_functions_over_size
 export benchmark_cpu_vs_gpu
