@@ -112,11 +112,18 @@ function kendall_tau(Y::Matrix{T}, t::Vector{T}) where {T<:Real}
     return mapslices(x -> StatsBase.corkendall(t, x), Y, dims = 2)
 end
 
+function kendall_tau(Z::CuArray{T, 2}, t::Vector{T}) where {T<:Real}
+    Y = Array(Z)
+    return kendall_tau(Y, t)
+end
+
 # Scaling with mean (or other function) might be a better metric than
 # just the trend! Typically: AR1 needs to be close to 1.
 function scaled_kendall_tau(Y::Matrix{T}, t::Vector{T}; scaling::Function=StatsBase.mean) where {T<:Real}
     return mapslices(x -> StatsBase.corkendall(t, x) * scaling(x), Y, dims = 2)
 end
+
+# TODO: add Spearman’s ρ rank correlation or the Pearson’s correlation coefficient.
 
 #####################################################
 # Percentile significance 
