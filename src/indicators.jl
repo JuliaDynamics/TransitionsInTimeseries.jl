@@ -46,6 +46,10 @@ function mean(X::CuArray{T, 2}) where {T<:Real}
     return reduce( +, X, dims=2) ./ T(size(X, 2))
 end
 
+function mean(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
+    return reduce( +, X, dims=2) ./ T(size(X, 2))
+end
+
 """
     var(X::AbstractArray)
 
@@ -213,7 +217,7 @@ function lfps(X::CuArray{T, 2}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
 end
 
 #####################################################
-# Spatial identifiers
+# Spatial indicators
 #####################################################
 
 # check out https://www.early-warning-signals.org/
