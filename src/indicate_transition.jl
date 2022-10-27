@@ -11,13 +11,13 @@
         kwargs...,
     )
 
-Compute various transition identifiers (provided in `tis`) for a residual `X` over time `ttrend`.
+Compute various transition indicators (provided in `tis`) for a residual `X` over time `ttrend`.
 To track the process of transition prediction, one might want to access a verbose struct containing the surrogate data.
 However, the latter can be substantial for large number of variables.
 To avoid memory overflows one can choose the sparse output.
 """
 
-function identify_transition(
+function indicate_transition(
     ttrend::Vector{T},
     X::Union{Matrix{T}, CuArray{T,2}},
     pindctr::WindowingParams,
