@@ -3,3 +3,4 @@ Manifest.toml
 *.scss
 *.css
 notebooks
+examples
