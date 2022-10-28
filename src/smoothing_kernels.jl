@@ -24,7 +24,6 @@ Functions available for `kernel`:
 For now only centered window implemented.
 For more details about the kernels, refer to https://en.wikipedia.org/wiki/Kernel_(statistics).
 """
-# TODO implement for different window types.
 function scaled_kernel(
     T::Type,
     p::WindowingParams,
@@ -32,6 +31,7 @@ function scaled_kernel(
 )
     return scale_y_kernel( kernel( scale_x_kernel(T, p) ) )
 end
+# TODO implement for different window types.
 
 # Scale such that x is mapped on [-1, 1].
 scale_x_kernel(T::Type, p::WindowingParams) = T.(-p.Nwndw:p.Nwndw) ./ p.Nwndw

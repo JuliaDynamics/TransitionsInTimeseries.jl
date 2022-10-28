@@ -96,7 +96,6 @@ Slides the computation of `estimator` over the last dimension of an array (dim <
 The type of windowing is specified by `wndw` and `p` (size and stride).
 If X is a CuArray, the computation takes place on the GPU.
 """
-
 function slide_estimator(
     x::Vector{T},
     p::WindowingParams,

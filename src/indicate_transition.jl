@@ -1,5 +1,5 @@
 """@docs
-    function TIs_significance(
+    indicate_transition(
         ttrend::Vector{T},
         X::CuArray{T,2},
         pindctr::WindowingParams,

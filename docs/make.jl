@@ -1,9 +1,12 @@
+# Standard stuff
 cd(@__DIR__)
-using Pkg
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
-using TransitionIdentifiers
+using Documenter
 using DocumenterTools: Themes
+ENV["JULIA_DEBUG"] = "Documenter"
 using CairoMakie
+# Packages specific to these docs
+using TransitionIdentifiers
 
 # %% JuliaDynamics theme
 # It includes themeing for the HTML build
@@ -27,9 +30,15 @@ Themes.compile(joinpath(@__DIR__, "juliadynamics-light.scss"), joinpath(@__DIR__
 Themes.compile(joinpath(@__DIR__, "juliadynamics-dark.scss"), joinpath(@__DIR__, "src/assets/themes/documenter-dark.css"))
 
 # %% Build docs
-ENV["JULIA_DEBUG"] = "Documenter"
+PAGES = [
+    "index.md",
+    "signal_processing.md",
+    "indicators.md",
+    "trend_estimation.md",
+    "significance.md",
+    "indicate_transition.md",
+]
 
-PAGES = include("toc.jl")
 include("style.jl")
 
 makedocs(
@@ -41,16 +50,17 @@ makedocs(
         ],
         collapselevel = 3,
         ),
-    sitename = "TransitionIdentifiers.jl",
+    sitename = "TransitionIndicators.jl",
+    authors = "Jan Swierczek-Jereczek, George Datseris",
     pages = PAGES,
     doctest = CI,
-    draft = false,
+    draft = true,
 )
 
-if CI
-    deploydocs(
-        repo = "github.com/JuliaDynamics/Entropies.jl.git",
-        target = "build",
-        push_preview = true
-    )
-end
+# if CI
+#     deploydocs(
+#         repo = "github.com/JuliaDynamics/Attractors.jl.git",
+#         target = "build",
+#         push_preview = true
+#     )
+# end

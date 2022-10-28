@@ -33,7 +33,6 @@ TODO: implement beyond white-noise assumption.
 Computes the mean of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-
 function mean(x::Vector{T}) where {T<:Real}
     return StatsBase.mean(x)
 end
@@ -56,7 +55,6 @@ end
 Computes the variance of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-
 function var(x::Vector{T}) where {T<:Real}
     return StatsBase.var(x)
 end
@@ -147,9 +145,6 @@ end
 Computes the AR1 coefficient of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-
-# AR1 coefficient of a vector x for white noise assumption.
-# M. Mudelsee, Climate Time Series Analysis, eq 2.4
 function ar1_whitenoise(x::Vector{T}) where {T<:Real}
     return (x[2:end]' * x[1:end-1]) / (x[1:end-1]' * x[1:end-1])
 end
@@ -205,7 +200,6 @@ end
 Computes the low-frequency power spectrum of a matrix over the 2nd dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-
 function lfps(X::Matrix{T}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
     P = abs.(rfft(X, 2))
     Pnorm = P ./ reduce(+, P, dims=2)

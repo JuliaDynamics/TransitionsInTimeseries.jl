@@ -10,10 +10,6 @@
     ridge_regression_slope
 ```
 
-```@docs
-    ridge_regression_slope
-```
-
 ## Correlation
 
 ```@docs
