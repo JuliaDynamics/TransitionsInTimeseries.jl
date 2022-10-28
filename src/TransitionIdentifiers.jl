@@ -1,6 +1,11 @@
 module TransitionIdentifiers
 
-using BenchmarkTools, CUDA, FFTW, StatsBase, LinearAlgebra
+# TODO: reduce to only needed functions
+using BenchmarkTools
+using CUDA
+using FFTW
+using StatsBase
+using LinearAlgebra
 
 include("utils.jl")
 include("signal_processing.jl")
