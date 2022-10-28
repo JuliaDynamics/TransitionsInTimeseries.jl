@@ -1,4 +1,4 @@
-"""
+"""@docs
     function TIs_significance(
         ttrend::Vector{T},
         X::CuArray{T,2},

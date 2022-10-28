@@ -8,7 +8,7 @@ function generate_fourier_surrogate(x::Vector{T}) where {T<:Real}
     return irfft(F .* exp.(2 * π * im .* rand(length(F))), length(x))
 end
 
-"""
+"""@docs
     generate_stacked_fourier_surrogates(X::AbstractArray, ns::Int)
 
 Generate ns Fourier surrogates for each line of X.
@@ -48,7 +48,7 @@ end
 #####################################################
 # Percentile significance 
 #####################################################
-"""
+"""@docs
     percentile_significance(ref_stat::AbstractArray, sur_stat::Matrix{T}, ns::Int, nx::Int)
 
 Get percentile significance of reference (original time series) versus surrogate statistics.

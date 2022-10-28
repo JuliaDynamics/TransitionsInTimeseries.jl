@@ -19,7 +19,7 @@ struct WindowingParams
     Nstrd::Int
 end
 
-"""
+"""@docs
     get_windowing_params(Tvec::Vector{T})
 
 Creates a WindowingParams struct out of a vector `[dt, Twndw, Tstrd]` with:
@@ -32,7 +32,7 @@ function get_windowing_params(Tvec::Vector{T}) where {T<:Real}
     return WindowingParams(Tvec..., N...)
 end
 
-"""
+"""@docs
     centered_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the center-windowed array of half-width `hw` at index `idx`
@@ -41,7 +41,7 @@ centered_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[(idx-hw):(idx
 centered_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
 centered_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
 
-"""
+"""@docs
     left_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the left-windowed array of half-width `hw` at index `idx`
@@ -50,7 +50,7 @@ left_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[(idx-2*hw):idx]
 left_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
 left_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
 
-"""
+"""@docs
     right_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the right-windowed array of half-width `hw` at index `idx`
@@ -71,7 +71,7 @@ left_wndw(n_wndw::Int) = -2*n_wndw+1:0
 right_wndw(n_wndw::Int) = 1:2*n_wndw
 
 
-"""
+"""@docs
     trim_wndw(X::AbstractArray, p::WindowingParams, wndw::Function)
 
 Trims an array (of dim < 3) along its last dimension.
@@ -89,7 +89,7 @@ end
 # Sliding estimators
 #####################################################
 
-"""
+"""@docs
     slide_estimator(X::AbstractArray, p::WindowingParams, estimator::Function, wndw::Function)
 
 Slides the computation of `estimator` over the last dimension of an array (dim < 3).
@@ -158,7 +158,7 @@ end
 # Smoothing
 #####################################################
 
-"""
+"""@docs
     gettrend_rollmean(x::Vector{Real}, p::WindowingParams, wndw::Function)
 
 Computes the rolling mean of the vector x.
@@ -168,7 +168,7 @@ function gettrend_rollmean(x::Vector{T}, p::WindowingParams, wndw::Function) whe
     return slide_estimator(x, p, StatsBase.mean, wndw)
 end
 
-"""
+"""@docs
     gettrend_rollkernel(x::Union{Vector{Real}, Matrix{Real}}, p::WindowingParams, wndw::Function, kernel::Function)
 
 Computes the kernel convolution of x over its last dimension.
@@ -234,7 +234,7 @@ function get_trend(
     return mapslices( x_ -> gettrend_rollkernel(x_, p, wndw, kernel), X; dims=2 )
 end
 
-"""
+"""@docs
     detrend(x::Vector{T}, x_trend::Vector{T})
 """
 function detrend(x::Vector{T}, x_trend::Vector{T}) where {T<:Real}

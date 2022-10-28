@@ -5,7 +5,7 @@ We then scale in x to match the actual window.
 We finally scale in y to have a kernel summing to 1 over the window.
 =#
 
-"""
+"""@docs
     scaled_kernel(T::Type, p::WindowingParams, kernel::Function)
 
 Computes a smoothing discrete kernel of type `T` and windowing defined by `p`.

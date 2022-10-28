@@ -27,7 +27,7 @@ TODO: implement beyond white-noise assumption.
 # Statistical moments
 #####################################################
 
-"""
+"""@docs
     mean(X::AbstractArray)
 
 Computes the mean of an array of dimension < 3 over the last dimension.
@@ -50,7 +50,7 @@ function mean(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
     return reduce( +, X, dims=2) ./ T(size(X, 2))
 end
 
-"""
+"""@docs
     var(X::AbstractArray)
 
 Computes the variance of an array of dimension < 3 over the last dimension.
@@ -75,7 +75,7 @@ function var(X::CuArray{T, 2}) where {T<:Real}
     return var(X, x_mean)
 end
 
-"""
+"""@docs
     skw(X::AbstractArray)
 
 Computes the skewness of an array of dimension < 3 over the last dimension.
@@ -106,7 +106,7 @@ function skw(X::CuArray{T, 2}) where {T<:Real}
 end
 # TODO compare to skw of StatsBase
 
-"""
+"""@docs
     krt(X::AbstractArray)
 
 Computes the kurtosis of an array of dimension < 3 over the last dimension.
@@ -141,7 +141,7 @@ end
 # Analytic regression models
 #####################################################
 
-"""
+"""@docs
     ar1_whitenoise(X::AbstractArray)
 
 Computes the AR1 coefficient of an array of dimension < 3 over the last dimension.
@@ -168,6 +168,8 @@ end
 function ar1_whitenoise(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
     return ((X[:, 2:end] .* X[:, 1:end-1]) * M[1:end-1, :]) ./ ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
 end
+
+# TODO: implement local Hurst exponent
 
 #####################################################
 # Analytic regression with correlated noise
@@ -197,7 +199,7 @@ end
 # Frequency spectrum
 #####################################################
 
-"""
+"""@docs
     lfps(X::AbstractArray; q_lowfreq=0.1)
 
 Computes the low-frequency power spectrum of a matrix over the 2nd dimension.
@@ -215,6 +217,8 @@ function lfps(X::CuArray{T, 2}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
     Pnorm = P ./ reduce(+, P, dims=2)
     return reduce(+, Pnorm[:, 1:roundint(q_lowfreq * size(Pnorm, 2))], dims=2)
 end
+
+# TODO: implement wavelet coefficient
 
 #####################################################
 # Spatial indicators
