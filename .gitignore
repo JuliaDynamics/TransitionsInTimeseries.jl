@@ -3,5 +3,6 @@ Manifest.toml
 *.scss
 *.css
 notebooks
-examples
+examples_own
 entropies
+.vscode
