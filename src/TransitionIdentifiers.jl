@@ -5,7 +5,7 @@ using BenchmarkTools, CUDA, FFTW, StatsBase, LinearAlgebra
 include("utils.jl")
 include("signal_processing.jl")
 include("smoothing_kernels.jl")
-include("statistical_estimators.jl")
+include("indicators.jl")
 include("trend_estimation.jl")
 include("significance.jl")
 include("indicate_transition.jl")
