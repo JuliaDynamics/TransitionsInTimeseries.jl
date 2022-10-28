@@ -19,7 +19,7 @@ To avoid memory overflows one can choose the sparse output.
 
 function indicate_transition(
     ttrend::Vector{T},
-    X::Union{Matrix{T}, CuArray{T,2}},
+    X::Union{Matrix{T}, CuArray{T,2}},      # TODO introduce type M to distinguish between CPU and GPU
     pindctr::WindowingParams,
     pidtrend::WindowingParams,
     ns::Int,
@@ -29,7 +29,7 @@ function indicate_transition(
     window::Function = centered_wndw,
     min_num_indicators::Int = length(tis),
     kwargs...,
-) where {T}
+) where {T<:Real}
 
     nx, nt = size(X)
     ni = length(tis)
@@ -39,13 +39,13 @@ function indicate_transition(
     tindctr = trim_wndw(ttrend, pindctr, window)
     tidtrend = trim_wndw(tindctr, pidtrend, window)
 
-    reference_ti = Dict{String,CuArray{T,2}}()
-    surrogate_ti = Dict{String,CuArray{T,2}}()
+    reference_ti = Dict{String, CuArray{T,2}}()
+    surrogate_ti = Dict{String, CuArray{T,2}}()
 
-    reference_idtrend = Dict{String,CuArray{T,2}}()
-    surrogate_idtrend = Dict{String,CuArray{T,2}}()
+    reference_idtrend = Dict{String, CuArray{T,2}}()
+    surrogate_idtrend = Dict{String, CuArray{T,2}}()
 
-    significance = Dict{String,CuArray{T,2}}()
+    significance = Dict{String, CuArray{T,2}}()
 
     for (ti_function, label) in zip(tis, ti_labels)
 
@@ -122,7 +122,7 @@ struct verboseTIresults{T}
     predictor_time::Vector{Vector{T}}
 end
 
-struct sparseTIresults{T}
+struct sparseTIresults{T<:Real}
     tindctr::Vector{T}
     tidtrend::Vector{T}
     reference_ti::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
@@ -132,4 +132,12 @@ struct sparseTIresults{T}
     predictor_time::Vector{Vector{T}}
 end
 
-# TODO replace indctr by idntfr?
+# struct sparseTIresults{M::Union{Matrix{T}, CuArray{T,2}}} where {T<:Real}
+#     tindctr::Vector{T}
+#     tidtrend::Vector{T}
+#     reference_ti::Dict{String, M}
+#     reference_idtrend::Dict{String, M}
+#     significance::Dict{String, M}
+#     positive_indicators::M
+#     predictor_time::Vector{Vector{T}}
+# end
