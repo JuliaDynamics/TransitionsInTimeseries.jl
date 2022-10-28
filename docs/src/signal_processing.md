@@ -22,6 +22,12 @@
     trim_wndw
 ```
 
+## Kernels
+
+```@docs
+    scaled_kernel
+```
+
 ### Sliding function over arrays
 
 ```@docs
