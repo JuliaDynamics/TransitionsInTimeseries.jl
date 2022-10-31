@@ -27,8 +27,8 @@ export biweight_kernel, triweight_kernel, tricube_kernel
 export gaussian_kernel, cosine_kernel, logistic_kernel
 export sigmoid_kernel, scaled_kernel
 
-export mean, var, skw, krt
-export ar1_whitenoise
+export mean, masked_mean, var, masked_meansquare, skw, krt
+export ar1_whitenoise, masked_ar1_whitenoise
 export lfps
 
 export generate_stacked_fourier_surrogates
