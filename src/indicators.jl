@@ -28,39 +28,38 @@ TODO: implement beyond white-noise assumption.
 #####################################################
 
 """@docs
-    mean(X::AbstractArray)
+    mean(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
-Computes the mean of an array of dimension < 3 over the last dimension.
+Computes the mean of an array over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function mean(x::Vector{T}) where {T<:Real}
-    return StatsBase.mean(x)
-end
-
-function mean(x::Matrix{T}) where {T<:Real}
-    return StatsBase.mean(x, dims=2)
+function mean(X::Array{T}) where {T<:Real}
+    return StatsBase.mean(X, dims=length(size(X)))
 end
 
 function mean(X::CuArray{T, 2}) where {T<:Real}
-    return reduce( +, X, dims=2) ./ T(size(X, 2))
-end
-
-function mean(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
-    return reduce( +, X, dims=2) ./ T(size(X, 2))
+    reduce_dim = length(size(X))
+    return reduce( +, X, dims=reduce_dim) ./ T(size(X, reduce_dim))
 end
 
 """@docs
-    var(X::AbstractArray)
+    masked_mean(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
-Computes the variance of an array of dimension < 3 over the last dimension.
+Computes the sliding-window mean of an array over the last dimension by using a mask.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function var(x::Vector{T}) where {T<:Real}
-    return StatsBase.var(x)
+function masked_mean(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
+    return (X * M) ./ reduce(+, M[:, 1])
 end
 
-function var(x::Matrix{T}) where {T<:Real}
-    return StatsBase.var(x, dims=2)
+"""@docs
+    var(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
+
+Computes the variance of an array over the last dimension.
+If X is a CuArray, the computation takes place on the GPU.
+"""
+function var(X::Array{T}) where {T<:Real}
+    return StatsBase.var(X, dims=length(size(X)))
 end
 
 # Unbiased estimator (consistent with StatsBase).
@@ -74,7 +73,18 @@ function var(X::CuArray{T, 2}) where {T<:Real}
 end
 
 """@docs
-    skw(X::AbstractArray)
+    masked_meansquare(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
+
+Computes the mean squared value of a time series.
+If the time series is detrended, this corresponds loosely to the variance.
+If X is a CuArray, the computation takes place on the GPU.
+"""
+function mean_square(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
+    return (X .^ 2) * M ./ reduce(+, M[:, 1])
+end
+
+"""@docs
+    skw(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the skewness of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
@@ -105,7 +115,7 @@ end
 # TODO compare to skw of StatsBase
 
 """@docs
-    krt(X::AbstractArray)
+    krt(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the kurtosis of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
@@ -140,9 +150,15 @@ end
 #####################################################
 
 """@docs
-    ar1_whitenoise(X::AbstractArray)
+    ar1_whitenoise(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the AR1 coefficient of an array of dimension < 3 over the last dimension.
+Relies on the analytic solution of the least-square parameter estimation which reads:
+
+```math
+\theta = \dfrac{\Sum x_i \, x_{i+1}}{\Sum x_i \, x_{i}}
+```
+
 If X is a CuArray, the computation takes place on the GPU.
 """
 function ar1_whitenoise(x::Vector{T}) where {T<:Real}
@@ -159,8 +175,13 @@ function ar1_whitenoise(X::CuArray{T, 2}) where {T<:Real}
     return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 1:end-1] .* X[:, 1:end-1], dims=2)
 end
 
-# On example nt = 1000, ns = 10000: speedup is factor 10 compared to GPU + CPU loop.
-function ar1_whitenoise(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
+"""@docs
+    masked_ar1_whitenoise(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
+
+Computes the same as [`ar1_ar1noise`](@ref ar1_whitenoise) but by means of a masking matrix.
+This provides a significant speed-up for large data sets that are computed on GPU.
+"""
+function masked_ar1_whitenoise(X::CuArray{T, 2}, M::CuArray{T, 2}) where {T<:Real}
     return ((X[:, 2:end] .* X[:, 1:end-1]) * M[1:end-1, :]) ./ ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
 end
 
@@ -195,7 +216,7 @@ end
 #####################################################
 
 """@docs
-    lfps(X::AbstractArray; q_lowfreq=0.1)
+    lfps(X::A; q_lowfreq=0.1) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the low-frequency power spectrum of a matrix over the 2nd dimension.
 If X is a CuArray, the computation takes place on the GPU.

@@ -16,10 +16,9 @@ To track the process of transition prediction, one might want to access a verbos
 However, the latter can be substantial for large number of variables.
 To avoid memory overflows one can choose the sparse output.
 """
-
 function indicate_transition(
     ttrend::Vector{T},
-    X::Union{Matrix{T}, CuArray{T,2}},      # TODO introduce type M to distinguish between CPU and GPU
+    X::A,
     pindctr::WindowingParams,
     pidtrend::WindowingParams,
     ns::Int,
@@ -29,7 +28,7 @@ function indicate_transition(
     window::Function = centered_wndw,
     min_num_indicators::Int = length(tis),
     kwargs...,
-) where {T<:Real}
+) where {T<:Real, A<:Union{Matrix{T},CuArray{T,2}}}
 
     nx, nt = size(X)
     ni = length(tis)
@@ -39,13 +38,13 @@ function indicate_transition(
     tindctr = trim_wndw(ttrend, pindctr, window)
     tidtrend = trim_wndw(tindctr, pidtrend, window)
 
-    reference_ti = Dict{String, CuArray{T,2}}()
-    surrogate_ti = Dict{String, CuArray{T,2}}()
+    reference_ti = Dict{String, A}()
+    surrogate_ti = Dict{String, A}()
 
-    reference_idtrend = Dict{String, CuArray{T,2}}()
-    surrogate_idtrend = Dict{String, CuArray{T,2}}()
+    reference_idtrend = Dict{String, A}()
+    surrogate_idtrend = Dict{String, A}()
 
-    significance = Dict{String, CuArray{T,2}}()
+    significance = Dict{String, A}()
 
     for (ti_function, label) in zip(tis, ti_labels)
 
@@ -79,11 +78,11 @@ function indicate_transition(
     indicator_trend_sigificance = [significance[label] for label in ti_labels]
     indicator_trend_sigificance3D = stack_indicators(indicator_trend_sigificance)
     positive_indicators = count_positive_indicators(indicator_trend_sigificance3D)
-    positive_idx = Array( positive_indicators .>= min_num_indicators / length(tis) )
-    predictor_time = [tidtrend[positive_idx[i,:]] for i in 1:nx]
+    positive_idx = Array(positive_indicators .>= min_num_indicators / length(tis))
+    predictor_time = [tidtrend[positive_idx[i, :]] for i = 1:nx]
 
     if verbose
-        result = verboseTIresults{T}(
+        result = verboseTIresults{T, A}(
             tindctr,
             tidtrend,
             S,
@@ -96,7 +95,7 @@ function indicate_transition(
             predictor_time,
         )
     else
-        result = sparseTIresults{T}(
+        result = sparseTIresults{T, A}(
             tindctr,
             tidtrend,
             reference_ti,
@@ -109,35 +108,27 @@ function indicate_transition(
 
     return result
 end
-struct verboseTIresults{T}
+struct verboseTIresults{T<:Real, A<:Union{Matrix{T}, CuArray{T,2}}}
     tindctr::Vector{T}
     tidtrend::Vector{T}
-    S::Union{Matrix{T}, CuArray{T,2}}
-    reference_ti::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    surrogate_ti::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    reference_idtrend::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    surrogate_idtrend::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    significance::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    positive_indicators::Union{Matrix{T}, CuArray{T,2}}
+    S::A
+    reference_ti::Dict{String, A}
+    surrogate_ti::Dict{String, A}
+    reference_idtrend::Dict{String, A}
+    surrogate_idtrend::Dict{String, A}
+    significance::Dict{String, A}
+    positive_indicators::A
     predictor_time::Vector{Vector{T}}
 end
 
-struct sparseTIresults{T<:Real}
+struct sparseTIresults{T<:Real, A<:Union{Matrix{T}, CuArray{T,2}}}
     tindctr::Vector{T}
     tidtrend::Vector{T}
-    reference_ti::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    reference_idtrend::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    significance::Dict{String, Union{Matrix{T}, CuArray{T,2}}}
-    positive_indicators::Union{Matrix{T}, CuArray{T,2}}
+    reference_ti::Dict{String, A}
+    reference_idtrend::Dict{String, A}
+    significance::Dict{String, A}
+    positive_indicators::A
     predictor_time::Vector{Vector{T}}
 end
 
-# struct sparseTIresults{M::Union{Matrix{T}, CuArray{T,2}}} where {T<:Real}
-#     tindctr::Vector{T}
-#     tidtrend::Vector{T}
-#     reference_ti::Dict{String, M}
-#     reference_idtrend::Dict{String, M}
-#     significance::Dict{String, M}
-#     positive_indicators::M
-#     predictor_time::Vector{Vector{T}}
-# end
+# TODO test the new fast-forward function typing.
