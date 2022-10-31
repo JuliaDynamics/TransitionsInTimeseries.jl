@@ -219,28 +219,73 @@ TItrend_ref = zeros(T, nx, length(tidtrend), nti)
 
 for i in 1:nti
     for j in 1:nx
-        TItrend_ref = slide_idtrend
+        TItrend_ref[j, :, i] = slide_idtrendslide_idtrend( TIref[j, :, i], tindctr, p_window_idtrend, ridge_regression_slope, window)
+    end
+end
 ```
 
 ### Significance of indicator trends
 
+It is of course possible to plot the trend over time and eyeball any large value to recognise a possible transition. However this technique presents several major drawbacks:
+
+- Such arbitrary criterion is not well-defined.
+- It does not allow automation, which is highly desired when dealing with large data.
+
+A solution to this problem is to perform a test for statistical significance. To this end, we artificially generate so-called surrogate time series (typically 1,000 -- 10,000 for each original time series). These preserve most properties of the original signal, while suppressing their deterministic content. For a given indicator, its increase represents a certain percentile of the surrogate data, if this percentile is high enough, the indicator increase can be considered as significant.
+
+Generating surrogates can be done by running a single command:
+
+```julia
+ns = 10_000
+Scpu = generate_stacked_fourier_surrogates(Xres, ns)
+```
+
+We then repeat the computation of indicators and their trends on the surrogate data:
+
+```julia
+surrogate_ar1_cpu = slide_estimator( Scpu, p_window_indctr, ar1_whitenoise, window )
+```
+
+Finally, we can compute the percentile represented by the original time series by running:
+
+```julia
+lfps_psignificance_cpu = percentile_significance(reference_lfpstrend_cpu, surrogates_lfpstrend_cpu, ns, nmodels)
+```
+
+### Lumping information into a warning
+
+The percentile is a real value between 0 and 1 and delivers a non-binary information. However, one might want to lump the information into a binary signal of type "warning" vs. "no warning". For this, one needs to define the threshold percentile to consider an increase of transition indicator as critical, as well as the number of indicators required to be positive for a warning to be triggered. For instance one might compute 5 different indicators but require only 4 of them to be positive for triggering a warning.
+
+```julia
+min_num_indicators = 3
+indicator_trend_sigificance3D = stack_indicators( indicator_list )
+positive_indicators = count_positive_indicators(indicator_trend_sigificance3D)
+positive_idx = positive_indicators .>= min_num_indicators / length(indicator_list)
+predictor_time = [tsignificance[positive_idx[i,:]] for i in 1:2]
+```
+
+After this computation, one can finally visualise the warning associated with the critical slowing down happening on the doublewell system.
+
+```julia
+[stairs!(axs[1][j], tsignificance, positive_indicators[j, :], color = :black, step=:post) for j in 1:ncols]
+[vlines!(axs[1][j], predictor_time[j], color = :red) for j in 1:ncols]
+fig
+```
 
 ## [The fast-forward way](@id ffway)
 
-Now that the residuals are computed, one can obtain transition indicators, their trends and their significance by running:
+In many cases, one does not need to perform each step of the computation. Therefore, a method is provided running all the computations given a matrix of residual time series:
 
 ```julia
 # Number of surrogates per time series.
 ns = 10_000
-
-
 
 # Windowing params for TI trend estimation.
 T_idtrend_wndw = T(2e0)
 T_idtrend_strd = T(1e0)
 p_window_idtrend = get_windowing_params([dt, T_idtrend_wndw, T_idtrend_strd])
 
-sol = identify_transition(
+sol = indicate_transition(
     ttrend,
     Xres,
     p_window_indctr,

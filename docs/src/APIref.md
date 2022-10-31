@@ -81,6 +81,12 @@ The following API reference is structured along the chronology of a typical comp
 
 ### Analytic regression
 
+
+```math
+\theta = \frac{\sum_i x_i \, x_{i+1}}{\sum_i x_i \, x_i}
+```
+
+
 ```@docs
     ar1_whitenoise
 ```
@@ -104,7 +110,7 @@ The following API reference is structured along the chronology of a typical comp
 
 
 
-## Trend estimation
+## [Trend estimation](@id api_trends)
 
 ### Linear regression
 

@@ -148,16 +148,11 @@ end
 #####################################################
 # Analytic regression models
 #####################################################
-
 """@docs
     ar1_whitenoise(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the AR1 coefficient of an array of dimension < 3 over the last dimension.
 Relies on the analytic solution of the least-square parameter estimation which reads:
-
-```math
-\theta = \dfrac{\Sum x_i \, x_{i+1}}{\Sum x_i \, x_{i}}
-```
 
 If X is a CuArray, the computation takes place on the GPU.
 """
