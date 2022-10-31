@@ -88,7 +88,7 @@ end
 #####################################################
 # Sliding estimators
 #####################################################
-
+# TODO gather slide_estimator and slide_idtrend into one function
 """@docs
     slide_estimator(X::AbstractArray, p::WindowingParams, estimator::Function, wndw::Function)
 
@@ -232,6 +232,7 @@ function get_trend(
 ) where {T}
     return mapslices( x_ -> gettrend_rollkernel(x_, p, wndw, kernel), X; dims=2 )
 end
+# TODO replace mapslices by matrix vector multiplication (which can also be performed on GPU)
 
 """@docs
     detrend(x::Vector{T}, x_trend::Vector{T})

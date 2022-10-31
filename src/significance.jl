@@ -79,13 +79,13 @@ end
 # Predict transition
 #####################################################
 
-# TODO insert tolerance wrt lag
+# TODO insert tolerance wrt lag?
 function count_positive_indicators(
     indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
     plevel=T(0.95),
     nindicators::Int=size(indicator_trend_significance3D, 3),
     threshold::Bool=false,
-) where {T}
+) where {T<:Real}
     Σ = sum_significant_indicators(indicator_trend_significance3D, plevel)
     prediction = Σ ./ nindicators
     if threshold
