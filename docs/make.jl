@@ -32,11 +32,8 @@ Themes.compile(joinpath(@__DIR__, "juliadynamics-dark.scss"), joinpath(@__DIR__,
 # %% Build docs
 PAGES = [
     "index.md",
-    "signal_processing.md",
-    "indicators.md",
-    "trend_estimation.md",
-    "significance.md",
-    "indicate_transition.md",
+    "APIref.md",
+    "examples/linear_vs_doublewell.md",
 ]
 
 include("style.jl")
@@ -46,6 +43,7 @@ makedocs(
     format = Documenter.HTML(
         prettyurls = CI,
         assets = [
+            "assets/logo-dark.ico",
             asset("https://fonts.googleapis.com/css?family=Montserrat|Source+Code+Pro&display=swap", class=:css),
         ],
         collapselevel = 3,
@@ -56,6 +54,8 @@ makedocs(
     doctest = CI,
     draft = true,
 )
+# TODO make logo appear on the side bar
+# TODO write script making video of double well for large logo.
 
 # if CI
 #     deploydocs(

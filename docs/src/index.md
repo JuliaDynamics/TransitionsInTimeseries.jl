@@ -1,8 +1,4 @@
-# TransitionIndicators.jl
-
-<!-- ```@docs
-TransitionIndicators
-``` -->
+# Introduction
 
 **TransitionIndicators.jl** is a julia package offering scalable and flexible computation of transition indicators. The latter are blueprints of critical slowing down observed before the critical transition of a multistable dynamical system.
 
