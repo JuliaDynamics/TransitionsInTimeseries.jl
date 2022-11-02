@@ -3,7 +3,7 @@ TODO: test statistical moments (wrt. StatsBase)
 =#
 
 using Test, TransitionIdentifiers
-using DifferentialEquations, CUDA, CairoMakie
+using DifferentialEquations, CUDA
 
 function f_linear!(dx, x, p, t)
     dx[1] = p[1] * x[1]
@@ -24,8 +24,9 @@ end
     T = Float32
     dt = T(1e-2) 
     t = collect(T(0):dt:T(10))
-    p = [-rand(T), T(0.1)]      # λ, σ
+    p = [-rand(T), T(0.1)]      # λ (make it random ), σ
     x0 = [T(1)]
+    θ = exp(dt * p[1])          # θ is time discrete equivalent of λ
 
     x_mat = generate_ar1(x0, p, t)
     x_vec = vec(x_mat)
@@ -33,12 +34,13 @@ end
     θ_est_vec = ar1_whitenoise(x_vec)
     θ_est_mat = ar1_whitenoise(x_mat)[1]
     θ_est_gpu = Array( ar1_whitenoise(x_gpu) )[1]
-    θ = exp(dt * p[1])          # θ is time discrete equivalent of λ
+    # θ_est_msk = Array( masked_ar1_whitenoise(xgpu) )
     # TODO: add the accelerated AR1
 
-    @test isapprox(θ_est_vec, θ_est_mat)
-    @test isapprox(θ_est_gpu, θ_est_mat)
-    @test isapprox(θ_est_gpu, θ, atol = T(1e-2))
+    @test isapprox(θ_est_vec, θ, atol = T(1e-3))
+    @test isapprox(θ_est_mat, θ, atol = T(1e-3))
+    @test isapprox(θ_est_gpu, θ, atol = T(1e-3))
+    # @test isapprox(θ_est_msk, θ, atol = T(1e-3))
 end
 
 function generate_affine_data(t::Vector{T}, nr::Int) where {T}
