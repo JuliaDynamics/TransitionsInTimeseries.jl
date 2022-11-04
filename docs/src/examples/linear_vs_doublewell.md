@@ -1,8 +1,8 @@
-# Example: double-well system
+# [Example: double-well vs. linear system](@id doublewell_vs_linear)
 
 ## Introduction
 
-On of the simplest system displaying bi-stability is the double-well potential. By taking the negative gradient of such 1D potential, one obtains following normal form:
+One of the simplest system displaying bistability is the double-well potential. By taking the negative gradient of such 1D potential, one obtains following normal form:
 
 ```math
 \dot{x} = -x^3 + x + F(t) + n(t)
@@ -10,15 +10,17 @@ On of the simplest system displaying bi-stability is the double-well potential. 
 
 with $\dot{x}$ the time derivative of the state $x$, $F$ the forcing and $n$ a source of additive white noise with variance $\sigma^2$. For the autonomous case, the system displays stable equilibrium points in $x=-1$, $x=1$ and an unstable one in $x=0$. By setting $x(t=0) = -1$ and applying a slow linear drift in $F$, one can artificially generate a transition, which is expected to be detectable thanks to TIs.
 
-A common problem of TIs is to deliver false positives, i.e. prediction of a transition ahead even when none is about to happen. To investigate this aspect in parallel, we study a linear model also displaying an equilibrium point at $x=-1$ for the autonomous case and defined as:
+A common problem of TIs is to deliver false positives, i.e. prediction of a transition ahead even when none is about to happen. To investigate this potential drawback in parallel, we study a linear model also displaying an equilibrium point at $x=-1$ for the autonomous case and defined as:
 
 ```math
 \dot{x} = \lambda (x+1) + F(t) + n(t).
 ```
 
-As linear models do not allow critical transitions to occur, they provide a baseline to check for false positives. Putting these equations into code results in:
+Here we fix $\lambda=-1$. As linear models do not allow critical transitions to occur, they provide a baseline to check for false positives. Putting these equations into code results in:
 
 ```julia
+T = Float32
+
 # Deterministic part of linear system.
 function f_linear(dx, x, p, t)
     dx[1] = p["λ"] * (x[1] + 1) + forcing(p, t)
@@ -48,14 +50,13 @@ pmodel = Dict(
 
 ## Generating data of critical transition
 
-Let's now define the models with initial condition in their common equilibrium point $x=-1$ and generate forced time series.
+Let's initialize both system at their common equilibrium point $x=-1$ and generate forced time series by integrating the resulting stochastic differential equation.
 
 ```julia
 using DifferentialEquations
 
-T = Float32
 dt = 5f-2
-t = 0f0:dt:100f0
+t = collect(0f0:dt:100f0)
 tspan = extrema(t)
 x0 = [-1f0]
 
@@ -86,12 +87,21 @@ where $x^{(j)}_k$ the state of model $j$ (1=linear, 2=double-well) at time step 
 ```julia
 using CairoMakie
 
-nrows, ncols = 5, nx
+ylabels = [
+    L"$x(t)$",
+    L"residual $r(t)$",
+    L"AR1 regression coefficient $\hat{\theta}(t)$",
+    L"Trend $\alpha(t)$ of $\hat{\theta}(t)$",
+    L"Percentile significance $p$ of $\alpha(t)$",
+]
+
+nrows, ncols = length(ylabels), nx
 fig = Figure( resolution = (1500, 1500) )
 axs = [[Axis(
     fig[i,j],
-    title = ( i==1 ? labels[j] : " "),
-    xlabel = ( i==nrows ? "Time" : " "),
+    title = ( i==1 ? labels[j] : " " ),
+    xlabel = ( i==nrows ? "Time" : " " ),
+    ylabel = ( j==1 ? ylabels[i] : " " ),
     xminorticks = tspan[1]:5:tspan[2],
     xminorgridvisible = true,
     ) for j in 1:ncols] for i in 1:nrows]
@@ -99,12 +109,13 @@ axs = [[Axis(
 for j in 1:nx
     lines!(axs[1][j], t, X[j, :], label = L"data $\,$")
     ylims!(axs[1][j], (-1.2, 1.5))
+end
 fig
 ```
 
 ## Smoothing and de-trending
 
-Critical slowing down is possibly observed in the response of  the system to noise. To study this without taking the slower, deterministic dynamic into account, the time series is filtered. Here some of the many options are:
+Critical slowing down is possibly observed in the response of the system to noise. To study this without taking the slower, deterministic dynamic into account, the time series is filtered. Here some of the many options are:
 
 1. Take a moving average.
 
@@ -125,7 +136,7 @@ In the case of a smoothing with discrete kernel $u \in \mathbb{R}^{2 N+1}$, a sl
  x_{i+N-1} & x_{i+N} & \end{pmatrix} \cdot u
 ```
 
-An extensive list of kernels can be found [here](https://en.wikipedia.org/wiki/Kernel_(statistics)). They are implemented in the present package and can be found in the [`API reference`](@ref api_ref). In the present case, a centered window is applied on the data $x$, but the user can choose whether they prefer to use e.g. a left-window. Furthermore, the half-width $N$ of the window as well as the stride with which the operation should be applied are to be determined by the user. An exemplary code is here provided:
+An extensive list of kernels can be found [here](https://en.wikipedia.org/wiki/Kernel_(statistics)). They are implemented in the present package and can be found in the [API reference](@ref api_ref). In the present case, a centered window is applied on the data $x$, but the user can choose whether they prefer to use e.g. a left-window. Furthermore, the half-width $N$ of the window as well as the stride with which the operation should be applied are to be determined by the user. An exemplary code is here provided:
 
 ```julia
 using TransitionIdentifiers
@@ -146,145 +157,105 @@ Xres = trim_wndw(X, p_window_smooth, window) - Xtrend
 
 for i in 1:nx
     lines!(axs[1][i], ttrend, Xtrend[i, :], label = L"trend $\,$")
-    lines!(axs[2][i], ttrend, Xres[i, :], label = L"residual $\,$")
+    lines!(axs[2][i], ttrend, Xres[i, :], label = L"original residual $\,$")
 end
 
 axislegend(axs[1][2], position = :lt)
 fig
 ```
-## The step-by-step way
 
-From here on, two paths open for the user: either do the computation step by step and keep a large flexibility to process data in between, or go the fast-forward way to directly obtain the transition indicators, their trends, their significance and associated potential warning for transition.
+The result of the detrended time series is called _residual_.
 
-Whatever way you prefer, we recommend to read the step-by-step way to understand what happens under the hood of [The fast-forward way](@ref ffway).
+## A step-by-step introduction
 
-### Estimating the transition indicators
+For didactic purposes we now show step by step how to compute a transition indicator (here exemplarly the AR1 regression coefficient under white noise assumption), its trend and its significance. This way of proceeding is more verbose in syntax but lets the user have full control of possible in-between steps they might want to perform. A faster syntax wrapping all these steps is shown in [The fast-forward way](@ref ffway).
 
-Now that the residuals are computed, one can estimate transition indicators. For this we first need to define windowing parameters and compute the associated time vector:
+### Estimating the transition indicator
+
+Now that the residuals are computed, one can estimate transition indicators. For this we first need to define windowing parameters and compute the associated time vector. The computation itself is performed via the [`slide_estimator`](@ref) function, which slides the windowed computation over the time series.
 
 ```julia
 # Windowing parameters for TI estimation.
 T_indctr_wndw = T(5e-1)
 T_indctr_strd = T(dt)
 p_window_indctr = get_windowing_params([dt, T_indctr_wndw, T_indctr_strd])
-
 window = left_wndw
+
 tindctr = trim_wndw(ttrend, p_window_indctr, window)
-```
+origin_ar1 = slide_estimator(Xres, p_window_indctr, ar1_whitenoise, window)
 
-The implemented functions to estimate transition indicators is provided in the [API reference](@ref api_indicators). By defining a list with such functions, one can easily specify which transition indicators are to be computed. The computation itself is performed via the [`slide_estimator`](@ref) function, which slides the windowed computation over the time series.
-
-```julia
-TIlist = [var, ar1_whitenoise, lfps]
-nti = length(TIlist)
-
-# pre-allocate an array for TI computation.
-TIref = zeros(T, nx, length(tindctr), nti)
-
-# labels associated with each TI for plotting.
-TIlabels = [
-    L"variance $\,$",
-    L"AR1 coefficient $\,$",
-    L"LFPS $\,$"]
-
-for i in 1:nti
-    TIref[:, :, i] = slide_estimator(Xres, p_window_indctr, TIlist[i], window)
-    
-    for j in 1:nx
-        lines!(axs[2+i][j], tindctr, TIref[j, :, i], label = TIlabels[i])
-    end
+for j in 1:nx
+    lines!(axs[3][j], tindctr, origin_ar1[j, :], label = L"AR1 coefficient $\,$")
+    ylims!(axs[3][j], (-.1, 1.1))
 end
-[ylims!(axs[i][j], (-.1, 1.1)) for i in 3:nrows, j in 1:ncols]
 
 fig
 ```
 
+The implemented functions to estimate other transition indicators are listed in the [API reference](@ref api_indicators). They can be used instead of `ar1_whitenoise` while keeping the rest of the syntax identical.
+
 ### Estimating indicator trends
 
-To indicate a transition, one is primarly interested in the trend of an indicator rather than in its absolute value. Here again, the computation requires the definition of a certain window over which the trend computation is performed:
+To indicate a transition, one is primarly interested in the trend of an indicator rather than in its absolute value. Here again, the computation requires the definition of a certain window over which the trend computation is performed. To estimate the trend of a variable, an affine regression can be performed. The coefficient of the linear term gives a scalar measure of the trend. The ridge regression is a generalisation of the affine regression as it allows for regularization:
 
 ```julia
 T_idtrend_wndw = T(2e0)
 T_idtrend_strd = T(1e0)
 dt_id = round(tindctr[2] - tindctr[1]; digits = 4)
-
 p_window_idtrend = get_windowing_params([dt_id, T_idtrend_wndw, T_idtrend_strd])
+
 tidtrend = trim_wndw( tindctr, p_window_idtrend, window )
-```
+origin_ar1_trend = slide_idtrend( origin_ar1, tindctr, p_window_idtrend, ridge_regression_slope, window)
 
-Once this is done, one can easily compute the trends of the transition indicators by using one of the methods listed in the [API reference](@ref api_trends)
-
-```julia
-TItrend_ref = zeros(T, nx, length(tidtrend), nti)
-
-for i in 1:nti
-    for j in 1:nx
-        TItrend_ref[j, :, i] = slide_idtrendslide_idtrend( TIref[j, :, i], tindctr, p_window_idtrend, ridge_regression_slope, window)
-    end
+for j in 1:nx
+    lines!(axs[4][j], tidtrend, origin_ar1_trend[j, :], label = L"trend of AR1 coefficient $\,$")
 end
+fig
 ```
+
+Many more methods are available to estimate the trend of a time series. They are listed in the [API reference](@ref api_trends) and can be used instead of `ridge_regression_slope` while using the same syntax.
 
 ### Significance of indicator trends
 
-It is of course possible to plot the trend over time and eyeball any large value to recognise a possible transition. However this technique presents several major drawbacks:
+It is of course possible to plot the trend over time and eyeball any large value to recognise a possible transition. However this presents several major drawbacks:
 
 - Such arbitrary criterion is not well-defined.
 - It does not allow automation, which is highly desired when dealing with large data.
 
-A solution to this problem is to perform a test for statistical significance. To this end, we artificially generate so-called surrogate time series (typically 1,000 -- 10,000 for each original time series). These preserve most properties of the original signal, while suppressing their deterministic content. For a given indicator, its increase represents a certain percentile of the surrogate data, if this percentile is high enough, the indicator increase can be considered as significant.
+A solution to this problem is to perform a test for statistical significance. To this end, we artificially generate so-called surrogate time series (typically 1,000 -- 10,000 for each original time series). These preserve most properties of the original residual, while suppressing its deterministic content. For a given indicator, its increase represents a certain percentile of the surrogate data, if this percentile is high enough, the indicator increase can be considered as significant.
 
-Generating surrogates can be done by running a single command:
+Generating surrogates can be done by running a single command. Furthermore, we here visualise some of the surrogate residuals to give the user following intuition: although the spectrum is not altered compared to the original residuals, Fourier surrogates do not display any deterministic dynamic.
 
 ```julia
 ns = 10_000
-Scpu = generate_stacked_fourier_surrogates(Xres, ns)
-```
-
-We then repeat the computation of indicators and their trends on the surrogate data:
-
-```julia
-surrogate_ar1_cpu = slide_estimator( Scpu, p_window_indctr, ar1_whitenoise, window )
-```
-
-Finally, we can compute the percentile represented by the original time series by running:
-
-```julia
-lfps_psignificance_cpu = percentile_significance(reference_lfpstrend_cpu, surrogates_lfpstrend_cpu, ns, nmodels)
-```
-
-### Lumping information into a warning
-
-The percentile is a real value between 0 and 1 and delivers a non-binary information. However, one might want to lump the information into a binary signal of type "warning" vs. "no warning". For this, one needs to define the threshold percentile to consider an increase of transition indicator as critical, as well as the number of indicators required to be positive for a warning to be triggered. For instance one might compute 5 different indicators but require only 4 of them to be positive for triggering a warning.
-
-```julia
-min_num_indicators = 3
-indicator_trend_sigificance3D = stack_indicators( indicator_list )
-positive_indicators = count_positive_indicators(indicator_trend_sigificance3D)
-positive_idx = positive_indicators .>= min_num_indicators / length(indicator_list)
-predictor_time = [tsignificance[positive_idx[i,:]] for i in 1:2]
-```
-
-After this computation, one can finally visualise the warning associated with the critical slowing down happening on the doublewell system.
-
-```julia
-[stairs!(axs[1][j], tsignificance, positive_indicators[j, :], color = :black, step=:post) for j in 1:ncols]
-[vlines!(axs[1][j], predictor_time[j], color = :red) for j in 1:ncols]
+S = generate_stacked_fourier_surrogates(Xres, ns)
+lines!(axs[2][1], ttrend, S[1, :], label="surrogate residual")
+lines!(axs[2][2], ttrend, S[ns+1, :], label="surrogate residual")
+axislegend(axs[2][2], position = :lt)
 fig
 ```
+
+We then repeat the computation of indicators and their trends on the surrogate data, by using the same syntax as for the original residual. Finally, we can compute and visualize the percentile represented by the original time series with respect to the surrogate data. This is done by running:
+
+```julia
+surrogate_ar1 = slide_estimator( S, p_window_indctr, ar1_whitenoise, window )
+surrogate_ar1_trend = slide_idtrend( surrogate_ar1, tindctr, p_window_idtrend, ridge_regression_slope, window)
+ar1_psignificance = percentile_significance(origin_ar1_trend, surrogate_ar1_trend, ns, nx)
+
+for j in 1:nx
+    lines!(axs[5][j], tidtrend, ar1_psignificance[j, :], label=L"$p$")
+    hlines!(axs[5][j], [0.95], label=L"$95$th percentile", color = :red)
+end
+fig
+```
+
+A single transition indicator is often not robust enough to avoid false positives. In other words, the trend significance of the AR1 regression coefficient might lead to alarms when no transition is coming. Therefore, it is common to compute at least two transition indicators. In the next section we show how to compute arbitrarily many of them with a single line of code.
 
 ## [The fast-forward way](@id ffway)
 
 In many cases, one does not need to perform each step of the computation. Therefore, a method is provided running all the computations given a matrix of residual time series:
 
 ```julia
-# Number of surrogates per time series.
-ns = 10_000
-
-# Windowing params for TI trend estimation.
-T_idtrend_wndw = T(2e0)
-T_idtrend_strd = T(1e0)
-p_window_idtrend = get_windowing_params([dt, T_idtrend_wndw, T_idtrend_strd])
-
 sol = indicate_transition(
     ttrend,
     Xres,
@@ -294,4 +265,6 @@ sol = indicate_transition(
     [ar1_whitenoise, var, lfps],
 )
 ```
+
+To plot the results, we run:
 
