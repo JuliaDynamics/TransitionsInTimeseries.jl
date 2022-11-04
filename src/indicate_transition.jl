@@ -27,9 +27,11 @@ function indicate_transition(
     trend_measure::Function = ridge_regression_slope,
     window::Function = centered_wndw,
     min_num_indicators::Int = length(tis),
+    p_min::Real = 0.95,
     kwargs...,
 ) where {T<:Real, A<:Union{Matrix{T},CuArray{T,2}}}
 
+    println(A)
     nx, nt = size(X)
     ni = length(tis)
     S = generate_stacked_fourier_surrogates(X, ns)
@@ -77,7 +79,7 @@ function indicate_transition(
 
     indicator_trend_sigificance = [significance[label] for label in ti_labels]
     indicator_trend_sigificance3D = stack_indicators(indicator_trend_sigificance)
-    positive_indicators = count_positive_indicators(indicator_trend_sigificance3D)
+    positive_indicators = count_positive_indicators(indicator_trend_sigificance3D, plevel=p_min)
     positive_idx = Array(positive_indicators .>= min_num_indicators / length(tis))
     predictor_time = [tidtrend[positive_idx[i, :]] for i = 1:nx]
 
