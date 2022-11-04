@@ -64,13 +64,6 @@ centered_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (n_wndw+1):n_strd:(nt-n_wndw)
 left_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (2*n_wndw+1):n_strd:nt
 right_wndw(n_wndw::Int, n_strd::Int, nt::Int) = 1:n_strd:(nt-2*n_wndw)
 
-# These functions are for the mask generation
-# We leave the last index out (bottom 1 of each column) to account for dim reduction due to X[2:end] * X[1:end-1]
-centered_wndw(n_wndw::Int) = -n_wndw+1:n_wndw
-left_wndw(n_wndw::Int) = -2*n_wndw+1:0
-right_wndw(n_wndw::Int) = 1:2*n_wndw
-
-
 """@docs
     trim_wndw(X::AbstractArray, p::WindowingParams, wndw::Function)
 
@@ -252,10 +245,56 @@ function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 # Masking
 #####################################################
 
-function window_mask(nt::Int, p::WindowingParams, wndw::Function)
-    return diagm( [i => ones(nt-abs(i)) for i in wndw(p.Nwndw)]... )
+"""@docs
+    window_mask(nt::Int, p::WindowingParams, wndw::Function)
+
+Get matrix of type:
+1 0 0
+1 1 0
+0 1 1
+0 0 1
+
+Windowing differentiation performed wrongly so far --> just append zero matrix for correct shift.
+"""
+function window_mask(T::Type, nt::Int, p::WindowingParams, type::String)
+    if type == "common"
+        idx = -p.Nwndw:p.Nwndw
+    elseif type == "ar1"
+        idx = -p.Nwndw+1:p.Nwndw
+    end
+    return spdiagm( [i => ones(T, nt-abs(i)) for i in idx]... )
 end
 
-function strided_window_mask(nt::Int, p::WindowingParams, wndw::Function)
-    return Float32.( CuArray( window_mask(nt::Int, p::WindowingParams, wndw)[:, wndw(p.Nwndw, p.Nstrd, nt)] ) )
+"""@docs
+    strided_window_mask(nt::Int, p::WindowingParams, wndw::Function)
+
+Get matrix of type:
+1 0
+1 0
+0 1
+0 1
+
+For AR1 computation, window needs to be adapted --> use e.g. ar1_left_wndw insted of left_wndw
+"""
+function strided_window_mask(T::Type, nt::Int, p::WindowingParams, type::String, wndw::Function)
+    return window_mask(T, nt, p, type)[:, wndw(p.Nwndw, p.Nstrd, nt)]
+end
+
+# Multiple dispatch of windowing functions for mask generation.
+function centered_wndw( M::SparseMatrixCSC{T, Int}, p::WindowingParams ) where {T}
+    n1, n2 = size(M)
+    Z = spzeros(T, (n1, p.Nwndw))
+    return hcat(Z, M[:, p.Nwndw+1:end-p.Nwndw], Z)
+end
+
+function left_wndw( M::SparseMatrixCSC{T, Int}, p::WindowingParams ) where {T}
+    n1, n2 = size(M)
+    Z = spzeros(T, (n1, 2*p.Nwndw))
+    return hcat(Z, M[:, p.Nwndw+1:end-p.Nwndw])
+end
+
+function right_wndw( M::SparseMatrixCSC{T, Int}, p::WindowingParams ) where {T}
+    n1, n2 = size(M)
+    Z = spzeros(T, (n1, 2*p.Nwndw))
+    return hcat(M[:, p.Nwndw+1:end-p.Nwndw], Z)
 end
