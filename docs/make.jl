@@ -34,6 +34,7 @@ PAGES = [
     "index.md",
     "APIref.md",
     "examples/linear_vs_doublewell.md",
+    "benchmarks.md",
 ]
 
 include("style.jl")
