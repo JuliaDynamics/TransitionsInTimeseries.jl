@@ -2,8 +2,49 @@
 TODO: test statistical moments (wrt. StatsBase)
 =#
 
-using Test, TransitionIdentifiers
-using DifferentialEquations, CUDA
+using Revise
+push!(LOAD_PATH,"/home/jan/.julia/dev/TransitionIdentifiers")
+using TransitionIdentifiers
+using Test
+using DifferentialEquations
+using CUDA
+using StatsBase
+
+###############################
+# Correct computation of statistical moments
+###############################
+
+@testset "skewness" begin
+    T = Float32
+    n = 10000
+    x = rand(T, n)
+    X = reshape(x, (1,n))
+    Xgpu = CuArray(X)
+
+    skw0 = StatsBase.skewness(x)
+    skw1 = skw(X)[1, 1]
+    skw2 = skw(Xgpu)[1, 1]
+    @test isapprox(skw0, skw1, atol = T(1e-5))
+    @test isapprox(skw0, skw2, atol = T(1e-5))
+end
+
+@testset "kurtosis" begin
+    T = Float32
+    n = 10000
+    x = rand(T, n)
+    X = reshape(x, (1,n))
+    Xgpu = CuArray(X)
+
+    krt0 = StatsBase.kurtosis(x)
+    krt1 = krt(X)[1, 1]
+    krt2 = krt(Xgpu)[1, 1]
+    @test isapprox(krt0, krt1, atol = T(1e-2))
+    @test isapprox(krt0, krt2, atol = T(1e-2))
+end
+
+###############################
+# Analytic AR1 regression
+###############################
 
 function f_linear!(dx, x, p, t)
     dx[1] = p[1] * x[1]
@@ -43,6 +84,10 @@ end
     # @test isapprox(θ_est_msk, θ, atol = T(1e-3))
 end
 
+###############################
+# Linear regression
+###############################
+
 function generate_affine_data(t::Vector{T}, nr::Int) where {T}
     Y = fill(T(NaN), (nr, length(t)))   # init test data.
     W = 10 .* randn(2, nr)              # random parameters of affine function.
@@ -63,6 +108,10 @@ end
     @test sum(isapprox.(W, Wcpu, atol = T(1e-5))) == length(W)
     @test sum(isapprox.(W, Wgpu, atol = T(1e-5))) == length(W)
 end
+
+###############################
+# Percentile computation
+###############################
 
 @testset "significance" begin
     T = Float32
