@@ -2,7 +2,7 @@
 name: New Transition Indicator
 about: A template about suggesting/requesting an new transition indicator for the
   library
-title: "[New Indicator]"
+title: ''
 labels: new indicator
 assignees: ''
 
