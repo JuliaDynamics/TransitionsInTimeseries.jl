@@ -1,7 +1,6 @@
 module TransitionIdentifiers
 
 # TODO: reduce to only needed functions
-using BenchmarkTools
 using CUDA
 using FFTW
 using StatsBase
@@ -15,7 +14,7 @@ include("indicators.jl")
 include("trend_estimation.jl")
 include("significance.jl")
 include("indicate_transition.jl")
-include("benchmark.jl")
+# include("benchmark.jl")
 
 export get_windowing_params
 export centered_wndw, left_wndw, right_wndw, trim_wndw
@@ -28,7 +27,7 @@ export biweight_kernel, triweight_kernel, tricube_kernel
 export gaussian_kernel, cosine_kernel, logistic_kernel
 export sigmoid_kernel, scaled_kernel
 
-export mean, masked_mean, var, masked_meansquare, skw, krt
+export mean_lastdim, masked_mean, var, masked_meansquare, skw, krt
 export ar1_whitenoise, masked_ar1_whitenoise
 export lfps
 
