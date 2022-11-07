@@ -102,13 +102,13 @@ end
 Slide trend estimation over computed indicator time series `X`. 
 """
 function slide_idtrend(
-    X::CuArray{T,2},
+    X::A,
     t::Vector{T},
     p::WindowingParams,
     estimator::Function,
     wndw::Function;
     kwargs...,
-) where {T<:Real}
+) where {T<:Real, A<:Union{Matrix{T}, CuArray{T, 2}}}
 
     nl, nt = size(X)
     strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
@@ -120,26 +120,27 @@ function slide_idtrend(
         idtrend[:, j1] =
             Array(estimator(wndw(X, j2, p.Nwndw), wndw(t, j2, p.Nwndw); kwargs...))
     end
-    return CuArray(idtrend)
+    return A(idtrend)
 end
 
-function slide_idtrend(
-    X::Matrix{T},
-    t::Vector{T},
-    p::WindowingParams,
-    estimator::Function,
-    wndw::Function;
-    kwargs...,
-) where {T<:Real}
+# # TODO: test
+# function grow_window(
+#     X::Matrix{T},
+#     t::Vector{T},
+#     p::WindowingParams,
+#     estimator::Function,
+#     wndw::Function;
+#     kwargs...,
+# ) where {T<:Real}
 
-    nl, nt = size(X)
-    strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
-    nidx = length(strided_idx)
+#     nl, nt = size(X)
+#     strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
+#     nidx = length(strided_idx)
 
-    idtrend = fill(T(NaN), nl, nidx)
-    for j1 in eachindex(strided_idx)
-        j2 = strided_idx[j1]
-        idtrend[:, j1] = estimator(wndw(X, j2, p.Nwndw), wndw(t, j2, p.Nwndw); kwargs...)
-    end
-    return idtrend
-end
+#     idtrend = fill(T(NaN), nl, nidx)
+#     for j1 in eachindex(strided_idx)
+#         j2 = strided_idx[j1]
+#         idtrend[:, j1] = estimator(X[:, 1:j2], t[1:j2]; kwargs...)
+#     end
+#     return idtrend
+# end
