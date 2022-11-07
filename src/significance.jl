@@ -82,11 +82,11 @@ end
 # TODO insert tolerance wrt lag?
 function count_positive_indicators(
     indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
-    plevel=T(0.95),
+    plevel=0.95,
     nindicators::Int=size(indicator_trend_significance3D, 3),
     threshold::Bool=false,
 ) where {T<:Real}
-    Σ = sum_significant_indicators(indicator_trend_significance3D, plevel)
+    Σ = sum_significant_indicators(indicator_trend_significance3D, T(plevel))
     prediction = Σ ./ nindicators
     if threshold
         prediction = threshold_indicator_significance(prediction)
