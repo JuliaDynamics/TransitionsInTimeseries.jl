@@ -1,4 +1,5 @@
 """@docs
+
     indicate_transition(
         ttrend::Vector{T},
         X::CuArray{T,2},

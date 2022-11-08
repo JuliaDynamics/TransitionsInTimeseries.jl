@@ -5,6 +5,7 @@
 #####################################################
 
 """@docs
+
     ridge_regression(y::AbstractArray, t::Vector; lambda=0::Real)
 
 Ridge regression with regularization parameter lambda.
@@ -32,6 +33,7 @@ function ridge_regression(Y::CuArray{T,2}, t::Vector{T}; lambda = 0::Real) where
 end
 
 """@docs
+
     ridge_regression_slope(y::AbstractArray, t::Vector; lambda=0::Real)
 
 Get the slope of underlying ridge regression.
@@ -61,6 +63,7 @@ end
 #####################################################
 
 """@docs
+
     percentile_significance(ref_stat::AbstractArray, sur_stat::Matrix{T}, ns::Int, nx::Int)
 
 Get percentile significance of reference (original time series) versus surrogate statistics.
@@ -90,6 +93,7 @@ end
 # Slide trend estimations
 #####################################################
 """@docs
+
     slide_idtrend(
         X::CuArray{T, 2},
         t::Vector{T},

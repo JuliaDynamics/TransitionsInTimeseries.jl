@@ -20,6 +20,7 @@ struct WindowingParams
 end
 
 """@docs
+
     get_windowing_params(Tvec::Vector{T})
 
 Creates a WindowingParams struct out of a vector `[dt, Twndw, Tstrd]` with:
@@ -33,6 +34,7 @@ function get_windowing_params(Tvec::Vector{T}) where {T<:Real}
 end
 
 """@docs
+
     centered_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the center-windowed array of half-width `hw` at index `idx`
@@ -42,6 +44,7 @@ centered_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(
 centered_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
 
 """@docs
+
     left_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the left-windowed array of half-width `hw` at index `idx`
@@ -51,6 +54,7 @@ left_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx
 left_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
 
 """@docs
+
     right_wndw(X::AbstractArray, idx::Int, hw::Int)
 
 Gets the right-windowed array of half-width `hw` at index `idx`
@@ -65,6 +69,7 @@ left_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (2*n_wndw+1):n_strd:nt
 right_wndw(n_wndw::Int, n_strd::Int, nt::Int) = 1:n_strd:(nt-2*n_wndw)
 
 """@docs
+
     trim_wndw(X::AbstractArray, p::WindowingParams, wndw::Function)
 
 Trims an array (of dim < 3) along its last dimension.
@@ -83,6 +88,7 @@ end
 #####################################################
 # TODO gather slide_estimator and slide_idtrend into one function
 """@docs
+
     slide_estimator(X::AbstractArray, p::WindowingParams, estimator::Function, wndw::Function)
 
 Slides the computation of `estimator` over the last dimension of an array (dim < 3).
@@ -151,6 +157,7 @@ end
 #####################################################
 
 """@docs
+
     gettrend_rollmean(x::Vector{Real}, p::WindowingParams, wndw::Function)
 
 Computes the rolling mean of the vector x.
@@ -161,6 +168,7 @@ function gettrend_rollmean(x::Vector{T}, p::WindowingParams, wndw::Function) whe
 end
 
 """@docs
+
     gettrend_rollkernel(x::Union{Vector{Real}, Matrix{Real}}, p::WindowingParams, wndw::Function, kernel::Function)
 
 Computes the kernel convolution of x over its last dimension.
@@ -228,6 +236,7 @@ end
 # TODO replace mapslices by matrix vector multiplication (which can also be performed on GPU)
 
 """@docs
+
     detrend(x::Vector{T}, x_trend::Vector{T})
 """
 function detrend(x::Vector{T}, x_trend::Vector{T}) where {T<:Real}
@@ -246,6 +255,7 @@ function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 #####################################################
 
 """@docs
+
     window_mask(nt::Int, p::WindowingParams, wndw::Function)
 
 Get matrix of type:
@@ -266,6 +276,7 @@ function window_mask(T::Type, nt::Int, p::WindowingParams, type::String)
 end
 
 """@docs
+
     strided_window_mask(nt::Int, p::WindowingParams, wndw::Function)
 
 Get matrix of type:

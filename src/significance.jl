@@ -9,6 +9,7 @@ function generate_fourier_surrogate(x::Vector{T}) where {T<:Real}
 end
 
 """@docs
+
     generate_stacked_fourier_surrogates(X::AbstractArray, ns::Int)
 
 Generate ns Fourier surrogates for each line of X.
@@ -49,6 +50,7 @@ end
 # Percentile significance 
 #####################################################
 """@docs
+
     percentile_significance(ref_stat::AbstractArray, sur_stat::Matrix{T}, ns::Int, nx::Int)
 
 Get percentile significance of reference (original time series) versus surrogate statistics.
@@ -80,6 +82,17 @@ end
 #####################################################
 
 # TODO insert tolerance wrt lag?
+"""@docs
+
+    count_positive_indicators(
+        indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
+        plevel=0.95,
+        nindicators::Int=size(indicator_trend_significance3D, 3),
+        threshold::Bool=false,
+    ) where {T<:Real}
+
+Counts the number of indicators displaying a trend above the specified significance.
+"""
 function count_positive_indicators(
     indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
     plevel=0.95,
