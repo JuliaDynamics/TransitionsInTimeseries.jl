@@ -86,71 +86,87 @@ end
 #####################################################
 # Sliding estimators
 #####################################################
-# TODO gather slide_estimator and slide_idtrend into one function
+
 """
 
-    slide_estimator(X::AbstractArray, p::WindowingParams, estimator::Function, wndw::Function)
+    slide(
+        X::A,
+        p::WindowingParams,
+        estimator::Function,
+        wndw::Function;
+        kwargs...,
+    ) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
 
-Slides the computation of `estimator` over the last dimension of an array (dim < 3).
-The type of windowing is specified by `wndw` and `p` (size and stride).
-If X is a CuArray, the computation takes place on the GPU.
+Function sliding `estimator` over time axis of `X` with time `t`, windowing parameters `p` and window type `wndw`.
 """
-function slide_estimator(
-    x::Vector{T},
+function slide(
+    X::A,
+    t::Vector{T},
     p::WindowingParams,
     estimator::Function,
-    wndw::Function,
-) where {T<:Real}
+    wndw::Function;
+    kwargs...,
+) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
 
-    nt = length(x)
+    nl, nt = size(X)
     strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
     nidx = length(strided_idx)
 
-    transition_indicator = fill(T(NaN), nidx)
+    # Initialize result of sliding estimator over X.
+    Y = fill(T(NaN), nl, nidx)
     @inbounds for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        transition_indicator[j1] = estimator(wndw(x, j2, p.Nwndw))
+        Y[:, j1] =
+            Array(estimator(wndw(X, j2, p.Nwndw), wndw(t, j2, p.Nwndw); kwargs...))
     end
-    return transition_indicator
+    return A(Y)
 end
 
-function slide_estimator(
+function slide(
+    x::A,
+    t::Vector{T},
+    p::WindowingParams,
+    estimator::Function,
+    wndw::Function;
+    kwargs...,
+) where {A<:Union{Vector{T}, CuArray{T, 1}}} where {T<:Real}
+
+    X = reshape(x, (1, length(x)))
+    return slide(X, t, p, estimator, wndw)
+end
+
+"""
+
+    function grow_window(
+        X::Matrix{T},
+        t::Vector{T},
+        p::WindowingParams,
+        estimator::Function,
+        wndw::Function;
+        kwargs...,
+    ) where {T<:Real}
+"""
+function grow_window(
     X::Matrix{T},
+    t::Vector{T},
     p::WindowingParams,
     estimator::Function,
-    wndw::Function,
+    wndw::Function;
+    kwargs...,
 ) where {T<:Real}
 
     nl, nt = size(X)
     strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
     nidx = length(strided_idx)
 
-    transition_indicator = fill(T(NaN), nl, nidx)
-    @inbounds for j1 in eachindex(strided_idx)
+    Y = fill(T(NaN), nl, nidx)
+    for j1 in eachindex(strided_idx)
         j2 = strided_idx[j1]
-        transition_indicator[:, j1] = estimator(wndw(X, j2, p.Nwndw))
+        Y[:, j1] = estimator(X[:, 1:j2], t[1:j2]; kwargs...)
     end
-    return transition_indicator
+    return Y
 end
-
-function slide_estimator(
-    X::CuArray{T,2},
-    p::WindowingParams,
-    estimator::Function,
-    wndw::Function,
-) where {T<:Real}
-
-    nl, nt = size(X)
-    strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
-    nidx = length(strided_idx)
-
-    transition_indicator = fill(T(NaN), nl, nidx)
-    @inbounds for j1 in eachindex(strided_idx)
-        j2 = strided_idx[j1]
-        transition_indicator[:, j1] = Array(estimator(wndw(X, j2, p.Nwndw)))
-    end
-    return CuArray(transition_indicator)
-end
+# TODO: test
 
 #####################################################
 # Smoothing
@@ -285,7 +301,7 @@ Get matrix of type:
 0 1
 0 1
 
-For AR1 computation, window needs to be adapted --> use e.g. ar1_left_wndw insted of left_wndw
+For AR1 computation, window needs to be adapted --> use e.g. ar1_left_wndw instead of left_wndw
 """
 function strided_window_mask(
     T::Type,
