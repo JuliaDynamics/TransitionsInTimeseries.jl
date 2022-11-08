@@ -6,3 +6,4 @@ notebooks
 examples_own
 entropies
 .vscode
+tmp.jl
