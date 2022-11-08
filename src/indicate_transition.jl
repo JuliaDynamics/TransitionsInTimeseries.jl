@@ -53,7 +53,7 @@ function indicate_transition(
 
         reference_ti[label] = slide_estimator(X, pindctr, ti_function, window)
         surrogate_ti[label] = slide_estimator(S, pindctr, ti_function, window)
-        reference_idtrend[label] = slide_idtrend(
+        reference_idtrend[label] = slide(
             reference_ti[label],
             tindctr,
             pidtrend,
@@ -61,7 +61,7 @@ function indicate_transition(
             window;
             kwargs...,
         )
-        surrogate_idtrend[label] = slide_idtrend(
+        surrogate_idtrend[label] = slide(
             surrogate_ti[label],
             tindctr,
             pidtrend,
@@ -112,7 +112,7 @@ function indicate_transition(
 
     return result
 end
-struct verboseTIresults{T<:Real,A<:Union{Matrix{T},CuArray{T,2}}}
+struct verboseTIresults{T<:Real, A<:Union{Matrix{T},CuArray{T,2}}}
     tindctr::Vector{T}
     tidtrend::Vector{T}
     S::A
