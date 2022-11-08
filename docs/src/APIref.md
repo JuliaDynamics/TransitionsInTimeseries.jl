@@ -2,6 +2,15 @@
 
 The following API reference is structured along the chronology of a typical computation.
 
+## Utils
+
+```@docs
+structured_residual
+flatten_residual
+reshape_residual
+get_placeholder_spacedims
+```
+
 ## Signal processing
 
 ### Windowing
@@ -23,7 +32,9 @@ The following API reference is structured along the chronology of a typical comp
 ### Sliding function over arrays
 
 ```@docs
+    slide
     slide_estimator
+    grow_window
 ```
 
 ### Smoothing and de-trending
@@ -33,8 +44,12 @@ The following API reference is structured along the chronology of a typical comp
     detrend
 ```
 
+### Masking
 
-
+```@docs
+    window_mask
+    strided_window_mask
+```
 
 ## [Indicators](@id api_indicators)
 
@@ -60,6 +75,8 @@ The following API reference is structured along the chronology of a typical comp
 ```@docs
     ar1_whitenoise
     masked_ar1_whitenoise
+    arp_whitenoise
+    hurst_exponent
 ```
 
 ### Analytic regression uneven time spacing
@@ -93,25 +110,13 @@ The following API reference is structured along the chronology of a typical comp
 ```
 
 
-
-
-
 ## Significance computation
 
-### Percentile significance
-
 ```@docs
+    generate_stacked_fourier_surrogates
     percentile_significance
-```
-
-### Counting positive indicators
-
-```@docs
     count_positive_indicators
 ```
-
-
-
 
 ## Fast-forward way
 
