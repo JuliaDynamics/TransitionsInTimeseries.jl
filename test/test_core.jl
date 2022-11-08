@@ -1,45 +1,60 @@
-#=
-TODO: test statistical moments (wrt. StatsBase)
-=#
-
 using Revise
-push!(LOAD_PATH,"/home/jan/.julia/dev/TransitionIdentifiers")
 using TransitionIdentifiers
 using Test
 using DifferentialEquations
 using CUDA
-using StatsBase
 
 ###############################
 # Correct computation of statistical moments
 ###############################
 
-@testset "skewness" begin
-    T = Float32
-    n = 10000
+#=
+Notice:
+Statistical estimator are often biased when formulated in a natural way.
+Biases however do not influence the trends, which are the gist of transition indicators.
+Nonetheless, the moments implemented here are not biased (if so, it is explicitly specified in the function name).
+
+Here we perform the tests on a uniform distribution on [a, b] = [0, 1].
+For this distribution, it holds:
+- Mean: 0.5
+- Variance: 1/12 (b-a) = 1/12
+- Skewness: 0
+- Excess kurtosis: -6/5
+=#
+
+function create_random_array(;T=Float32, n=100_000)
     x = rand(T, n)
     X = reshape(x, (1,n))
     Xgpu = CuArray(X)
+    return x, X, Xgpu
+end
 
-    skw0 = StatsBase.skewness(x)
-    skw1 = skw(X)[1, 1]
-    skw2 = skw(Xgpu)[1, 1]
-    @test isapprox(skw0, skw1, atol = T(1e-5))
-    @test isapprox(skw0, skw2, atol = T(1e-5))
+@testset "mean" begin
+    x, X, Xgpu = create_random_array()
+    @test isapprox(mean_lastdim(x)[1], 0.5, atol = 1e-3)
+    @test isapprox(mean_lastdim(X)[1,1], 0.5, atol = 1e-3)
+    @test isapprox(mean_lastdim(Xgpu)[1,1], 0.5, atol = 1e-3)
+end
+
+@testset "variance" begin
+    x, X, Xgpu = create_random_array()
+    @test isapprox(var(x)[1], 1/12, atol = 1e-3)
+    @test isapprox(var(X)[1,1], 1/12, atol = 1e-3)
+    @test isapprox(var(Xgpu)[1,1], 1/12, atol = 1e-3)
+end
+
+@testset "skewness" begin
+    x, X, Xgpu = create_random_array()
+    @test isapprox(skw(x)[1], 0, atol = 5e-3)
+    @test isapprox(skw(X)[1,1], 0, atol = 5e-3)
+    @test isapprox(skw(Xgpu)[1,1], 0, atol = 5e-3)
 end
 
 @testset "kurtosis" begin
-    T = Float32
-    n = 10000
-    x = rand(T, n)
-    X = reshape(x, (1,n))
-    Xgpu = CuArray(X)
-
-    krt0 = StatsBase.kurtosis(x)
-    krt1 = krt(X)[1, 1]
-    krt2 = krt(Xgpu)[1, 1]
-    @test isapprox(krt0, krt1, atol = T(1e-2))
-    @test isapprox(krt0, krt2, atol = T(1e-2))
+    x, X, Xgpu = create_random_array()
+    @test isapprox(krt(x)[1], -6/5, atol = 1e-3)
+    @test isapprox(krt(X)[1,1], -6/5, atol = 1e-3)
+    @test isapprox(krt(Xgpu)[1,1], -6/5, atol = 1e-3)
 end
 
 ###############################
@@ -119,5 +134,6 @@ end
     sur_stat = repeat( collect(1:ns) * ones(T, nt)', outer=(2,1) )
     ref_stat = round.( rand(T, nx, nt) * 100 )
     significance = percentile_significance(ref_stat, sur_stat, ns, nx)
-    @test significance .* 100 .+ 1 == ref_stat
+    count_correct = sum(isapprox.(significance .* 100 .+ 1, ref_stat))
+    @test isapprox(nx * nt, count_correct)
 end
