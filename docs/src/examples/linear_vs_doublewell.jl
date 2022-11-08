@@ -214,7 +214,7 @@ function plot_sol_doublewell(ttrend, Xtrend, sol, nx)
             axs[3][j],
             sol.tidtrend,
             sol.significance["var"][j, :], 
-            label = L"variance significance $\,$",
+            label = L"normalized variance significance $\,$",
         )
 
         lines!(axs[4][j],
@@ -230,8 +230,8 @@ function plot_sol_doublewell(ttrend, Xtrend, sol, nx)
         )
 
         [ylims!(axs[i][j], (-.1, 1.1)) for i in 2:4]
-        [axislegend(axs[i][2], position = :lt) for i in 1:4]
     end
+    [axislegend(axs[i][2], position = :lt) for i in 1:4]
 
     return fig
 end

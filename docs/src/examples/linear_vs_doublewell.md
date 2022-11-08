@@ -268,3 +268,113 @@ sol = indicate_transition(
 
 To plot the results, we run:
 
+```julia
+
+function plot_sol_doublewell(ttrend, Xtrend, sol, nx)
+
+    nrows = 4
+    fig = Figure( resolution = (1500, 1500) )
+    axs = [[Axis(
+        fig[i,j],
+        xlabel = ( i==4 ? "Time" : " " ),
+        xminorticks = 0:5:100,
+        xminorgridvisible = true,
+        ) for j in 1:2] for i in 1:4]
+
+    for j in 1:nx
+
+        lines!(axs[1][j], ttrend, Xtrend[j, :], label = L"trend $\,$")
+        vlines!(
+            axs[1][j],
+            sol.predictor_time[j],
+            label = L"warnings $\,$",
+            color = :red,
+            linestyle = :dash,
+            linewidth = 1.0,
+        )
+
+        lines!(
+            axs[2][j],
+            sol.tindctr,
+            sol.reference_ti["ar1_whitenoise"][j, :],
+            label = L"AR1 $\,$",
+        )
+        lines!(
+            axs[2][j],
+            sol.tidtrend,
+            sol.significance["ar1_whitenoise"][j, :], 
+            label = L"AR1 significance $\,$",
+        )
+
+        lines!(
+            axs[3][j],
+            sol.tindctr,
+            sol.reference_ti["var"][j, :] ./ maximum(sol.reference_ti["var"][j, :]),
+            label = L"normalized variance $\,$",
+        )
+        lines!(
+            axs[3][j],
+            sol.tidtrend,
+            sol.significance["var"][j, :], 
+            label = L"normalized variance significance $\,$",
+        )
+
+        lines!(axs[4][j],
+            sol.tindctr,
+            sol.reference_ti["lfps"][j, :],
+            label = L"LFPS $\,$",
+        )
+        lines!(
+            axs[4][j],
+            sol.tidtrend,
+            sol.significance["lfps"][j, :], 
+            label = L"LFPS significance $\,$",
+        )
+
+        [ylims!(axs[i][j], (-.1, 1.1)) for i in 2:4]
+    end
+    [axislegend(axs[i][2], position = :lt) for i in 1:4]
+
+    return fig
+end
+
+fig_ffway = plot_sol_doublewell(ttrend, Xtrend, sol, nx)
+```
+
+Here the default settings were used to lump the percentile significance of the indicator trends (several continuous values) into a warning (a single binary value). Hence, a warning is only output when **all** the listed transition indicators display a percentile significance above 95%. If one wants a warning to be output when **at least two** indicators display a trend with a percentile significance above 99%, this can be done by running:
+
+```julia
+sol = indicate_transition(
+    ttrend,
+    Xres,
+    p_window_indctr,
+    p_window_idtrend,
+    ns,
+    [ar1_whitenoise, var, lfps],
+    min_num_indicators = 3,
+)
+```
+
+## GPU parallelisation
+
+In the last decade, high-performance computing has made a drastic turn towards parallelism. In this context, Graphics Processing Units (GPUs) have become a popular solution as they offer a good performance vs. cost and benefit from increasingly user-friendly interfaces.
+
+The present package allows to run the most expensive part of the computation on a GPU. To do so, one simply needs to convert the array containing the residuals into a GPU array:
+
+```julia
+Xres_gpu = CuArray(Xres)
+sol = indicate_transition(
+    ttrend,
+    Xres_gpu,
+    p_window_indctr,
+    p_window_idtrend,
+    ns,
+    [ar1_whitenoise, var, lfps],
+)
+```
+
+The present section only aims to show the addition of a single line of code to run computation on the GPU. For a thorough analysis of the speed increase, refer to [Benchmarks](@ref benchmarks). 
+
+!!! note
+For now, the present package only supports NVIDIA GPUs as it merely relies on [CUDA.jl](https://cuda.juliagpu.org/stable/).
+!!!
