@@ -56,26 +56,11 @@ The following API reference is structured along the chronology of a typical comp
 ### Statistical moments
 
 ```@docs
-    mean
-```
-
-```@docs
-    masked_mean
-```
-
-```@docs
+    mean_lastdim
+    masked_mean_lastdim
     var
-```
-
-```@docs
     masked_meansquare
-```
-
-```@docs
     skw
-```
-
-```@docs
     krt
 ```
 
