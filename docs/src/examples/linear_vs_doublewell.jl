@@ -127,7 +127,7 @@ dt_id = round(tindctr[2] - tindctr[1]; digits = 4)
 p_window_idtrend = get_windowing_params([dt_id, T_idtrend_wndw, T_idtrend_strd])
 
 tidtrend = trim_wndw( tindctr, p_window_idtrend, window )
-origin_ar1_trend = slide_idtrend( origin_ar1, tindctr, p_window_idtrend, ridge_regression_slope, window)
+origin_ar1_trend = slide( origin_ar1, tindctr, p_window_idtrend, ridge_regression_slope, window)
 
 for j in 1:nx
     lines!(axs[4][j], tidtrend, origin_ar1_trend[j, :], label = L"trend of AR1 coefficient $\,$")
@@ -146,7 +146,7 @@ fig
 ######################
 
 surrogate_ar1 = slide_estimator( S, p_window_indctr, ar1_whitenoise, window )
-surrogate_ar1_trend = slide_idtrend( surrogate_ar1, tindctr, p_window_idtrend, ridge_regression_slope, window)
+surrogate_ar1_trend = slide( surrogate_ar1, tindctr, p_window_idtrend, ridge_regression_slope, window)
 ar1_psignificance = percentile_significance(origin_ar1_trend, surrogate_ar1_trend, ns, nx)
 
 for j in 1:nx
