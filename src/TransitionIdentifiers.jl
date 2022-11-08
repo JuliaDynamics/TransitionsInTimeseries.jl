@@ -1,11 +1,10 @@
 module TransitionIdentifiers
 
-# TODO: reduce to only needed functions
-using CUDA
-using FFTW
-using StatsBase
 using LinearAlgebra
-using SparseArrays
+using CUDA
+using FFTW: rfft, irfft
+using StatsBase: corkendall
+using SparseArrays: spzeros, spdiagm
 
 include("utils.jl")
 include("signal_processing.jl")
