@@ -1,4 +1,4 @@
-"""@docs
+"""
 
     indicate_transition(
         ttrend::Vector{T},
@@ -30,7 +30,7 @@ function indicate_transition(
     min_num_indicators::Int = length(tis),
     p_min::Real = 0.95,
     kwargs...,
-) where {T<:Real, A<:Union{Matrix{T},CuArray{T,2}}}
+) where {T<:Real,A<:Union{Matrix{T},CuArray{T,2}}}
 
     println(A)
     nx, nt = size(X)
@@ -41,13 +41,13 @@ function indicate_transition(
     tindctr = trim_wndw(ttrend, pindctr, window)
     tidtrend = trim_wndw(tindctr, pidtrend, window)
 
-    reference_ti = Dict{String, A}()
-    surrogate_ti = Dict{String, A}()
+    reference_ti = Dict{String,A}()
+    surrogate_ti = Dict{String,A}()
 
-    reference_idtrend = Dict{String, A}()
-    surrogate_idtrend = Dict{String, A}()
+    reference_idtrend = Dict{String,A}()
+    surrogate_idtrend = Dict{String,A}()
 
-    significance = Dict{String, A}()
+    significance = Dict{String,A}()
 
     for (ti_function, label) in zip(tis, ti_labels)
 
@@ -80,12 +80,13 @@ function indicate_transition(
 
     indicator_trend_sigificance = [significance[label] for label in ti_labels]
     indicator_trend_sigificance3D = stack_indicators(indicator_trend_sigificance)
-    positive_indicators = count_positive_indicators(indicator_trend_sigificance3D, plevel=p_min)
+    positive_indicators =
+        count_positive_indicators(indicator_trend_sigificance3D, plevel = p_min)
     positive_idx = Array(positive_indicators .>= min_num_indicators / length(tis))
     predictor_time = [tidtrend[positive_idx[i, :]] for i = 1:nx]
 
     if verbose
-        result = verboseTIresults{T, A}(
+        result = verboseTIresults{T,A}(
             tindctr,
             tidtrend,
             S,
@@ -98,7 +99,7 @@ function indicate_transition(
             predictor_time,
         )
     else
-        result = sparseTIresults{T, A}(
+        result = sparseTIresults{T,A}(
             tindctr,
             tidtrend,
             reference_ti,
@@ -111,25 +112,25 @@ function indicate_transition(
 
     return result
 end
-struct verboseTIresults{T<:Real, A<:Union{Matrix{T}, CuArray{T,2}}}
+struct verboseTIresults{T<:Real,A<:Union{Matrix{T},CuArray{T,2}}}
     tindctr::Vector{T}
     tidtrend::Vector{T}
     S::A
-    reference_ti::Dict{String, A}
-    surrogate_ti::Dict{String, A}
-    reference_idtrend::Dict{String, A}
-    surrogate_idtrend::Dict{String, A}
-    significance::Dict{String, A}
+    reference_ti::Dict{String,A}
+    surrogate_ti::Dict{String,A}
+    reference_idtrend::Dict{String,A}
+    surrogate_idtrend::Dict{String,A}
+    significance::Dict{String,A}
     positive_indicators::A
     predictor_time::Vector{Vector{T}}
 end
 
-struct sparseTIresults{T<:Real, A<:Union{Matrix{T}, CuArray{T,2}}}
+struct sparseTIresults{T<:Real,A<:Union{Matrix{T},CuArray{T,2}}}
     tindctr::Vector{T}
     tidtrend::Vector{T}
-    reference_ti::Dict{String, A}
-    reference_idtrend::Dict{String, A}
-    significance::Dict{String, A}
+    reference_ti::Dict{String,A}
+    reference_idtrend::Dict{String,A}
+    significance::Dict{String,A}
     positive_indicators::A
     predictor_time::Vector{Vector{T}}
 end

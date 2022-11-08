@@ -8,7 +8,7 @@ function generate_fourier_surrogate(x::Vector{T}) where {T<:Real}
     return irfft(F .* exp.(2 * π * im .* rand(length(F))), length(x))
 end
 
-"""@docs
+"""
 
     generate_stacked_fourier_surrogates(X::AbstractArray, ns::Int)
 
@@ -27,11 +27,8 @@ end
 function generate_stacked_fourier_surrogates(X::Matrix{T}, ns::Int) where {T<:Real}
     nx, nt = size(X)
     F = repeat(rfft(X, 2), inner = (ns, 1))
-    stacked_surrogates = irfft(
-        F .* exp.(T(2 * π) * im .* rand(T, nx * ns, size(F, 2))),
-        nt,
-        2,
-    )
+    stacked_surrogates =
+        irfft(F .* exp.(T(2 * π) * im .* rand(T, nx * ns, size(F, 2))), nt, 2)
     return stacked_surrogates
 end
 
@@ -49,7 +46,7 @@ end
 #####################################################
 # Percentile significance 
 #####################################################
-"""@docs
+"""
 
     percentile_significance(ref_stat::AbstractArray, sur_stat::Matrix{T}, ns::Int, nx::Int)
 
@@ -82,7 +79,7 @@ end
 #####################################################
 
 # TODO insert tolerance wrt lag?
-"""@docs
+"""
 
     count_positive_indicators(
         indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
@@ -94,10 +91,10 @@ end
 Counts the number of indicators displaying a trend above the specified significance.
 """
 function count_positive_indicators(
-    indicator_trend_significance3D::Union{Array{T, 3}, CuArray{T, 3}};
-    plevel=0.95,
-    nindicators::Int=size(indicator_trend_significance3D, 3),
-    threshold::Bool=false,
+    indicator_trend_significance3D::Union{Array{T,3},CuArray{T,3}};
+    plevel = 0.95,
+    nindicators::Int = size(indicator_trend_significance3D, 3),
+    threshold::Bool = false,
 ) where {T<:Real}
     Σ = sum_significant_indicators(indicator_trend_significance3D, T(plevel))
     prediction = Σ ./ nindicators
@@ -108,17 +105,17 @@ function count_positive_indicators(
 end
 
 function stack_indicators(indicator_list::Any)
-    return cat(indicator_list..., dims=3)
+    return cat(indicator_list..., dims = 3)
 end
 
-function sum_percentiles(P::Union{Array{T, 3}, CuArray{T,3}}) where {T}
-    return reduce( +, P, dims=3 )[:,:,1]
+function sum_percentiles(P::Union{Array{T,3},CuArray{T,3}}) where {T}
+    return reduce(+, P, dims = 3)[:, :, 1]
 end
 
-function sum_significant_indicators(P::Union{Array{T, 3}, CuArray{T,3}}, plevel::T) where {T}
-    return reduce( +, T.(P .> plevel), dims=3 )[:,:,1]
+function sum_significant_indicators(P::Union{Array{T,3},CuArray{T,3}}, plevel::T) where {T}
+    return reduce(+, T.(P .> plevel), dims = 3)[:, :, 1]
 end
 
-function threshold_indicator_significance(S::Union{Matrix{T}, CuArray{T,2}}) where {T}
+function threshold_indicator_significance(S::Union{Matrix{T},CuArray{T,2}}) where {T}
     return isapprox.(S, 1)
 end

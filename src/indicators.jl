@@ -27,47 +27,50 @@ TODO: implement beyond white-noise assumption.
 # Statistical moments
 #####################################################
 
-"""@docs
+"""
 
     mean_lastdim(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the mean of an array over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function mean_lastdim(X::A) where{A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
-    reduce_dim = length(size(X))
-    return reduce( +, X, dims=reduce_dim) ./ T(size(X, reduce_dim))
+function mean_lastdim(X::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:Real}
+    lastdim = length(size(X))
+    return reduce(+, X, dims = lastdim) ./ T(size(X, lastdim))
 end
 
-"""@docs
+"""
 
     masked_mean_lastdim(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the sliding-window mean of an array over the last dimension by using a mask.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function masked_mean_lastdim(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
+function masked_mean_lastdim(
+    X::A,
+    M::A,
+) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
     return (X * M) ./ reduce(+, M[:, 1])
 end
 
-"""@docs
+"""
 
     var(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the variance of an array over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function var(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+function var(X::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:Real}
     Xmean = mean_lastdim(X)
     return var(X, Xmean)
 end
 
-function var(X::A, Xmean::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+function var(X::A, Xmean::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:Real}
     lastdim = length(size(X))
-    return reduce( +, (X .- Xmean).^2, dims=lastdim) ./ T(size(X, lastdim) - 1)
+    return reduce(+, (X .- Xmean) .^ 2, dims = lastdim) ./ T(size(X, lastdim) - 1)
 end
 
-"""@docs
+"""
 
     masked_meansquare(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
@@ -75,46 +78,58 @@ Computes the mean squared value of a time series.
 If the time series is detrended, this corresponds loosely to the variance.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function masked_meansquare(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
+function masked_meansquare(
+    X::A,
+    M::A,
+) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
     return (X .^ 2) * M ./ reduce(+, M[:, 1])
 end
 
-"""@docs
+"""
 
     skw(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the skewness of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function skw(X::A, Xmean::A, Xvar::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
+function skw(
+    X::A,
+    Xmean::A,
+    Xvar::A,
+) where {A<:Union{Array{T},CuArray{T}}} where {T<:AbstractFloat}
     lastdim = length(size(X))
     n = size(X, lastdim)
-    cor = n^2 / (n-1) / (n-2)
-    return cor .* (reduce( +, (X .- Xmean).^3, dims=lastdim) ./ n ./ (Xvar .^ T(1.5)))
+    cor = n^2 / (n - 1) / (n - 2)
+    return cor .* (reduce(+, (X .- Xmean) .^ 3, dims = lastdim) ./ n ./ (Xvar .^ T(1.5)))
 end
 
-function skw(X::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
+function skw(X::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:AbstractFloat}
     Xmean = mean_lastdim(X)
     Xbvar = var(X)
     return skw(X, Xmean, Xbvar)
 end
 
-"""@docs
+"""
 
     krt(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the kurtosis of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function krt(X::A, Xmean::A, Xvar::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
+function krt(
+    X::A,
+    Xmean::A,
+    Xvar::A,
+) where {A<:Union{Array{T},CuArray{T}}} where {T<:AbstractFloat}
     lastdim = length(size(X))
     n = size(X, lastdim)
-    cor1 = (n+1)*n/(n-1)/(n-2)/(n-3)
-    cor2 = 3 * (n-1)^2/(n-2)/(n-3)
-    return cor1 .* (reduce( +, (X .- Xmean).^4, dims=lastdim) ./ ( (Xvar .^ T(2)) )) .- cor2
+    cor1 = (n + 1) * n / (n - 1) / (n - 2) / (n - 3)
+    cor2 = 3 * (n - 1)^2 / (n - 2) / (n - 3)
+    return cor1 .* (reduce(+, (X .- Xmean) .^ 4, dims = lastdim) ./ ((Xvar .^ T(2)))) .-
+           cor2
 end
 
-function krt(X::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
+function krt(X::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:AbstractFloat}
     Xmean = mean_lastdim(X)
     Xvar = var(X)
     return krt(X, Xmean, Xvar)
@@ -123,7 +138,7 @@ end
 #####################################################
 # Analytic regression models
 #####################################################
-"""@docs
+"""
 
     ar1_whitenoise(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
@@ -137,19 +152,25 @@ function ar1_whitenoise(x::Vector{T}) where {T<:Real}
 end
 
 # AR1 coefficients for a vertical stack of residuals X and white noise assumption.
-function ar1_whitenoise(X::A) where {A<:Union{Matrix{T}, CuArray{T,2}}} where {T<:Real}
-    return reduce( +, X[:, 2:end] .* X[:, 1:end-1], dims=2) ./ reduce( +, X[:, 1:end-1] .* X[:, 1:end-1], dims=2)
+function ar1_whitenoise(X::A) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
+    lastdim = length(size(X))
+    return reduce(+, X[:, 2:end] .* X[:, 1:end-1], dims = 2) ./
+           reduce(+, X[:, 1:end-1] .* X[:, 1:end-1], dims = 2)
 end
 
-"""@docs
+"""
 
     masked_ar1_whitenoise(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the same as [`ar1_ar1noise`](@ref ar1_whitenoise) but by means of a masking matrix.
 This provides a significant speed-up for large data sets that are computed on GPU.
 """
-function masked_ar1_whitenoise(X::A, M::A) where {A <: Union{SparseMatrixCSC{T, Int}, CuArray{T, 2}}}  where {T<:Real} 
-    return ((X[:, 2:end] .* X[:, 1:end-1]) * M[1:end-1, :]) ./ ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
+function masked_ar1_whitenoise(
+    X::A,
+    M::A,
+) where {A<:Union{SparseMatrixCSC{T,Int},CuArray{T,2}}} where {T<:Real}
+    return ((X[:, 2:end] .* X[:, 1:end-1]) * M[1:end-1, :]) ./
+           ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
 end
 
 # TODO: implement local Hurst exponent
@@ -158,47 +179,43 @@ end
 # Analytic regression with correlated noise
 #####################################################
 
-function ar1_ar1noise()
-end
+function ar1_ar1noise() end
 
 #####################################################
 # Analytic regression uneven time spacing
 #####################################################
 
-function ar1_uneven_tspacing()
-end
+function ar1_uneven_tspacing() end
 
 #####################################################
 # Numerical regression
 #####################################################
 
-function restoring_rate()
-end
+function restoring_rate() end
 
-function restoring_rate_gls()
-end
+function restoring_rate_gls() end
 
 #####################################################
 # Frequency spectrum
 #####################################################
 
-"""@docs
+"""
 
     lfps(X::A; q_lowfreq=0.1) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the low-frequency power spectrum of a matrix over the 2nd dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function lfps(X::Matrix{T}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
+function lfps(X::Matrix{T}; q_lowfreq = 0.1::AbstractFloat) where {T<:Real}
     P = abs.(rfft(X, 2))
-    Pnorm = P ./ reduce(+, P, dims=2)
-    return reduce(+, Pnorm[:, 1:roundint(q_lowfreq * size(Pnorm, 2))], dims=2)
+    Pnorm = P ./ reduce(+, P, dims = 2)
+    return reduce(+, Pnorm[:, 1:roundint(q_lowfreq * size(Pnorm, 2))], dims = 2)
 end
 
-function lfps(X::CuArray{T, 2}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
-    P = abs.(CUDA.CUFFT.rfft( X, 2 ))
-    Pnorm = P ./ reduce(+, P, dims=2)
-    return reduce(+, Pnorm[:, 1:roundint(q_lowfreq * size(Pnorm, 2))], dims=2)
+function lfps(X::CuArray{T,2}; q_lowfreq = 0.1::AbstractFloat) where {T<:Real}
+    P = abs.(CUDA.CUFFT.rfft(X, 2))
+    Pnorm = P ./ reduce(+, P, dims = 2)
+    return reduce(+, Pnorm[:, 1:roundint(q_lowfreq * size(Pnorm, 2))], dims = 2)
 end
 # Here multiple dispatch is needed as FFT functions are different
 
@@ -209,17 +226,12 @@ end
 #####################################################
 
 # check out https://www.early-warning-signals.org/
-function network_connectivity()
-end
+function network_connectivity() end
 
-function spatial_variance()
-end
+function spatial_variance() end
 
-function spatial_ar1()
-end
+function spatial_ar1() end
 
-function recovery_length()
-end
+function recovery_length() end
 
-function density_ratio()
-end
+function density_ratio() end

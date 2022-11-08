@@ -19,7 +19,7 @@ struct WindowingParams
     Nstrd::Int
 end
 
-"""@docs
+"""
 
     get_windowing_params(Tvec::Vector{T})
 
@@ -33,7 +33,7 @@ function get_windowing_params(Tvec::Vector{T}) where {T<:Real}
     return WindowingParams(Tvec..., N...)
 end
 
-"""@docs
+"""
 
     centered_wndw(X::AbstractArray, idx::Int, hw::Int)
 
@@ -43,7 +43,7 @@ centered_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[(idx-hw):(idx
 centered_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
 centered_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-hw):(idx+hw)]
 
-"""@docs
+"""
 
     left_wndw(X::AbstractArray, idx::Int, hw::Int)
 
@@ -53,7 +53,7 @@ left_wndw(x::Vector{T}, idx::Int, hw::Int) where {T<:Real} = x[(idx-2*hw):idx]
 left_wndw(X::Matrix{T}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
 left_wndw(X::CuArray{T,2}, idx::Int, hw::Int) where {T<:Real} = X[:, (idx-2*hw):idx]
 
-"""@docs
+"""
 
     right_wndw(X::AbstractArray, idx::Int, hw::Int)
 
@@ -68,7 +68,7 @@ centered_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (n_wndw+1):n_strd:(nt-n_wndw)
 left_wndw(n_wndw::Int, n_strd::Int, nt::Int) = (2*n_wndw+1):n_strd:nt
 right_wndw(n_wndw::Int, n_strd::Int, nt::Int) = 1:n_strd:(nt-2*n_wndw)
 
-"""@docs
+"""
 
     trim_wndw(X::AbstractArray, p::WindowingParams, wndw::Function)
 
@@ -87,7 +87,7 @@ end
 # Sliding estimators
 #####################################################
 # TODO gather slide_estimator and slide_idtrend into one function
-"""@docs
+"""
 
     slide_estimator(X::AbstractArray, p::WindowingParams, estimator::Function, wndw::Function)
 
@@ -156,7 +156,7 @@ end
 # Smoothing
 #####################################################
 
-"""@docs
+"""
 
     gettrend_rollmean(x::Vector{Real}, p::WindowingParams, wndw::Function)
 
@@ -167,7 +167,7 @@ function gettrend_rollmean(x::Vector{T}, p::WindowingParams, wndw::Function) whe
     return slide_estimator(x, p, StatsBase.mean, wndw)
 end
 
-"""@docs
+"""
 
     gettrend_rollkernel(x::Union{Vector{Real}, Matrix{Real}}, p::WindowingParams, wndw::Function, kernel::Function)
 
@@ -231,11 +231,11 @@ function get_trend(
     wndw::Function,
     kernel::Function,
 ) where {T}
-    return mapslices( x_ -> gettrend_rollkernel(x_, p, wndw, kernel), X; dims=2 )
+    return mapslices(x_ -> gettrend_rollkernel(x_, p, wndw, kernel), X; dims = 2)
 end
 # TODO replace mapslices by matrix vector multiplication (which can also be performed on GPU)
 
-"""@docs
+"""
 
     detrend(x::Vector{T}, x_trend::Vector{T})
 """
@@ -254,7 +254,7 @@ function gettrend_emd(x::Vector{T}, σ::Int) where {T<:Real} end
 # Masking
 #####################################################
 
-"""@docs
+"""
 
     window_mask(nt::Int, p::WindowingParams, wndw::Function)
 
@@ -272,10 +272,10 @@ function window_mask(T::Type, nt::Int, p::WindowingParams, type::String)
     elseif type == "ar1"
         idx = -p.Nwndw+1:p.Nwndw
     end
-    return spdiagm( [i => ones(T, nt-abs(i)) for i in idx]... )
+    return spdiagm([i => ones(T, nt - abs(i)) for i in idx]...)
 end
 
-"""@docs
+"""
 
     strided_window_mask(nt::Int, p::WindowingParams, wndw::Function)
 
@@ -287,25 +287,31 @@ Get matrix of type:
 
 For AR1 computation, window needs to be adapted --> use e.g. ar1_left_wndw insted of left_wndw
 """
-function strided_window_mask(T::Type, nt::Int, p::WindowingParams, type::String, wndw::Function)
+function strided_window_mask(
+    T::Type,
+    nt::Int,
+    p::WindowingParams,
+    type::String,
+    wndw::Function,
+)
     return window_mask(T, nt, p, type)[:, wndw(p.Nwndw, p.Nstrd, nt)]
 end
 
 # Multiple dispatch of windowing functions for mask generation.
-function centered_wndw( M::SparseMatrixCSC{T, Int}, p::WindowingParams ) where {T}
+function centered_wndw(M::SparseMatrixCSC{T,Int}, p::WindowingParams) where {T}
     n1, n2 = size(M)
     Z = spzeros(T, (n1, p.Nwndw))
     return hcat(Z, M[:, p.Nwndw+1:end-p.Nwndw], Z)
 end
 
-function left_wndw( M::SparseMatrixCSC{T, Int}, p::WindowingParams ) where {T}
+function left_wndw(M::SparseMatrixCSC{T,Int}, p::WindowingParams) where {T}
     n1, n2 = size(M)
-    Z = spzeros(T, (n1, 2*p.Nwndw))
+    Z = spzeros(T, (n1, 2 * p.Nwndw))
     return hcat(Z, M[:, p.Nwndw+1:end-p.Nwndw])
 end
 
-function right_wndw( M::SparseMatrixCSC{T, Int}, p::WindowingParams ) where {T}
+function right_wndw(M::SparseMatrixCSC{T,Int}, p::WindowingParams) where {T}
     n1, n2 = size(M)
-    Z = spzeros(T, (n1, 2*p.Nwndw))
+    Z = spzeros(T, (n1, 2 * p.Nwndw))
     return hcat(M[:, p.Nwndw+1:end-p.Nwndw], Z)
 end

@@ -55,7 +55,6 @@ makedocs(
     doctest = CI,
     draft = true,
 )
-# TODO make logo appear on the side bar
 # TODO write script making video of double well for large logo.
 
 # if CI
