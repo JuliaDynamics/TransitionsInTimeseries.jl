@@ -70,6 +70,10 @@ function var(X::A, Xmean::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:Rea
     return reduce(+, (X .- Xmean) .^ 2, dims = lastdim) ./ T(size(X, lastdim) - 1)
 end
 
+function std(X::A) where {A<:Union{Array{T},CuArray{T}}} where {T<:Real}
+    return sqrt.(var(X))
+end
+
 """
 
     masked_meansquare(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
@@ -173,7 +177,50 @@ function masked_ar1_whitenoise(
            ((X[:, 1:end-1] .* X[:, 1:end-1]) * M[1:end-1, :])
 end
 
-# TODO: implement local Hurst exponent
+"""
+
+    arp_whitenoise(X::A) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
+"""
+function arp_whitenoise(X::A, p) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
+    nl = size(X, 1)
+    Φ = zeros(nl)
+    for i in eachaxes(X, 1)
+        x = X[i, :]
+        YW = hcat( [x[1+k:end-p+k+1] for k in 0:p-1]... )
+        b = x[1+k:end]
+        Φ[i] = inv( YW' * YW ) * YW' * b
+    end
+    return Φ
+end
+
+"""
+
+    hurst_exponent(X::A) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
+
+Measures how much a time series deviates from a random walk.
+H < 0.5: anti-persistent (high value followed by low value)
+H = 0.5: random walk
+H > 0.5: persistent (high value followed by high value)
+"""
+function hurst_exponent(X::A) where {A<:Union{Matrix{T}}} where {T<:Real}
+    return mapslices( x -> hurst_exponent(x), X, dims=2 )
+end
+
+function hurst_exponent(x::Vector{T}) where {T<:AbstractFloat}
+    max_lag = 20
+    lags = range(1, max_lag)
+    tau = [ std(x[1+lag:end] .- x[1:end-lag])[1] for lag in lags ]
+    reg = ridge_regression( T.(log.(tau)), T.(log.(lags)) )[1]
+    return reg
+end
+
+function rescaled_range_analysis(X::A) where {A<:Union{Matrix{T},CuArray{T,2}}} where {T<:Real}
+    lastdim = length(size(X))
+    Z = cumsum(X, dims=lastdim)
+    R = maximum(Z, dims=lastdim) - minimum(Z, dims=lastdim)
+    S = sqrt.(var(X))
+    r = R ./ S
+end
 
 #####################################################
 # Analytic regression with correlated noise

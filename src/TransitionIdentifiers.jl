@@ -28,9 +28,10 @@ export gaussian_kernel, cosine_kernel, logistic_kernel
 export sigmoid_kernel, scaled_kernel
 
 export mean_lastdim, masked_mean_lastdim
-export var, masked_meansquare
+export var, masked_meansquare, std
 export skw, krt
 export ar1_whitenoise, masked_ar1_whitenoise
+export hurst_exponent
 export lfps
 
 export generate_stacked_fourier_surrogates

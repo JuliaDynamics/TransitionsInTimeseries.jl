@@ -100,6 +100,23 @@ end
 end
 
 ###############################
+# Analytic estimation of Hurst exponent
+###############################
+
+# For random walk, the Hurst exponent is 0.5
+function random_walk(T, n1, n2)
+    return T.(cumsum(rand(n1, n2) .> .5, dims=2))
+end
+
+@testset "hurst_exponent" begin
+    T = Float32
+    n1, n2 = 10, 100_000
+    X = random_walk(T, n1, n2)
+    H = hurst_exponent(X)
+    @test sum( isapprox.(H, 0.5, atol = 1e-2) ) == n1
+end
+
+###############################
 # Linear regression
 ###############################
 
