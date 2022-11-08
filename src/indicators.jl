@@ -28,6 +28,7 @@ TODO: implement beyond white-noise assumption.
 #####################################################
 
 """@docs
+
     mean_lastdim(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the mean of an array over the last dimension.
@@ -39,6 +40,7 @@ function mean_lastdim(X::A) where{A<:Union{Array{T}, CuArray{T}}} where {T<:Real
 end
 
 """@docs
+
     masked_mean_lastdim(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the sliding-window mean of an array over the last dimension by using a mask.
@@ -49,79 +51,70 @@ function masked_mean_lastdim(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2
 end
 
 """@docs
+
     var(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the variance of an array over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function var(X::Array{T}) where {T<:Real}
-    return StatsBase.var(X, dims=length(size(X)))
-end
-
-# Unbiased estimator (consistent with StatsBase).
-function var(X::CuArray{T, 2}, Xmean::CuArray{T, 2}) where {T<:Real}
-    return reduce( +, (X .- Xmean).^2, dims=2) ./ T(size(X, 2) - 1)
-end
-
-function var(X::CuArray{T, 2}) where {T<:Real}
+function var(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
     Xmean = mean_lastdim(X)
     return var(X, Xmean)
 end
 
-function biased_var(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
-    n = size(X)[end]
-    return var(X) .* T((n-1) / n)
+function var(X::A, Xmean::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    lastdim = length(size(X))
+    return reduce( +, (X .- Xmean).^2, dims=lastdim) ./ T(size(X, lastdim) - 1)
 end
 
 """@docs
+
     masked_meansquare(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the mean squared value of a time series.
 If the time series is detrended, this corresponds loosely to the variance.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function mean_square(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
+function masked_meansquare(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}} where {T<:Real}
     return (X .^ 2) * M ./ reduce(+, M[:, 1])
 end
 
 """@docs
+
     skw(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the skewness of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function skw(x::Vector{T}) where {T<:Real}
-    return StatsBase.skewness(x)
+function skw(X::A, Xmean::A, Xvar::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
+    lastdim = length(size(X))
+    n = size(X, lastdim)
+    cor = n^2 / (n-1) / (n-2)
+    return cor .* (reduce( +, (X .- Xmean).^3, dims=lastdim) ./ n ./ (Xvar .^ T(1.5)))
 end
 
-function skw(X::A, Xmean::A, Xvar::A) where {A <: Union{Matrix{T}, CuArray{T,2}} } where {T<:AbstractFloat}
-    return reduce( +, (X .- Xmean).^3, dims=2) ./ size(X, 2) ./ (Xvar .^ T(1.5))
-end
-
-function skw(X::A) where {A <: Union{Matrix{T}, CuArray{T,2}} } where {T<:AbstractFloat}
+function skw(X::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
     Xmean = mean_lastdim(X)
-    Xbvar = biased_var(X)
+    Xbvar = var(X)
     return skw(X, Xmean, Xbvar)
 end
 
 """@docs
+
     krt(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the kurtosis of an array of dimension < 3 over the last dimension.
 If X is a CuArray, the computation takes place on the GPU.
 """
-function krt(x::Vector{T}) where {T<:AbstractFloat}
-    return StatsBase.kurtosis(x)
-end
-
-function krt(X::A, Xmean::A, Xvar::A) where {A <: Union{Matrix{T}, CuArray{T,2}} } where {T<:AbstractFloat}
-    n = size(X, 2)
+function krt(X::A, Xmean::A, Xvar::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
+    lastdim = length(size(X))
+    n = size(X, lastdim)
     cor1 = (n+1)*n/(n-1)/(n-2)/(n-3)
     cor2 = 3 * (n-1)^2/(n-2)/(n-3)
-    return cor1 .* (reduce( +, (X .- Xmean).^4, dims=2) ./ ( (Xvar .^ T(2)) )) .- cor2
+    return cor1 .* (reduce( +, (X .- Xmean).^4, dims=lastdim) ./ ( (Xvar .^ T(2)) )) .- cor2
 end
 
-function krt(X::A) where {A <: Union{Matrix{T}, CuArray{T,2}} } where {T<:AbstractFloat}
+function krt(X::A) where {A <: Union{Array{T}, CuArray{T}} } where {T<:AbstractFloat}
     Xmean = mean_lastdim(X)
     Xvar = var(X)
     return krt(X, Xmean, Xvar)
@@ -131,6 +124,7 @@ end
 # Analytic regression models
 #####################################################
 """@docs
+
     ar1_whitenoise(X::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the AR1 coefficient of an array of dimension < 3 over the last dimension.
@@ -148,6 +142,7 @@ function ar1_whitenoise(X::A) where {A<:Union{Matrix{T}, CuArray{T,2}}} where {T
 end
 
 """@docs
+
     masked_ar1_whitenoise(X::A, M::A) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the same as [`ar1_ar1noise`](@ref ar1_whitenoise) but by means of a masking matrix.
@@ -188,6 +183,7 @@ end
 #####################################################
 
 """@docs
+
     lfps(X::A; q_lowfreq=0.1) where {A<:Union{Matrix{T}, CuArray{T, 2}}}
 
 Computes the low-frequency power spectrum of a matrix over the 2nd dimension.
@@ -204,8 +200,9 @@ function lfps(X::CuArray{T, 2}; q_lowfreq=0.1::AbstractFloat) where {T<:Real}
     Pnorm = P ./ reduce(+, P, dims=2)
     return reduce(+, Pnorm[:, 1:roundint(q_lowfreq * size(Pnorm, 2))], dims=2)
 end
+# Here multiple dispatch is needed as FFT functions are different
 
-# TODO: implement wavelet coefficient
+# TODO: implement wavelet analysis?
 
 #####################################################
 # Spatial indicators
