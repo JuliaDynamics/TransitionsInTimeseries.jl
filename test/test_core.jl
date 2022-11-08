@@ -5,6 +5,31 @@ using DifferentialEquations
 using CUDA
 
 ###############################
+# Utils
+###############################
+
+@testset "reshaping residuals" begin
+    dims = collect(2:5)
+    X = rand(dims...)
+    R = structured_residual(X, verbose=false)
+    Rf = flatten_residual(R)
+    Rr = reshape_residual(Rf)
+    @test sum(Rr .== X) == prod(dims)
+
+    Xgpu = CuArray(X)
+    R = structured_residual(Xgpu, verbose=false)
+    Rf = flatten_residual(R)
+    Rr = reshape_residual(Rf)
+    @test sum(Array(Rr) .== X) == prod(dims)
+end
+
+@testset "placeholding dimensions" begin
+    X = rand(2,2,2,2)
+    placeholder_spacedims = get_placeholder_spacedims(X)
+    @test sum(X[:, :, :, 1] .== X[placeholder_spacedims...,1]) == prod(size(X)[1:3])
+end
+
+###############################
 # Correct computation of statistical moments
 ###############################
 
@@ -30,31 +55,32 @@ function create_random_array(;T=Float32, n=100_000)
 end
 
 @testset "mean" begin
+    
     x, X, Xgpu = create_random_array()
     @test isapprox(mean_lastdim(x)[1], 0.5, atol = 1e-3)
     @test isapprox(mean_lastdim(X)[1,1], 0.5, atol = 1e-3)
-    @test isapprox(mean_lastdim(Xgpu)[1,1], 0.5, atol = 1e-3)
+    @test isapprox(Array(mean_lastdim(Xgpu))[1,1], 0.5, atol = 1e-3)
 end
 
 @testset "variance" begin
     x, X, Xgpu = create_random_array()
     @test isapprox(var(x)[1], 1/12, atol = 1e-3)
     @test isapprox(var(X)[1,1], 1/12, atol = 1e-3)
-    @test isapprox(var(Xgpu)[1,1], 1/12, atol = 1e-3)
+    @test isapprox(Array(var(Xgpu))[1,1], 1/12, atol = 1e-3)
 end
 
 @testset "skewness" begin
     x, X, Xgpu = create_random_array()
     @test isapprox(skw(x)[1], 0, atol = 5e-3)
     @test isapprox(skw(X)[1,1], 0, atol = 5e-3)
-    @test isapprox(skw(Xgpu)[1,1], 0, atol = 5e-3)
+    @test isapprox(Array(skw(Xgpu))[1,1], 0, atol = 5e-3)
 end
 
 @testset "kurtosis" begin
     x, X, Xgpu = create_random_array()
     @test isapprox(krt(x)[1], -6/5, atol = 1e-3)
     @test isapprox(krt(X)[1,1], -6/5, atol = 1e-3)
-    @test isapprox(krt(Xgpu)[1,1], -6/5, atol = 1e-3)
+    @test isapprox(Array(krt(Xgpu))[1,1], -6/5, atol = 1e-3)
 end
 
 ###############################
@@ -84,12 +110,12 @@ end
     x0 = [T(1)]
     θ = exp(dt * p[1])          # θ is time discrete equivalent of λ
 
-    x_mat = generate_ar1(x0, p, t)
-    x_vec = vec(x_mat)
-    x_gpu = CuArray(x_mat)
-    θ_est_vec = ar1_whitenoise(x_vec)
-    θ_est_mat = ar1_whitenoise(x_mat)[1]
-    θ_est_gpu = Array( ar1_whitenoise(x_gpu) )[1]
+    X = generate_ar1(x0, p, t)
+    x = vec(X)
+    Xgpu = CuArray(X)
+    θ_est_vec = ar1_whitenoise(x)
+    θ_est_mat = ar1_whitenoise(X)[1]
+    θ_est_gpu = Array(ar1_whitenoise(Xgpu))[1]
     # θ_est_msk = Array( masked_ar1_whitenoise(xgpu) )
     # TODO: add the accelerated AR1
 
@@ -139,6 +165,22 @@ end
     Wgpu = Array( ridge_regression(CuArray(Y), t) )
     @test sum(isapprox.(W, Wcpu, atol = T(1e-5))) == length(W)
     @test sum(isapprox.(W, Wgpu, atol = T(1e-5))) == length(W)
+end
+
+###############################
+# Sliding functions
+###############################
+
+@testset "grow_window" begin
+    T = Float32
+    nrows, ncols = 10, 50
+    X = ones(T, nrows, ncols)
+    t = collect(1f0:size(X,2))
+    p = get_windowing_params([1, 2, 1])
+    sum2(X, t) = sum(X, dims=2)
+    Y = grow_window(X, t, p, sum2, left_wndw )
+    Z = repeat( (2*p.Nwndw+1:p.Nstrd:ncols)', outer=(nrows, 1) )
+    @test sum(Y .== Z) == prod(size(Y))
 end
 
 ###############################
