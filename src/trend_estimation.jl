@@ -64,9 +64,9 @@ end
 
 """
 
-    percentile_significance(ref_stat::AbstractArray, sur_stat::Matrix{T}, ns::Int, nx::Int)
+    kendall_tau(y::Vector{T}, t::Vector{T}) where {T<:Real}
 
-Get percentile significance of reference (original time series) versus surrogate statistics.
+Get Kendall-tau.
 """
 function kendall_tau(y::Vector{T}, t::Vector{T}) where {T<:Real}
     return StatsBase.corkendall(t, y)
@@ -92,59 +92,3 @@ end
 #####################################################
 # Slide trend estimations
 #####################################################
-"""
-
-    slide_idtrend(
-        X::CuArray{T, 2},
-        t::Vector{T},
-        p::WindowingParams,
-        estimator::Function,
-        wndw::Function;
-        kwargs...,
-    )
-
-Slide trend estimation over computed indicator time series `X`. 
-"""
-function slide_idtrend(
-    X::A,
-    t::Vector{T},
-    p::WindowingParams,
-    estimator::Function,
-    wndw::Function;
-    kwargs...,
-) where {T<:Real, A<:Union{Matrix{T}, CuArray{T, 2}}}
-
-    nl, nt = size(X)
-    strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
-    nidx = length(strided_idx)
-
-    idtrend = fill(T(NaN), nl, nidx)
-    for j1 in eachindex(strided_idx)
-        j2 = strided_idx[j1]
-        idtrend[:, j1] =
-            Array(estimator(wndw(X, j2, p.Nwndw), wndw(t, j2, p.Nwndw); kwargs...))
-    end
-    return A(idtrend)
-end
-
-# # TODO: test
-# function grow_window(
-#     X::Matrix{T},
-#     t::Vector{T},
-#     p::WindowingParams,
-#     estimator::Function,
-#     wndw::Function;
-#     kwargs...,
-# ) where {T<:Real}
-
-#     nl, nt = size(X)
-#     strided_idx = wndw(p.Nwndw, p.Nstrd, nt)
-#     nidx = length(strided_idx)
-
-#     idtrend = fill(T(NaN), nl, nidx)
-#     for j1 in eachindex(strided_idx)
-#         j2 = strided_idx[j1]
-#         idtrend[:, j1] = estimator(X[:, 1:j2], t[1:j2]; kwargs...)
-#     end
-#     return idtrend
-# end
