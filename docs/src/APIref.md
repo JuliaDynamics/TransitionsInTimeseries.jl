@@ -8,21 +8,9 @@ The following API reference is structured along the chronology of a typical comp
 
 ```@docs
     get_windowing_params
-```
-
-```@docs
     left_wndw
-```
-
-```@docs
     centered_wndw
-```
-
-```@docs
     right_wndw
-```
-
-```@docs
     trim_wndw
 ```
 
@@ -42,9 +30,6 @@ The following API reference is structured along the chronology of a typical comp
 
 ```@docs
     gettrend_rollkernel
-```
-
-```@docs
     detrend
 ```
 
@@ -74,9 +59,6 @@ The following API reference is structured along the chronology of a typical comp
 
 ```@docs
     ar1_whitenoise
-```
-
-```@docs
     masked_ar1_whitenoise
 ```
 
@@ -101,9 +83,6 @@ The following API reference is structured along the chronology of a typical comp
 
 ```@docs
     ridge_regression
-```
-
-```@docs
     ridge_regression_slope
 ```
 
