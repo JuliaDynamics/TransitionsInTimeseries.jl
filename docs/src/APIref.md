@@ -51,7 +51,7 @@ get_placeholder_spacedims
     strided_window_mask
 ```
 
-## [Indicators](@id api_indicators)
+## [Transient indicators](@id transient_api_indicators)
 
 ### Statistical moments
 
@@ -89,9 +89,15 @@ get_placeholder_spacedims
     lfps
 ```
 
-### Spatial indicators
+## [Spatial indicators](@id transient_api_indicators)
 
-
+```@docs
+    spatial_variance
+    spatial_skw
+    spatial_krt
+    eigencovar_abs
+    eigencovar_rel
+```
 
 
 ## [Trend estimation](@id api_trends)

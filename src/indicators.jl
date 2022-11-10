@@ -275,10 +275,81 @@ end
 # check out https://www.early-warning-signals.org/
 function network_connectivity() end
 
-function spatial_variance() end
+"""
 
-function spatial_ar1() end
+    spatial_variance(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+
+Computes the spatial variance of an array.
+"""
+function spatial_variance(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    catch_dim_error(X, 3, "Variance")
+    # reshape allows to use previously defined var function for Arrays and CuArrays
+    # sum extracts the only entry of the resulting array.
+    return sum( var( reshape( X, (1, prod(size(X)) )) ) )
+end
+
+"""
+
+    spatial_skw(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+
+Computes the spatial skewness of an array.
+"""
+function spatial_skw(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    catch_dim_error(X, 3, "Skewness")
+    return sum( skw( reshape( X, (1, prod(size(X)) )) ) )
+end
+
+"""
+
+    spatial_krt(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+
+Computes the spatial skewness of an array.
+"""
+function spatial_krt(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    catch_dim_error(X, 3, "Kurtosis")
+    return sum( krt( reshape( X, (1, prod(size(X)) )) ) )
+end
+
+"""
+
+    eigencovar_abs(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+
+Computes the maximal eigenvalue of the spatial covariance matrix after [Chen et al. 2019](https://www.nature.com/articles/s41598-019-38961-5).
+"""
+function eigencovar_abs(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    S = eigencovar(X)
+    Σ = extract_SV(S)
+    return Σ[1,1]
+end
+
+"""
+
+    eigencovar_rel(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+
+Computes the ratio of maximal eigenvalue over norm of eigen vector of the spatial covariance matrix after [Chen et al. 2019](https://www.nature.com/articles/s41598-019-38961-5).
+"""
+function eigencovar_rel(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    S = eigencovar(X)
+    Σ = extract_SV(S)
+    return Σ[1,1] / LinearAlgebra.norm2( Σ )
+end
+
+function eigencovar(X::A) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    catch_dim_error(X, 2, "Covariance")
+    svd_struct = LinearAlgebra.svd( cov(X) )
+    return svd_struct
+end
+
+function extract_SV(sol::SVD)
+    return sol.S
+end
 
 function recovery_length() end
 
 function density_ratio() end
+
+
+# TODO implement/wrap lyapunov covariant exponent
+# TODO implement/wrap detrended fluctuation analysis
+# TODO implement local /finite-time Lyapunov exponents
+# TODO implement Kolmogorov-Smirnov test

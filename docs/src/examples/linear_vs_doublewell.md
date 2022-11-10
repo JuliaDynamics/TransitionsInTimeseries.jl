@@ -192,7 +192,7 @@ end
 fig
 ```
 
-The implemented functions to estimate other transition indicators are listed in the [API reference](@ref api_indicators). They can be used instead of `ar1_whitenoise` while keeping the rest of the syntax identical.
+The implemented functions to estimate other transition indicators are listed in the [API reference](@ref transient_api_indicators). They can be used instead of `ar1_whitenoise` while keeping the rest of the syntax identical.
 
 ### Estimating indicator trends
 

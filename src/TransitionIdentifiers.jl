@@ -3,7 +3,7 @@ module TransitionIdentifiers
 using LinearAlgebra
 using CUDA
 using FFTW: rfft, irfft
-using StatsBase: corkendall
+using StatsBase: corkendall, corspearman, cov
 using SparseArrays: spzeros, spdiagm, SparseMatrixCSC
 
 include("utils.jl")
@@ -72,6 +72,9 @@ export masked_ar1_whitenoise
 export arp_whitenoise
 export hurst_exponent
 export lfps
+export spatial_variance
+export eigencovar_abs
+export eigencovar_rel
 
 #############################
 # Significance
