@@ -14,6 +14,12 @@ end
 # Handle dimensions
 ###############################
 
+function catch_dim_error(X::A, N::Int, operation::String) where {A<:Union{Array{T}, CuArray{T}}} where {T<:Real}
+    n = length(size(X))
+    if n > N
+        error("$operation computation not defined for Arrays of dimension n > $N.")
+    end
+end
 struct Residual{T<:AbstractFloat, A<:Union{Array{T, 4}, CuArray{T, 4}}}
     X::A
     nx::Int
