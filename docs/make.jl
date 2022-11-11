@@ -1,7 +1,7 @@
 cd(@__DIR__)
 using Pkg
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
-using TransitionIdentifiers
+using TransitionIndicators
 using DocumenterTools: Themes
 using CairoMakie
 
@@ -33,7 +33,7 @@ PAGES = include("toc.jl")
 include("style.jl")
 
 makedocs(
-    modules = [TransitionIdentifiers],
+    modules = [TransitionIndicators],
     format = Documenter.HTML(
         prettyurls = CI,
         assets = [
@@ -41,7 +41,7 @@ makedocs(
         ],
         collapselevel = 3,
         ),
-    sitename = "TransitionIdentifiers.jl",
+    sitename = "TransitionIndicators.jl",
     pages = PAGES,
     doctest = CI,
     draft = false,

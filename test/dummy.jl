@@ -1,3 +1,3 @@
-using TransitionIdentifiers, Test
+using TransitionIndicators, Test
 
-@test isdefined(Main, :TransitionIdentifiers)
+@test isdefined(Main, :TransitionIndicators)

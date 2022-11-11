@@ -1,3 +1,3 @@
 TRANSITIONIDENTIFIERS_PAGES = [
-    "TransitionIdentifiers.jl" => "index.md",
+    "TransitionIndicators.jl" => "index.md",
 ]
