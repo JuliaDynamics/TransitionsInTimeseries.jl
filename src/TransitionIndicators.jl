@@ -1,5 +1,10 @@
-module TransitionIdentifiers
+module TransitionIndicators
 
-greet() = print("Hello World!")
+include("windowing.jl")
 
-end # module TransitionIdentifiers
+export WindowViewer
+export left_bracketing
+export center_bracketing
+export right_bracketing
+
+end # module TransitionIndicators
