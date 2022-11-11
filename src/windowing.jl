@@ -2,7 +2,6 @@ struct WindowViewer{T<:Real, V<:AbstractVector{<:T}}
     timeseries::V
     halfwidth::Int
     stride::Int
-    bracketing::Function
     strided_indices::AbstractVector{Int}
 end
 
@@ -12,46 +11,41 @@ end
         timeseries::V,
         halfwidth::Int,
         stride::Int,
-        bracketing::Function,
     ) where {T<:Real, V<:AbstractVector{<:T}}
 
-Returns struct of WindowViewer.
+Returns struct of WindowViewer with fields:
+- `WindowViewer.timeseries`
+- `WindowViewer.halfwidth`
+- `WindowViewer.stride`
+- `WindowViewer.strided_indices`: a vector of indices at which the window viewing should be applied.
 """
 function WindowViewer(
     timeseries::V,
     halfwidth::Int,
     stride::Int,
-    bracketing::Function,
 ) where {T<:Real, V<:AbstractVector{<:T}}
 
     n = length(timeseries)
-    strided_indices = bracketing(n, halfwidth, stride)
-    return WindowViewer(timeseries, halfwidth, stride, bracketing, strided_indices)
+    strided_indices = get_stride_indices(n, halfwidth, stride)
+    return WindowViewer(timeseries, halfwidth, stride, strided_indices)
 end
 
 """
 
-    left_bracketing(idx::Int, wv::WindowViewer)
-    center_bracketing(idx::Int, wv::WindowViewer)
-    right_bracketing(idx::Int, wv::WindowViewer)
+    bracket(idx::Int, wv::WindowViewer)
 
 Returns index span based on target index and parameters of the window viewer.
 """
-left_bracketing(idx::Int, wv::WindowViewer) = (idx-2*wv.halfwidth, idx)
-center_bracketing(idx::Int, wv::WindowViewer) = (idx - wv.halfwidth, idx + wv.halfwidth)
-right_bracketing(idx::Int, wv::WindowViewer) = (idx, idx+2*wv.halfwidth)
+bracket(idx::Int, wv::WindowViewer) = (idx-2*wv.halfwidth, idx)
 
 """
 
-    left_bracketing(l::Int, halfwidth::Int, stride::Int)
-    center_bracketing(l::Int, halfwidth::Int, stride::Int)
-    right_bracketing(l::Int, halfwidth::Int, stride::Int)
+    get_stride_indices(l::Int, halfwidth::Int, stride::Int)
 
 Returns a vector with strided indices based on windowing parameters.
 """
-left_bracketing(l::Int, halfwidth::Int, stride::Int) = 2*halfwidth+1:stride:l
-center_bracketing(l::Int, halfwidth::Int, stride::Int) = halfwidth+1:stride:l-halfwidth
-right_bracketing(l::Int, halfwidth::Int, stride::Int) = 1:stride:l-2*halfwidth
+get_stride_indices(l::Int, halfwidth::Int, stride::Int) = 2*halfwidth+1:stride:l
+
 
 # Define iterator for WindowViewer.
 function Base.iterate(wv::WindowViewer, state::Int = 1)
@@ -59,8 +53,8 @@ function Base.iterate(wv::WindowViewer, state::Int = 1)
         return nothing
     else
         k = wv.strided_indices[state]
-        i1, i2 = wv.bracketing(k, wv)
-        return (view(wv.timeseries, i1:i2), state+1)    # Else: return a view based on the chosen bracketing.
+        i1, i2 = bracket(k, wv)
+        return (view(wv.timeseries, i1:i2), state+1)    # Else: return a view of time series.
     end
 end
 Base.eltype(::Type{WindowViewer}) = AbstractVector{<:Real}
