@@ -1,22 +1,20 @@
-using StatsBase, TransitionIndicators
-
-# Needs to be computed only once for a given timeseries.
-# Embed in src?
-function vectorize_windowviewer(wv::WindowViewer)
-    return [windowview for windowview in wv]
+using TransitionIndicators
+using Statistics, BenchmarkTools
+function inplace_map!(f::Function, y::Vector{T}, wv::WindowViewer) where {T<:Real}
+    @inbounds for (i, windowview) in enumerate(wv)
+        y[i] = f(windowview)
+    end
 end
 
-begin
-    n = 1_000_000
-    x = collect(1:n)
-    halfwidth = 2                               # Draw integer on [1, n/2-1]. Any of those should work.
-    stride = 2
+n = 100_000
+x = collect(1:n)
+halfwidth = 2
+stride = 2
+wv = WindowViewer(x, halfwidth, stride)
 
-    wv = WindowViewer(x, halfwidth, stride)
-    vectorized_window = vectorize_windowviewer(wv)
-    var_x = zeros(length(wv.strided_indices))
+windowed_views = collect(wv)
+var_x = zeros(length(wv))
 
-    @btime map($StatsBase.var, $wv)
-    @btime map!($StatsBase.var, $var_x, $vectorized_window)
-end
-
+@btime map(var, $wv)
+@btime map!(var, $var_x, $windowed_views)
+@btime inplace_map!(var, $var_x, $wv)
