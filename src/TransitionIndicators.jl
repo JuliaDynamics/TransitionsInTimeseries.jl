@@ -1,5 +1,7 @@
-module TransitionIdentifiers
+module TransitionIndicators
 
-greet() = print("Hello World!")
+include("windowing.jl")
 
-end # module TransitionIdentifiers
+export WindowViewer
+
+end # module TransitionIndicators
