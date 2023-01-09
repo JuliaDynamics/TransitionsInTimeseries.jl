@@ -1,9 +1,9 @@
 using TransitionIndicators
 using Statistics, BenchmarkTools
 
-################################
+#################################################
 # Windowing
-################################
+#################################################
 
 function inplace_map!(f::Function, y::Vector{T}, wv::WindowViewer) where {T<:Real}
     @inbounds for (i, windowview) in enumerate(wv)
@@ -29,3 +29,10 @@ Output on Jan's machine:
   969.439 μs (0 allocations: 0 bytes)
   1.148 ms (0 allocations: 0 bytes)
 =#
+
+#################################################
+# AR1
+#################################################
+
+# Check 0 allocations
+@btime inplace_map!(ar1_whitenoise, $var_x, $wv)
