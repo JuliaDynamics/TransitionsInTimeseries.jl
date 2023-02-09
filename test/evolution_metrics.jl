@@ -6,8 +6,8 @@ using Random, Distributions, TransitionIndicators, Test
     x = 0:0.1:10
     y = m .* x .+ p             # define affine function
     y_noisy = y + 0.1 .* rand(d, length(x))
-    m_est, p_est = ridge_regression(x, y)
-    m_est_noisy, p_est_noisy = ridge_regression(x, y_noisy)
+    m_est, p_est = ridge(x, y)
+    m_est_noisy, p_est_noisy = ridge(x, y_noisy)
     @test isapprox(m, m_est)
     @test isapprox(p, p_est)
     @test isapprox(m, m_est_noisy, atol = 1e-1)
@@ -25,13 +25,13 @@ end
     metric_wv_stride = 2
     slope_ground_truth = fill(indicator_wv_stride, length(slope_ts))
 
-    trend_results = compute_trend(
+    trend_results = indicator_evolution(
         t,
         x,
         mean,
         100,
         RandomFourier(),
-        ridge_regression_slope,
+        ridge_slope,
         indicator_wv_width,
         indicator_wv_stride,
         metric_wv_width,
