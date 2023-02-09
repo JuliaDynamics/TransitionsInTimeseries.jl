@@ -3,7 +3,7 @@ using TransitionIndicators, Test, Statistics
 @testset "measuring significance w.r.t. to n surrogates" begin
     # Generate long time series to check if statistics are well-behaved
     t = collect(0.0:10_000.0)
-    x = AR1(;n_steps = length(t), x₀ = 0.0, k = -0.5)
+    x = AR1(length(t), 0.0, -0.5)
     
     wv_indicator_width = 10
     wv_indicator_stride = 2
