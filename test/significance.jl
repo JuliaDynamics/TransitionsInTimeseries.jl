@@ -10,7 +10,7 @@ using TransitionIndicators, Test, Statistics
     wv_evolution_width = 10
     wv_evolution_stride = 2
 
-    M = precompute_ridge_slope(1:wv_evolution_width+1)
+    m = precompute_ridge_slope(1:wv_evolution_width+1)
     curry(f, y) = x -> f(x, y)
     trend_results = indicator_evolution(
         t,

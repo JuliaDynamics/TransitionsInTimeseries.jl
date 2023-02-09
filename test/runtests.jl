@@ -7,4 +7,5 @@ testfile(file, testname=defaultname(file)) = @testset "$testname" begin; include
     testfile("windowing.jl")
     testfile("indicators.jl")
     testfile("evolution_metrics.jl")
+    testfile("significance.jl")
 end

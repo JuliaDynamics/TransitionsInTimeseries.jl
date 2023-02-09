@@ -18,12 +18,10 @@ end
     n = 101
     t = collect(1.0:n)
     x = copy(t)
-    
     indicator_wv_width = 10
     indicator_wv_stride = 2
     metric_wv_width = 10
     metric_wv_stride = 2
-    slope_ground_truth = fill(indicator_wv_stride, length(slope_ts))
 
     trend_results = indicator_evolution(
         t,
@@ -37,6 +35,7 @@ end
         metric_wv_width,
         metric_wv_stride,
     )
+    slope_ground_truth = fill(indicator_wv_stride, length(trend_results.x_evolution))
     @test isapprox(trend_results.x_evolution, slope_ground_truth)
 
 end
