@@ -31,6 +31,9 @@ end
     return significance
 end
 
+#####################################################
+# Percentile metrics
+#####################################################
 """
 
     percentile_idx(s; p, symmetric)
