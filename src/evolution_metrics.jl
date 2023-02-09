@@ -96,7 +96,7 @@ end
 
 Extract the slope of ridge regression of `y` over `x`.
 """
-function ridge_slope(
+@inline function ridge_slope(
     x::AbstractVector{T},
     y::AbstractVector{T};
     lambda::T = T(0),
@@ -104,7 +104,7 @@ function ridge_slope(
     return ridge(x, y, lambda = lambda)[1]
 end
 
-function ridge_slope(
+@inline function ridge_slope(
     y::AbstractVector{T},
 ) where {T<:Real}
     return ridge(T.(eachindex(y)), y)[1]
