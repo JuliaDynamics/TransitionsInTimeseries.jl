@@ -7,7 +7,8 @@ using Reexport
 
 include("windowing.jl")
 include("indicators.jl")
-include("indicator_metrics.jl")
+include("evolution_metrics.jl")
+include("significance.jl")
 
 # windowing.jl
 export WindowViewer
@@ -15,10 +16,22 @@ export WindowViewer
 # indicators.jl
 export ar1_whitenoise
 
-# indicator_metrics.jl
+# evolution_metrics.jl
 export IndicatorEvolutionResults
-export compute_trend
-export ridge_regression
-export ridge_regression_slope
+export indicator_evolution
+
+export ridge
+export ridge_slope
+export precompute_ridge
+export precompute_ridge_slope
+export precomputed_ridge_slope
+
+# significance.jl
+export measure_significance
+export gaussian_quantile
+export which_quantile
+export quantile_idx
+export normalized_quantile_distance
+export intround
 
 end # module TransitionIndicators
