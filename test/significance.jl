@@ -1,21 +1,5 @@
 using TransitionIndicators, Test, Statistics
 
-@testset "computing normalized quantile distance" begin
-    s = 1.0:100.0
-    S = repeat(s, outer = (1, 20))
-    symmetric_quantile_idx = quantile_idx(s, q = 0.95, symmetric = true)
-    asymmetric_quantile_idx = quantile_idx(s, q = 0.95, symmetric = false)
-    @test symmetric_quantile_idx == (5, 95)
-    @test asymmetric_quantile_idx == (1, 95)
-
-    nid5 = normalized_quantile_distance(5.0, s, q=0.95, symmetric = true)
-    nid50 = normalized_quantile_distance(50.0, s, q=0.95, symmetric = true)
-    nid95 = normalized_quantile_distance(95.0, s, q=0.95, symmetric = true)
-
-    @test isapprox(nid5, -1)
-    @test isapprox(nid50, 0)
-    @test isapprox(nid95, 1)
-end
 
 @testset "measuring significance w.r.t. to n surrogates" begin
     # Generate long time series to check if statistics are well-behaved
@@ -47,32 +31,49 @@ end
     tol = intround.(length(trend_results.x_evolution) .* [0.04, 0.06])
     tol_less = 0.01 * length(trend_results.x_evolution)
 
-    # Test gaussian_quantile()
-    significance = measure_significance(trend_results, gaussian_quantile)
+    # Test gaussian_percentile()
+    significance = measure_significance(trend_results, gaussian_percentile)
     gq_top5 = sum(significance .> 1.0)
     gq_bottom5 = sum(significance .< -1.0)
     @test (gq_top5 + gq_bottom5) in tol[1]:tol[2]
 
-    # Test symmetric normalized_quantile_distance()
-    symmetric_nqd(x, s) = normalized_quantile_distance(x, s, symmetric = true)
+    # Test symmetric normalized_percentile_distance()
+    symmetric_nqd(x, s) = normalized_percentile_distance(x, s, symmetric = true)
     significance = measure_significance(trend_results, symmetric_nqd)
     snqd_top5 = sum(significance .> 1.0)
     snqd_bottom5 = sum(significance .< -1.0)
     @test snqd_top5 in tol[1]:tol[2]
     @test snqd_bottom5 in tol[1]:tol[2]
 
-    # Test asymmetric normalized_quantile_distance()
-    asymmetric_nqd(x, s) = normalized_quantile_distance(x, s)
+    # Test asymmetric normalized_percentile_distance()
+    asymmetric_nqd(x, s) = normalized_percentile_distance(x, s)
     significance = measure_significance(trend_results, asymmetric_nqd)
     anqd_top5 = sum(significance .> 1.0)
     anqd_bottom5 = sum(significance .< -1.0)
     @test anqd_top5 in tol[1]:tol[2]
     @test anqd_bottom5 < tol_less
 
-    # Test which_quantile()
-    significance = measure_significance(trend_results, which_quantile)
+    # Test which_percentile()
+    significance = measure_significance(trend_results, which_percentile)
     top5 = sum(significance .> 0.95)
     bottom5 = sum(significance .< 0.05)
     @test top5 in tol[1]:tol[2]
     @test bottom5 in tol[1]:tol[2]
+end
+
+@testset "computing normalized percentile distance" begin
+    s = 1.0:100.0
+    S = repeat(s, outer = (1, 20))
+    symmetric_percentile_idx = percentile_idx(s, q = 0.95, symmetric = true)
+    asymmetric_percentile_idx = percentile_idx(s, q = 0.95, symmetric = false)
+    @test symmetric_percentile_idx == (5, 95)
+    @test asymmetric_percentile_idx == (1, 95)
+
+    nid5 = normalized_percentile_distance(5.0, s, q=0.95, symmetric = true)
+    nid50 = normalized_percentile_distance(50.0, s, q=0.95, symmetric = true)
+    nid95 = normalized_percentile_distance(95.0, s, q=0.95, symmetric = true)
+
+    @test isapprox(nid5, -1)
+    @test isapprox(nid50, 0)
+    @test isapprox(nid95, 1)
 end

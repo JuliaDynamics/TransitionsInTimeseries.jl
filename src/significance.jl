@@ -33,11 +33,12 @@ end
 
 """
 
-    get_quantile_idx(s)
+    get_percentile_idx(s)
 
-Compute the indices of the quantile values within the vector `s`.
+Compute the indices of the percentile values within the vector `s`.
+
 """
-@inline function quantile_idx(
+@inline function percentile_idx(
     s::AbstractVector{T};
     q::T = T(0.95),
     symmetric::Bool = false,
@@ -51,18 +52,18 @@ end
 
 """
 
-    normalized_quantile_distance(x, s)
+    normalized_percentile_distance(x, s)
 
 Compute the normalized distance between an input value `x` and the
-quantiles of a vector `s`. 
+percentiles of a vector `s`. 
 """
-@inline function normalized_quantile_distance(
+@inline function normalized_percentile_distance(
     x::T,
     s::AbstractVector{T};
     q::T = T(0.95),
     symmetric::Bool = false,
 ) where{T<:AbstractFloat}
-    i_lo, i_hi = quantile_idx(s, q=q, symmetric=symmetric)
+    i_lo, i_hi = percentile_idx(s, q=q, symmetric=symmetric)
     center = 0.5 * (s[i_lo] + s[i_hi])
     interq = 0.5 * (s[i_hi] - s[i_lo])
     return (x - center) / abs(interq)
@@ -70,12 +71,12 @@ end
 
 """
 
-    gaussian_quantile(x, s)
+    gaussian_percentile(x, s)
 
 Compute the normalized distance between an input value `x` and the
-quantiles of a vector `s`. 
+percentiles of a vector `s`. 
 """
-@inline function gaussian_quantile(
+@inline function gaussian_percentile(
     x::T,
     s::AbstractVector{T};
     nstd::T=2.0,
@@ -85,11 +86,11 @@ end
 
 """
 
-    which_quantile(x, s)
+    which_percentile(x, s)
 
-Compute the quantile represented by the input value `x` w.r.t. the vector `s`. 
+Compute the percentile represented by the input value `x` w.r.t. the vector `s`. 
 """
-@inline function which_quantile(
+@inline function which_percentile(
     x::T,
     s::AbstractVector{T},
 ) where{T<:AbstractFloat}

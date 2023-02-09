@@ -28,10 +28,10 @@ export precomputed_ridge_slope
 
 # significance.jl
 export measure_significance
-export gaussian_quantile
-export which_quantile
-export quantile_idx
-export normalized_quantile_distance
+export gaussian_percentile
+export which_percentile
+export percentile_idx
+export normalized_percentile_distance
 export intround
 
 end # module TransitionIndicators
