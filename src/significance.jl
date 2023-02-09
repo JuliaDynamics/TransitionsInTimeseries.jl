@@ -33,55 +33,59 @@ end
 
 """
 
-    get_percentile_idx(s)
+    percentile_idx(s; p, symmetric)
 
-Compute the indices of the percentile values within the vector `s`.
-
+If `symmetric == false`, return indices of `0`-th and `p*100`-th percentile of `s`.
+If `symmetric == true` and `p=0.95`, return indices of `2.5`-th and `97.5`-th percentile.
 """
 @inline function percentile_idx(
     s::AbstractVector{T};
-    q::T = T(0.95),
+    p::T = T(0.95),
     symmetric::Bool = false,
 ) where{T<:AbstractFloat}
     n = length(s)
     sorted_idx = sortperm(s)
-    i_lo = symmetric ? sorted_idx[intround(n * (1 - q))] : sorted_idx[1]
-    i_hi = sorted_idx[intround(n * q)]
+    i_lo = symmetric ?
+        sorted_idx[intround(n * (0.5 - p/2))] :
+        sorted_idx[1]
+    i_hi = symmetric ?
+        sorted_idx[intround(n * (0.5 + p/2))] :
+        sorted_idx[intround(n * p)]
     return i_lo, i_hi
 end
 
 """
 
-    normalized_percentile_distance(x, s)
+    normalized_percentile_distance(x, s; p, symmetric)
 
 Compute the normalized distance between an input value `x` and the
-percentiles of a vector `s`. 
+percentiles of a vector `s` specified by `p`.
 """
 @inline function normalized_percentile_distance(
     x::T,
     s::AbstractVector{T};
-    q::T = T(0.95),
+    p::T = T(0.95),
     symmetric::Bool = false,
 ) where{T<:AbstractFloat}
-    i_lo, i_hi = percentile_idx(s, q=q, symmetric=symmetric)
-    center = 0.5 * (s[i_lo] + s[i_hi])
-    interq = 0.5 * (s[i_hi] - s[i_lo])
-    return (x - center) / abs(interq)
+    i_lo, i_hi = percentile_idx(s, p=p, symmetric=symmetric)
+    percentile_center = 0.5 * (s[i_lo] + s[i_hi])
+    interpercentile_distance = 0.5 * (s[i_hi] - s[i_lo])
+    return (x - percentile_center) / abs(interpercentile_distance)
 end
 
 """
 
-    gaussian_percentile(x, s)
+    gaussian_percentile(x, s; nstd)
 
-Compute the normalized distance between an input value `x` and the
-percentiles of a vector `s`. 
+Compute the normalized distance between an input value `x` and the tail of
+the distribution of `s`. The tail is defined by `nstd` standard-deviations.
 """
 @inline function gaussian_percentile(
     x::T,
     s::AbstractVector{T};
     nstd::T=2.0,
 ) where{T<:AbstractFloat}
-    return T( (x - mean(s)) / (nstd * std(s)) )
+    return (x - mean(s)) / (nstd * std(s))
 end
 
 """
