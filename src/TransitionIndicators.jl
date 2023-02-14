@@ -2,6 +2,7 @@ module TransitionIndicators
 
 using LinearAlgebra
 using Reexport
+@reexport using Random
 @reexport using StatsBase
 @reexport using TimeseriesSurrogates
 
@@ -18,7 +19,10 @@ export ar1_whitenoise
 
 # evolution_metrics.jl
 export IndicatorEvolutionResults
-export indicator_evolution
+export MetaAnalysisParameters
+export init_metaanalysis_params
+export analyze_indicators
+export analyze_indicator
 
 export ridge
 export ridge_slope
@@ -28,6 +32,7 @@ export precomputed_ridge_slope
 
 # significance.jl
 export measure_significance
+export measure_significances
 export gaussian_percentile
 export which_percentile
 export percentile_idx
