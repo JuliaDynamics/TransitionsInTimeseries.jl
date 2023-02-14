@@ -1,3 +1,26 @@
+@inline function measure_significances(
+    res::IndicatorEvolutionResults{T},
+    significance_metrics::Vector{Function},
+) where {T<:AbstractFloat}
+    significances = similar(res.X_evolution)
+    for i in axes(res.X_evolution, 3)
+        significances[:, :, i] = measure_significance(
+            res.X_evolution[1, :, i],
+            res.S_evolution[:, :, i],
+            significance_metrics[i],
+        )
+    end
+    return significances
+end
+
+@inline function measure_significances(
+    res::IndicatorEvolutionResults{T},
+    significance_metrics::Function,
+) where {T<:AbstractFloat}
+    sm = repeat(Function[significance_metrics], outer = size(res.X_evolution, 3))
+    return measure_significances(res, sm)
+end
+
 """
 
     measure_significance(res, significance_metric)
@@ -6,26 +29,15 @@ Compute the `significance_metric` on the results `res` of an indicator evolution
 analysis.
 """
 @inline function measure_significance(
-    res::IndicatorEvolutionResults{T},
-    significance_metric::Function,
-) where {T<:AbstractFloat}
-    return measure_significance(
-        res.x_evolution,
-        res.surr_x_evolution,
-        significance_metric,
-    )
-end
-
-@inline function measure_significance(
     x_evolution::AbstractVector{T},
-    surr_x_evolution::AbstractMatrix{T},
+    s_evolution::AbstractMatrix{T},
     significance_metric::Function,
 ) where {T<:AbstractFloat}
     significance = similar(x_evolution)
     for j in eachindex(significance)
         significance[j] = significance_metric(
             x_evolution[j],
-            view(surr_x_evolution, :, j),
+            view(s_evolution, :, j),
         )
     end
     return significance
@@ -43,7 +55,7 @@ If `symmetric == true` and `p=0.95`, return indices of `2.5`-th and `97.5`-th pe
 """
 @inline function percentile_idx(
     s::AbstractVector{T};
-    p::T = T(0.95),
+    p::Real = 0.95,
     symmetric::Bool = false,
 ) where{T<:AbstractFloat}
     n = length(s)
