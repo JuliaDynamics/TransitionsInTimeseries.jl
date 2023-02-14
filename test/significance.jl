@@ -1,57 +1,53 @@
-using TransitionIndicators, Test, Statistics
+using TimeseriesSurrogates, TransitionIndicators, Test, Random, Statistics
+
+curry(f, y) = x -> f(x, y)
+
+function generate_results()
+    t = collect(0.0:10_000.0)
+    θ = rand()
+    x = AR1(length(t), rand(), θ, Random.default_rng())
+
+    p = init_metaanalysis_params(
+        n_surrogates = 1_000,
+        wv_indicator_width = 10,
+        wv_evolution_width = 10,
+    )
+    m = precompute_ridge_slope(1:p.wv_evolution_width+1)
+    res = analyze_indicators(t, x, var, curry(precomputed_ridge_slope, m), p)
+    return res
+end
+
+function count_percentile(res, sig)
+    significance = vec(measure_significances(res, sig))
+    top5 = sum(significance .> 1.0)
+    bottom5 = sum(significance .< -1.0)
+    return bottom5 + top5
+end
 
 @testset "measuring significance w.r.t. to n surrogates" begin
     # Generate long time series to check if statistics are well-behaved
-    t = collect(0.0:10_000.0)
-    x = AR1(length(t), 0.0, -0.5)
-    
-    wv_indicator_width = 10
-    wv_indicator_stride = 2
-    wv_evolution_width = 10
-    wv_evolution_stride = 2
-
-    m = precompute_ridge_slope(1:wv_evolution_width+1)
-    curry(f, y) = x -> f(x, y)
-    trend_results = indicator_evolution(
-        t,
-        x,
-        Statistics.var,
-        1_000,
-        RandomFourier(),
-        curry(precomputed_ridge_slope, m),
-        wv_indicator_width,
-        wv_indicator_stride,
-        wv_evolution_width,
-        wv_evolution_stride,
-    )
+    res = generate_results()
 
     # We look at 95-th percentile (either symmetric or only one-sided).
     # The significance of our AR1 process vs. AR1 surrogates should therefore be
     # positive in [4, 6]% of the cases.
-    tol = intround.(length(trend_results.x_evolution) .* [0.04, 0.06])
+    tol = intround.(length(res.X_evolution[1, :, 1]) .* [0.04, 0.06])
 
-    # Test gaussian_percentile()
-    significance = measure_significance(trend_results, gaussian_percentile)
-    gq_top5 = sum(significance .> 1.0)
-    gq_bottom5 = sum(significance .< -1.0)
-    @test (gq_top5 + gq_bottom5) in tol[1]:tol[2]
+    # Test if gaussian_percentile() gives significance within tolerance
+    @test count_percentile(res, gaussian_percentile) in tol[1]:tol[2]
 
-    # Test symmetric normalized_percentile_distance()
+    # Test if symmetric_nqd() gives significance within tolerance
     symmetric_nqd(x, s) = normalized_percentile_distance(x, s, symmetric = true)
-    significance = measure_significance(trend_results, symmetric_nqd)
-    snqd_top5 = sum(significance .> 1.0)
-    snqd_bottom5 = sum(significance .< -1.0)
-    @test (snqd_top5 + snqd_bottom5) in tol[1]:tol[2]
+    @test count_percentile(res, symmetric_nqd) in tol[1]:tol[2]
 
-    # Test asymmetric normalized_percentile_distance()
+    # Test if asymmetric_nqd() gives significance within tolerance
     asymmetric_nqd(x, s) = normalized_percentile_distance(x, s)
-    significance = measure_significance(trend_results, asymmetric_nqd)
-    anqd_top5 = sum(significance .> 1.0)
-    anqd_bottom5 = sum(significance .< -1.0)
-    @test (anqd_top5 + anqd_bottom5) in tol[1]:tol[2]
+    @test count_percentile(res, asymmetric_nqd) in tol[1]:tol[2]
 
-    # Test which_percentile()
-    significance = measure_significance(trend_results, which_percentile)
+    # Test if which_percentile() gives significance within tolerance
+    # which_percentile() is not normed and therefore needs special treatment
+    significance = measure_significances(res, which_percentile)
+    significance = vec(significance)
     top5 = sum(significance .> 0.975)
     bottom5 = sum(significance .< 0.025)
     @test (top5 + bottom5) in tol[1]:tol[2]

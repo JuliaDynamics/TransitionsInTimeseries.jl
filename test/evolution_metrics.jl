@@ -1,4 +1,5 @@
-using Random, Distributions, TransitionIndicators, Test
+using TransitionIndicators, Test, Random, TimeseriesSurrogates
+using Distributions
 
 @testset "checking slope estimation" begin
     d = Normal()                # define normal distribution
@@ -15,27 +16,16 @@ using Random, Distributions, TransitionIndicators, Test
 end
 
 @testset "sliding trend estimation over indicator" begin
-    n = 101
+    n = 1001
     t = collect(1.0:n)
     x = copy(t)
-    indicator_wv_width = 10
-    indicator_wv_stride = 2
-    metric_wv_width = 10
-    metric_wv_stride = 2
+    p = init_metaanalysis_params(n_surrogates = 100)
+    res = analyze_indicators(t, x, [mean, var], ridge_slope, p)
 
-    trend_results = indicator_evolution(
-        t,
-        x,
-        mean,
-        100,
-        RandomFourier(),
-        ridge_slope,
-        indicator_wv_width,
-        indicator_wv_stride,
-        metric_wv_width,
-        metric_wv_stride,
-    )
-    slope_ground_truth = fill(indicator_wv_stride, length(trend_results.x_evolution))
-    @test isapprox(trend_results.x_evolution, slope_ground_truth)
-
+    # The trend of mean(windowview) is the stride for x=t
+    meantrend_ground_truth = fill(p.wv_indicator_stride, length(res.t_evolution))
+    # The trend of var(windowview) is 0 for x any affine function of t.
+    vartrend_ground_truth = fill(0.0, length(res.t_evolution))
+    @test isapprox(res.X_evolution[1, :, 1], meantrend_ground_truth)
+    @test isapprox(res.X_evolution[1, :, 2], vartrend_ground_truth, atol = 1e-12)
 end
