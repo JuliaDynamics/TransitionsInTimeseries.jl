@@ -90,12 +90,12 @@ end
 
 """
 
-    gaussian_percentile(x, s; nstd)
+    normalized_confidence_intervall(x, s; nstd)
 
 Compute the normalized distance between an input value `x` and the tail of
 the distribution of `s`. The tail is defined by `nstd` standard-deviations.
 """
-@inline function gaussian_percentile(
+@inline function normalized_confidence_intervall(
     x::T,
     s::AbstractVector{T};
     nstd::T=2.0,

@@ -4,7 +4,7 @@ using LinearAlgebra
 using Reexport
 @reexport using Random
 @reexport using StatsBase
-@reexport using TimeseriesSurrogates
+@reexport using TimeseriesSurrogates: Surrogate, RandomFourier, surrogenerator
 
 include("windowing.jl")
 include("indicators.jl")
@@ -33,7 +33,7 @@ export precomputed_ridge_slope
 # significance.jl
 export measure_significance
 export measure_significances
-export gaussian_percentile
+export normalized_confidence_intervall
 export which_percentile
 export percentile_idx
 export normalized_percentile_distance

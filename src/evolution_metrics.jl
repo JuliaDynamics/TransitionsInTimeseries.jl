@@ -15,7 +15,7 @@ end
 struct MetaAnalysisParameters
     n_surrogates::Int
     surrogate_method::Surrogate
-    rng::AbstractRNG
+    rng::AbstractRNG            # random number generator
     wv_indicator_width::Int
     wv_indicator_stride::Int
     wv_evolution_width::Int
