@@ -3,7 +3,7 @@ using TimeseriesSurrogates, TransitionIndicators, Test, Random, Statistics
 curry(f, y) = x -> f(x, y)
 
 function generate_results()
-    t = collect(0.0:10_000.0)
+    t = collect(0.0:100_000.0)
     θ = rand()
     x = AR1(length(t), rand(), θ, Random.default_rng())
 
@@ -33,8 +33,8 @@ end
     # positive in [4, 6]% of the cases.
     tol = intround.(length(res.X_evolution[1, :, 1]) .* [0.04, 0.06])
 
-    # Test if gaussian_percentile() gives significance within tolerance
-    @test count_percentile(res, gaussian_percentile) in tol[1]:tol[2]
+    # Test if normalized_confidence_intervall() gives significance within tolerance
+    @test count_percentile(res, normalized_confidence_intervall) in tol[1]:tol[2]
 
     # Test if symmetric_nqd() gives significance within tolerance
     symmetric_nqd(x, s) = normalized_percentile_distance(x, s, symmetric = true)
