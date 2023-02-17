@@ -79,7 +79,7 @@ function analyze_indicators(
     t_indicator = fill(T(0), indicator_length)
     t_evolution = fill(T(0), evolution_length)
 
-    @inline for i in 1:n_ind
+    for i in 1:n_ind
         if i == 1       # t_indicator and t_evolution only need to be computed once.
             t1, x_indicator, t2, x_evolution = analyze_indicator(
                 t, x, indicators[i], evolution_metrics[i], p)
@@ -95,8 +95,8 @@ function analyze_indicators(
 
     sgen = surrogenerator(x, p.surrogate_method, p.rng)
     S_evolution = fill(T(0.0), p.n_surrogates, evolution_length, n_ind)
-    @inline for j in 1:p.n_surrogates
-        @inline for i in 1:n_ind
+    for j in 1:p.n_surrogates
+        for i in 1:n_ind
             s = sgen()
             s_evolution = analyze_indicator(
                 s, indicators[i], evolution_metrics[i], p)
@@ -109,7 +109,7 @@ function analyze_indicators(
 end
 
 # allow for a single indicator and a single evolution metric.
-@inline function analyze_indicators(
+function analyze_indicators(
     t::AbstractVector{T},
     x::AbstractVector{T},
     indicators::Function,
@@ -120,7 +120,7 @@ end
 end
 
 # allow for multiple indicators and a single evolution metric.
-@inline function analyze_indicators(
+function analyze_indicators(
     t::AbstractVector{T},
     x::AbstractVector{T},
     indicators::Vector{Function},
@@ -132,7 +132,7 @@ end
 end
 
 # allow the user to not provide any time vector.
-@inline function analyze_indicators(
+function analyze_indicators(
     x::AbstractVector{T},
     indicators::VFi,
     evolution_metrics::VFe,
@@ -155,7 +155,7 @@ Compute a single `indicator` and its `evolution_metric` for a timeseries `t`, `x
 some surrogates. If `t` is not provided, it is simply assumed to be `1:length(x)`.
 This meta-analysis is performed based on `p::MetaAnalysisParameters`.
 """
-@inline function analyze_indicator(
+function analyze_indicator(
     t::AbstractVector{T},
     x::Vector{T},
     indicator::Function,
@@ -170,7 +170,7 @@ This meta-analysis is performed based on `p::MetaAnalysisParameters`.
     return t_indicator, x_indicator, t_evolution, x_evolution
 end
 
-@inline function analyze_indicator(
+function analyze_indicator(
     x::Vector{T},
     indicator::Function,
     evolution_metric::Function,
@@ -192,7 +192,7 @@ Generate a `WindowViewer` of `x` with `wv_width` and `wv_stride` and map functio
 over it. If the time vector `t` is provided, additionally return the time vector resulting
 from applying the `WindowViewer`.
 """
-@inline function mapwindow(
+function mapwindow(
     x::Vector{T},
     f::Function,
     wv_width::Int,
@@ -202,7 +202,7 @@ from applying the `WindowViewer`.
     return map(f, wv)
 end
 
-@inline function mapwindow(
+function mapwindow(
     t::AbstractVector{T},
     x::Vector{T},
     f::Function,
@@ -219,7 +219,7 @@ end
 
 Compute the length of the `WindowViewer` induced by `x`, `wv_width` and `wv_stride`.
 """
-@inline function get_mapwindowview_length(x, wv_width, wv_stride)
+function get_mapwindowview_length(x, wv_width, wv_stride)
     wv = WindowViewer(x, wv_width, wv_stride)
     return length(wv)
 end
@@ -236,7 +236,7 @@ Return vector containing slope and offset.
 If `lambda = 0`, linear regression is recovered (default case).
 For more information, visit: https://en.wikipedia.org/wiki/Ridge_regression
 """
-@inline function ridge(
+function ridge(
     t::AbstractVector{T},
     x::AbstractVector{T};
     lambda::T = T(0),
@@ -245,14 +245,14 @@ For more information, visit: https://en.wikipedia.org/wiki/Ridge_regression
     return ridge(M, x)
 end
 
-@inline function ridge(
+function ridge(
     x::AbstractVector{T};
     lambda::T = T(0),
 ) where {T<:Real}
     return ridge(T.(eachindex(x)), x, lambda=lambda)
 end
 
-@inline function precompute_ridge(
+function precompute_ridge(
     t::AbstractVector{T};
     lambda::T = T(0),
 ) where {T<:Real}
@@ -260,7 +260,7 @@ end
     return inv(TT * TT' + lambda .* I(2) ) * TT
 end
 
-@inline function ridge(
+function ridge(
     M::AbstractMatrix{T},
     x::AbstractVector{T},
 ) where {T<:Real}
@@ -282,7 +282,7 @@ ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[2]
 For evenly spaced time series, precomputation can be performed to accelerate
 the computation of the slope obtained by ridge regression over a time-span `t`.
 """
-@inline function precompute_ridge_slope(
+function precompute_ridge_slope(
     t::AbstractVector{T};
     lambda::T = T(0),
 ) where {T<:Real}
@@ -290,7 +290,7 @@ the computation of the slope obtained by ridge regression over a time-span `t`.
     return M[1, :]
 end
 
-@inline function precomputed_ridge_slope(
+function precomputed_ridge_slope(
     x::AbstractVector{T},
     m::AbstractVector{T},
 ) where {T<:AbstractFloat}
