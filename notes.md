@@ -1,1 +1,3 @@
-- 
+- permute evolution_metrics and metaanalysis
+- do not reexport TimeseriesSurrogates
+- precompute ridge
