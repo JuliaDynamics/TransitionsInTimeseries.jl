@@ -23,7 +23,7 @@ struct MetaAnalysisParameters{S<:Surrogate, R<:AbstractRNG}
 end
 
 """
-    init_metaanalysis_params()
+    init_metaanalysis_params(kwargs...)
 
 Initialize a `MetaAnalysisParameters` struct with default choices. Custom values can
 be set by providing keyword arguments:
