@@ -1,3 +1,10 @@
+"""
+
+    measure_significances(res, significance_metrics)
+
+Compute some `significance_metrics` on the results `res` of an indicator metaanalysis.
+"""
+
 function measure_significances(
     res::IndicatorEvolutionResults{T},
     significance_metrics::Vector{Function},
@@ -25,8 +32,7 @@ end
 
     measure_significance(res, significance_metric)
 
-Compute the `significance_metric` on the results `res` of an indicator evolution
-analysis.
+Compute the `significance_metric` on the results `res` of an indicator metaanalysis.
 """
 function measure_significance(
     x_evolution::AbstractVector{T},

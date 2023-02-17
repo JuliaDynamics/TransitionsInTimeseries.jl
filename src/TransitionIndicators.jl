@@ -8,7 +8,7 @@ using StatsBase
 
 include("windowing.jl")
 include("indicators.jl")
-include("evolution_metrics.jl")
+include("metaanalysis.jl")
 include("metaanalysis_trend.jl")
 include("significance.jl")
 
@@ -18,7 +18,7 @@ export WindowViewer
 # indicators.jl
 export ar1_whitenoise
 
-# evolution_metrics.jl
+# metaanalysis.jl
 export IndicatorEvolutionResults
 export MetaAnalysisParameters
 export init_metaanalysis_params
@@ -28,7 +28,7 @@ export analyze_indicator
 # Trend metaanalysis metrics
 export corspearman, corkendall # from StatsBase
 export ridge, ridge_slope
-export precompute_ridge
+export precompute_ridge_slope, precomputed_ridge_slope
 
 # significance.jl
 export measure_significance
