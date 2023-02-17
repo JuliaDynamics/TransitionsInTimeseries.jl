@@ -9,6 +9,7 @@ using StatsBase
 include("windowing.jl")
 include("indicators.jl")
 include("evolution_metrics.jl")
+include("metaanalysis_trend.jl")
 include("significance.jl")
 
 # windowing.jl
@@ -24,11 +25,9 @@ export init_metaanalysis_params
 export analyze_indicators
 export analyze_indicator
 
-export ridge
-export ridge_slope
-export precompute_ridge
-export precompute_ridge_slope
-export precomputed_ridge_slope
+# Trend metaanalysis metrics
+export corspearman, corkendall # from StatsBase
+export ridge, ridge_slope
 
 # significance.jl
 export measure_significance
