@@ -41,4 +41,4 @@ end
 
 Extract the slope of ridge regression of `y` over `x`.
 """
-ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[2]
+ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[1]
