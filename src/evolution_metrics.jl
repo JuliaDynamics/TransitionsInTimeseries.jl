@@ -229,7 +229,7 @@ end
 #####################################################
 """
 
-    ridge(t, x; lambda)
+    ridge(t, x; lambda = 0)
 
 Perform ridge regression of `x` over `t` with regularization parameter `lambda`.
 Return vector containing slope and offset.
@@ -269,24 +269,11 @@ end
 
 """
 
-    ridge_slope(x, y)
+    ridge_slope(x, y; lambda)
 
 Extract the slope of ridge regression of `y` over `x`.
 """
-@inline function ridge_slope(
-    t::AbstractVector{T},
-    x::AbstractVector{T};
-    lambda::T = T(0),
-) where {T<:Real}
-    return ridge(t, x, lambda = lambda)[1]
-end
-
-@inline function ridge_slope(
-    x::AbstractVector{T};
-    lambda::T = T(0),
-) where {T<:Real}
-    return ridge(x, lambda = lambda)[1]
-end
+ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[2]
 
 """
 
@@ -306,11 +293,11 @@ end
 @inline function precomputed_ridge_slope(
     x::AbstractVector{T},
     m::AbstractVector{T},
-) where {T<:AbstractFloat} 
+) where {T<:AbstractFloat}
     return m' * x
 end
 
-#=> 
+#=>
 Trend metrics reexported by StatsBase:
 corspearman(x, y=x)
 corkendall(x, y=x)
