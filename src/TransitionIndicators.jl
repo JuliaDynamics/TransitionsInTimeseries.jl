@@ -28,6 +28,7 @@ export analyze_indicator
 # Trend metaanalysis metrics
 export corspearman, corkendall # from StatsBase
 export ridge, ridge_slope
+export precompute_ridge
 
 # significance.jl
 export measure_significance
