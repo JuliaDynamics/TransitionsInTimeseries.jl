@@ -29,3 +29,16 @@ end
     @test isapprox(res.X_evolution[1, :, 1], meantrend_ground_truth)
     @test isapprox(res.X_evolution[1, :, 2], vartrend_ground_truth, atol = 1e-12)
 end
+
+#= A small  benchmark:
+n = 1001
+t = collect(1.0:n)
+x = copy(t)
+m = precompute_ridge(t)[1,:]
+@btime ridge_slope($t, $x)
+@btime precomputed_ridge_slope($x, $m)
+
+Result on Jan's machine:
+  8.033 μs (16 allocations: 41.42 KiB)
+  73.909 ns (0 allocations: 0 bytes)
+=#
