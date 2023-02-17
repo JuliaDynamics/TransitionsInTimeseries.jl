@@ -2,9 +2,9 @@ module TransitionIndicators
 
 using LinearAlgebra
 using Reexport
-@reexport using Random
-@reexport using StatsBase
-@reexport using TimeseriesSurrogates: Surrogate, RandomFourier, surrogenerator
+using Random
+using StatsBase
+@reexport using TimeseriesSurrogates
 
 include("windowing.jl")
 include("indicators.jl")
