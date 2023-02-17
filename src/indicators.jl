@@ -10,7 +10,7 @@ Computation based on the analytic solution of the least-square parameter estimat
 ```
 
 """
-@inline function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
+function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
     n = length(x)
     return (view(x, 2:n)' * view(x, 1:n-1)) / (view(x, 1:n-1)' * view(x, 1:n-1))
 end

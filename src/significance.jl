@@ -1,4 +1,4 @@
-@inline function measure_significances(
+function measure_significances(
     res::IndicatorEvolutionResults{T},
     significance_metrics::Vector{Function},
 ) where {T<:AbstractFloat}
@@ -13,7 +13,7 @@
     return significances
 end
 
-@inline function measure_significances(
+function measure_significances(
     res::IndicatorEvolutionResults{T},
     significance_metrics::Function,
 ) where {T<:AbstractFloat}
@@ -28,7 +28,7 @@ end
 Compute the `significance_metric` on the results `res` of an indicator evolution
 analysis.
 """
-@inline function measure_significance(
+function measure_significance(
     x_evolution::AbstractVector{T},
     s_evolution::AbstractMatrix{T},
     significance_metric::Function,
@@ -53,7 +53,7 @@ end
 If `symmetric == false`, return indices of `0`-th and `p*100`-th percentile of `s`.
 If `symmetric == true` and `p=0.95`, return indices of `2.5`-th and `97.5`-th percentile.
 """
-@inline function percentile_idx(
+function percentile_idx(
     s::AbstractVector{T};
     p::Real = 0.95,
     symmetric::Bool = false,
@@ -76,7 +76,7 @@ end
 Compute the normalized distance between an input value `x` and the
 percentiles of a vector `s` specified by `p`.
 """
-@inline function normalized_percentile_distance(
+function normalized_percentile_distance(
     x::T,
     s::AbstractVector{T};
     p::T = T(0.95),
@@ -95,7 +95,7 @@ end
 Compute the normalized distance between an input value `x` and the tail of
 the distribution of `s`. The tail is defined by `nstd` standard-deviations.
 """
-@inline function normalized_confidence_intervall(
+function normalized_confidence_intervall(
     x::T,
     s::AbstractVector{T};
     nstd::T=2.0,
@@ -107,9 +107,9 @@ end
 
     which_percentile(x, s)
 
-Compute the percentile represented by the input value `x` w.r.t. the vector `s`. 
+Compute the percentile represented by the input value `x` w.r.t. the vector `s`.
 """
-@inline function which_percentile(
+function which_percentile(
     x::T,
     s::AbstractVector{T},
 ) where{T<:AbstractFloat}
