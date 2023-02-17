@@ -12,10 +12,10 @@ struct IndicatorEvolutionResults{T<:AbstractFloat}
     S_evolution::Array{T, 3}    # ns x nt_evolution x ni
 end
 
-struct MetaAnalysisParameters
+struct MetaAnalysisParameters{S<:Surrogate, R<:AbstractRNG}
     n_surrogates::Int
-    surrogate_method::Surrogate
-    rng::AbstractRNG            # random number generator
+    surrogate_method::S
+    rng::R
     wv_indicator_width::Int
     wv_indicator_stride::Int
     wv_evolution_width::Int
