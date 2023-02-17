@@ -36,14 +36,6 @@ end
 
 """
 
-    ridge_slope(x, y; lambda)
-
-Extract the slope of ridge regression of `y` over `x`.
-"""
-ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[1]
-
-"""
-
     ridge_slope(t, x; lambda)
 
 Extract the slope of ridge regression of `x` over `t`.

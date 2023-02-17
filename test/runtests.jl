@@ -6,6 +6,6 @@ testfile(file, testname=defaultname(file)) = @testset "$testname" begin; include
 @testset "TranstionIndicators.jl" begin
     testfile("windowing.jl")
     testfile("indicators.jl")
-    testfile("metaanalysis.jl")
+    testfile("metaanalysis_trend.jl")
     testfile("significance.jl")
 end
