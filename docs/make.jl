@@ -7,15 +7,14 @@ Downloads.download(
 )
 include("apply_style.jl")
 
-using DynamicalSystemsBase
+using TransitionIndicators
 
 DYNAMICALSYSTEMSBASE_PAGES = [
     "index.md",
 ]
-using DynamicalSystemsBase.SciMLBase
 
 makedocs(
-    modules = [DynamicalSystemsBase, SciMLBase, StateSpaceSets],
+    modules = [TransitionIndicators],
     format = Documenter.HTML(
         prettyurls = CI,
         assets = [
