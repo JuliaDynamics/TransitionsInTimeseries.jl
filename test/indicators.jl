@@ -1,5 +1,4 @@
-using TransitionIndicators, Test
-using TimeseriesSurrogates, Random
+using TransitionIndicators, Test, Random, TimeseriesSurrogates
 
 #################################################
 # AR1 indicators
@@ -9,7 +8,7 @@ using TimeseriesSurrogates, Random
 # is successfully estimated.
 @testset "ar1_whitenoise" begin
     θ = rand()
-    x = AR1(;n_steps = 10000, x₀ = rand(), k = θ, rng = Random.default_rng())
+    x = AR1(1_000_000, rand(), θ, Random.default_rng())
     θ_est = ar1_whitenoise(x)
-    @test isapprox(θ_est, θ, atol = 1e-3)
+    @test isapprox(θ_est, θ, atol = 5e-3)
 end
