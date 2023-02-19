@@ -7,6 +7,7 @@ TransitionIndicators
 ## Example
 ```@example MAIN
 using TransitionIndicators
+using Statistics: mean, var
 
 n = 1001
 t = collect(1.0:n)
@@ -24,5 +25,5 @@ vartrend_ground_truth = fill(0.0, length(res.t_evolution))
 ## API
 
 ```@docs
-DynamicalSystem
+analyze_indicators
 ```

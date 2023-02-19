@@ -21,7 +21,7 @@ makedocs(
             asset("https://fonts.googleapis.com/css?family=Montserrat|Source+Code+Pro&display=swap", class=:css),
         ],
     ),
-    sitename = "DynamicalSystemsBase.jl",
+    sitename = "TransitionIndicators.jl",
     authors = "George Datseris",
     pages = DYNAMICALSYSTEMSBASE_PAGES,
     doctest = false,
@@ -30,7 +30,7 @@ makedocs(
 
 if CI
     deploydocs(
-        repo = "github.com/JuliaDynamics/DynamicalSystemsBase.jl.git",
+        repo = "github.com/JuliaDynamics/TransitionIndicators.jl.git",
         target = "build",
         push_preview = true
     )
