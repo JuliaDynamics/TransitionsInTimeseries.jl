@@ -1,3 +1,0 @@
-TRANSITIONIDENTIFIERS_PAGES = [
-    "index.md",
-]
