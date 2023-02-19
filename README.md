@@ -7,8 +7,6 @@
 [![Package Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/TransitionIndicators)](https://pkgs.genieframework.com?packages=TransitionIndicators)
 
 A Julia package that can estimates indicators of transitions (from one dynamic regime or stable state to another) in timeseries. Also bundles the indicators with significance testing via surrogate analysis using [TimeseriesSurrogates.jl](https://github.com/JuliaDynamics/TimeseriesSurrogates.jl). Alternative names for this package could have been: Early Warning Signals / Resilience Indicators / Regime Shift Identifiers / Change Point Detectors, or however else you want to call them!
-It can be used as a standalone package, or as part of
-[DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/dev/).
 
 To install it, run `import Pkg; Pkg.add("TransitionIndicators")`.
 
