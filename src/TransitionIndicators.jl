@@ -10,6 +10,7 @@ end TransitionIndicators
 using LinearAlgebra
 using Random
 using StatsBase
+using DifferentialEquations
 
 using Reexport
 @reexport using TimeseriesSurrogates
@@ -19,6 +20,7 @@ include("indicators.jl")
 include("metaanalysis.jl")
 include("metaanalysis_trend.jl")
 include("significance.jl")
+include("generate_data.jl")
 
 # windowing.jl
 export WindowViewer
@@ -46,5 +48,7 @@ export which_percentile
 export percentile_idx
 export normalized_percentile_distance
 export intround
+
+export generate_test_data
 
 end # module TransitionIndicators
