@@ -42,9 +42,9 @@ function init_metaanalysis_params(;
     surrogate_method::S = RandomFourier(),
     rng::AbstractRNG = Random.default_rng(),
     wv_indicator_width::Int = 100,
-    wv_indicator_stride::Int = 2,
+    wv_indicator_stride::Int = 5,
     wv_evolution_width::Int = 50,
-    wv_evolution_stride::Int = 2,
+    wv_evolution_stride::Int = 5,
 ) where {S<:Surrogate}
     return MetaAnalysisParameters(
         n_surrogates, surrogate_method, rng,
@@ -52,6 +52,7 @@ function init_metaanalysis_params(;
         wv_evolution_width, wv_evolution_stride,
     )
 end
+# TODO: init struct based on dimensions of input time-series
 
 """
     analyze_indicators(t, x, indicators, evolution_metrics, p)
