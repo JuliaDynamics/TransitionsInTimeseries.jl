@@ -98,7 +98,7 @@ function analyze_indicators(
     for j in 1:p.n_surrogates
         for i in 1:n_ind
             s = sgen()
-            s_evolution = analyze_indicator(
+            s_indicator, s_evolution = analyze_indicator(
                 s, indicators[i], evolution_metrics[i], p)
             S_evolution[j, :, i] .= s_evolution
         end
@@ -180,7 +180,7 @@ function analyze_indicator(
     x_evolution = mapwindow(x_indicator, evolution_metric,
         p.wv_evolution_width, p.wv_evolution_stride)
 
-    return x_evolution
+    return x_indicator, x_evolution
 end
 
 """
