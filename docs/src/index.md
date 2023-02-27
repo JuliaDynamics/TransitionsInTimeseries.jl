@@ -19,7 +19,8 @@ Worth mentioning: an `R` toolbox and a `Python` library addressing some of these
 TransitionIndicators.jl aims to tackle all of these problems by providing an optimized code with a high-level interface that can be easily extended for studying new transition indicators. It comes  with most of the existing transition indicators already implemented to ease benchmarking. We hope it to contribute to reproducibility by its simple installation:
 
 ```julia
-] add TransitionIndicators
+using Pkg
+Pkg.add("TransitionIndicators")
 using TransitionIndicators
 ```
 
