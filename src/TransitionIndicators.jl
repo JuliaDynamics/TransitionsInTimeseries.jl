@@ -32,11 +32,13 @@ export MetaAnalysisParameters
 export init_metaanalysis_params
 export analyze_indicators
 export analyze_indicator
+export mapwindow
 
 # Trend metaanalysis metrics
-export corspearman, corkendall # from StatsBase
+export spearman, kendalltau # from StatsBase
 export ridge, ridge_slope
 export precompute_ridge_slope, precomputed_ridge_slope
+export precompute_ridge
 
 # significance.jl
 export measure_significance
