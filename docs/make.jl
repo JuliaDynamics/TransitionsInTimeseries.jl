@@ -22,7 +22,7 @@ makedocs(
         ],
     ),
     sitename = "TransitionIndicators.jl",
-    authors = "George Datseris",
+    authors = "Jan Swierczek-Jereczek, George Datseris",
     pages = DYNAMICALSYSTEMSBASE_PAGES,
     doctest = false,
     draft = false,
