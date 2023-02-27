@@ -26,14 +26,6 @@ function ridge(
     return ridge(T.(eachindex(x)), x, lambda=lambda)
 end
 
-function precompute_ridge(
-    t::AbstractVector{T};
-    lambda::T = T(0),
-) where {T<:Real}
-    TT = hcat(t, ones(T, length(t)))'
-    return inv(TT * TT' + lambda .* I(2) ) * TT
-end
-
 """
 
     ridge_slope(t, x; lambda)
@@ -55,6 +47,14 @@ function precomputed_ridge_slope(
     return m' * x
 end
 
+function precomputed_ridge_slope(
+    p::MetaAnalysisParameters;
+    lambda::Real = 0.0,
+)
+    m = precompute_ridge_slope(1.0:p.wv_evolution_width+1, lambda = lambda)
+    curry(f, y) = x -> f(x, y)
+    return curry(precomputed_ridge_slope, m)
+end
 
 """
     precompute_ridge(t, lambda = 0)
