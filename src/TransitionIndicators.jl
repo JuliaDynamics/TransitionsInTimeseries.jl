@@ -27,6 +27,10 @@ export WindowViewer
 
 # indicators.jl
 export ar1_whitenoise
+export variance
+export skw
+export krt
+# TODO: add lfps, restoring rate
 
 # metaanalysis.jl
 export IndicatorEvolutionResults
@@ -36,7 +40,7 @@ export analyze_indicators
 export analyze_indicator
 
 # Trend metaanalysis metrics
-export corspearman, corkendall # from StatsBase
+export kendalltau, spearman     # from StatsBase
 export ridge, ridge_slope
 export precompute_ridge_slope, precomputed_ridge_slope
 
