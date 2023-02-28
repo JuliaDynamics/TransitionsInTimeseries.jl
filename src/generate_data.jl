@@ -12,7 +12,6 @@ Keyword arguments:
 - `lambda::Real` = -1.0, the resotring rate of linear system
 - `sigma::Real` = 0.02, the standard-deviation of the white noise
 """
-
 function generate_test_data(;
     T::Type = Float64,
     dt::Real = 5e-2,
