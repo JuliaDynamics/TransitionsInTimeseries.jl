@@ -10,7 +10,9 @@ end TransitionIndicators
 using LinearAlgebra
 using Random
 using StatsBase
-using DifferentialEquations
+using Downloads
+using CSV
+using DataFrames
 
 using Reexport
 @reexport using TimeseriesSurrogates
@@ -20,16 +22,14 @@ include("indicators.jl")
 include("metaanalysis.jl")
 include("metaanalysis_trend.jl")
 include("significance.jl")
-include("generate_data.jl")
+include("load_data.jl")
 
 # windowing.jl
 export WindowViewer
 
 # indicators.jl
 export ar1_whitenoise
-export variance
-export skw
-export krt
+export variance, skw, krt
 # TODO: add lfps, restoring rate
 
 # metaanalysis.jl
@@ -42,17 +42,19 @@ export analyze_indicator
 # Trend metaanalysis metrics
 export kendalltau, spearman     # from StatsBase
 export ridge, ridge_slope
-export precompute_ridge_slope, precomputed_ridge_slope
+export precomputed_ridge_slope
 
 # significance.jl
+export threshold_indicators
 export measure_significance
 export measure_significances
-export normalized_confidence_intervall
+export confidence_intervall
+export normalized_percentile
 export which_percentile
 export percentile_idx
-export normalized_percentile_distance
 export intround
 
-export generate_test_data
+# load_data.jl
+export load_linear_vs_doublewell
 
 end # module TransitionIndicators
