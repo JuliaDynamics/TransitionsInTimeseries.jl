@@ -40,8 +40,8 @@ end
 Initialize a `MetaAnalysisParameters` struct with default choices. Custom values can
 be set by providing keyword arguments:
 - `n_surrogates`: number of surrogates to generate.
-- `surrogate_method`: surrogate generation method.
-- `rng`: random number generator.
+- `surrogate_method`: surrogate generation method. [Option list](https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods).
+- `rng`: random number generator. [Option list](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers).
 - `wv_indicator_width`: window width for `indicator` computation.
 - `wv_indicator_stride`: window stride for `indicator` computation.
 - `wv_evolution_width`: window width for `evolution_metric` computation.
