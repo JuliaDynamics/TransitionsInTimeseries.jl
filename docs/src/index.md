@@ -49,7 +49,7 @@ Let us load data from a bi-stable nonlinear model subject to noise and to a grad
 ```@example MAIN
 using TransitionIndicators
 
-t, x_linear, x_nlinear = load_test_data()
+t, x_linear, x_nlinear = load_linear_vs_doublewell()
 X = [x_linear, x_nlinear]
 ```
 
@@ -60,10 +60,11 @@ using CairoMakie
 
 # Initialize the indicator analysis
 p = init_metaanalysis_params(
-    wv_indicator_width = 400,
-    wv_indicator_stride = 1,
-    wv_evolution_width = 20,
-    wv_evolution_stride = 1,
+    n_surrogates = 10_000,      # number of surrogates to test significance
+    wv_indicator_width = 400,   # sliding window width for indicator estimation
+    wv_indicator_stride = 1,    # sliding window stride for indicator estimation
+    wv_evolution_width = 20,    # sliding window width for evolution metric computation
+    wv_evolution_stride = 1,    # sliding window stride for evolution metric computation
 )
 indicators = [variance, ar1_whitenoise]
 evolution_metrics = precomputed_ridge_slope(p)
@@ -71,10 +72,9 @@ evolution_metrics = precomputed_ridge_slope(p)
 # Initialize figure and axes
 fig = Figure()
 nrows, ncols = 5, 2
-axs = [Axis(
-    fig[i, j],
+axs = [Axis( fig[i, j],
     xticklabelsvisible = i == 5 ? true : false,
-) for i in 1:nrows, j in 1:ncols]
+    ) for i in 1:nrows, j in 1:ncols]
 [xlims!(axs[i, j], extrema(t)) for i in 1:nrows, j in 1:ncols]
 
 # Choose which indicator (evolution) to plot in row 3 (and 4)
@@ -86,7 +86,7 @@ for j in eachindex(X)
     x = X[j]
     fluctuation = diff(x)
     result = analyze_indicators(t[2:end], fluctuation, indicators, evolution_metrics, p)
-    significance = measure_significances(result, normalized_confidence_intervall)
+    significance = measure_significances(result, confidence_intervall)
     t_indicator = threshold_indicators(result.t_evolution, significance)
     
     # Plot results
@@ -101,7 +101,7 @@ end
 fig
 ```
 
-Here we see that a transition is correctly forecasted for the double-fold system, whereas none is predicted for the linear system. Note that you can abitrarily extend the vector specifying which indicators should be computed - either with functions implemented in `TransitionIndicators.jl` and listed [here](@ref indicator_functions), or with user-defined functions that respect the vector-input/scalar-ouput structure assumed. The same holds for the evolution and significance metrics.
+Here we see that a transition is correctly forecasted for the double-fold system, whereas none is predicted for the linear system. Note that you can abitrarily extend the vector that specifies which indicators should be computed - either with functions implemented in `TransitionIndicators.jl` and listed [here](@ref indicator_functions), or with user-defined functions that respect the vector-input/scalar-ouput structure assumed. The same holds for the evolution and significance metrics.
 
 !!! info "Detrending in Julia"
     Detrending can be performed in many ways and therefore remains an external step of `TransitionIndicators.jl`. A wide range of `Julia` packages exists to perform smoothing such as [`Loess.jl`](https://github.com/JuliaStats/Loess.jl), [`DSP.jl`](https://docs.juliadsp.org/latest/contents/) or [`RollingFunctions.jl`](https://jeffreysarnoff.github.io/RollingFunctions.jl/dev/). The detrending step then simply consists of subtracting the smoothed signal from the original one.
@@ -111,7 +111,7 @@ Here we see that a transition is correctly forecasted for the double-fold system
 ### Data generation
 
 ```@docs
-load_test_data
+load_linear_vs_doublewell
 ```
 
 ### High-level interface
@@ -146,12 +146,12 @@ For the surrogate generation, you can use any technique defined in [TimeseriesSu
 threshold_indicators
 measure_significance
 measure_significances
-normalized_confidence_intervall
-normalized_percentile_distance
+confidence_intervall
+normalized_percentile
 ```
 
 ### Load data
 
 ```@docs
-load_test_data()
+load_linear_vs_doublewell()
 ```

@@ -100,12 +100,12 @@ end
 
 """
 
-    normalized_percentile_distance(x, s; p, symmetric)
+    normalized_percentile(x, s; p, symmetric)
 
-Compute the normalized distance between an input value `x` and the
-percentiles of a vector `s` specified by `p`.
+Compute the normalized percentile of a value `x` within a dataset `s` and w.r.t. a
+percentile value `p`. 
 """
-function normalized_percentile_distance(
+function normalized_percentile(
     x::T,
     s::AbstractVector{T};
     p::T = T(0.95),
@@ -119,12 +119,12 @@ end
 
 """
 
-    normalized_confidence_intervall(x, s; nstd)
+    confidence_intervall(x, s; nstd)
 
-Compute the normalized distance between an input value `x` and the tail of
-the distribution of `s`. The tail is defined by `nstd` standard-deviations.
+Compute wheter an input value `x` is inside (< 1) or outside (> 1) of the confidence
+intervall of a dataset `s`, defined by `nstd` standard-deviations.
 """
-function normalized_confidence_intervall(
+function confidence_intervall(
     x::T,
     s::AbstractVector{T};
     nstd::T=2.0,
