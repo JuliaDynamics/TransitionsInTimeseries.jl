@@ -12,8 +12,8 @@ function generate_results()
         wv_indicator_width = 10,
         wv_evolution_width = 10,
     )
-    m = precompute_ridge_slope(1:p.wv_evolution_width+1)
-    res = analyze_indicators(t, x, var, curry(precomputed_ridge_slope, m), p)
+    evolution_metric = precomputed_ridge_slope(p)
+    res = analyze_indicators(t, x, var, evolution_metric, p)
     return res
 end
 
@@ -33,15 +33,15 @@ end
     # positive in [4, 6]% of the cases.
     tol = intround.(length(res.X_evolution[1, :, 1]) .* [0.04, 0.06])
 
-    # Test if normalized_confidence_intervall() gives significance within tolerance
-    @test count_percentile(res, normalized_confidence_intervall) in tol[1]:tol[2]
+    # Test if confidence_intervall() gives significance within tolerance
+    @test count_percentile(res, confidence_intervall) in tol[1]:tol[2]
 
     # Test if symmetric_nqd() gives significance within tolerance
-    symmetric_nqd(x, s) = normalized_percentile_distance(x, s, symmetric = true)
+    symmetric_nqd(x, s) = normalized_percentile(x, s, symmetric = true)
     @test count_percentile(res, symmetric_nqd) in tol[1]:tol[2]
 
     # Test if asymmetric_nqd() gives significance within tolerance
-    asymmetric_nqd(x, s) = normalized_percentile_distance(x, s)
+    asymmetric_nqd(x, s) = normalized_percentile(x, s)
     @test count_percentile(res, asymmetric_nqd) in tol[1]:tol[2]
 
     # Test if which_percentile() gives significance within tolerance
@@ -61,9 +61,9 @@ end
     @test symmetric_percentile_idx == (3, 98)
     @test asymmetric_percentile_idx == (1, 95)
 
-    nid5 = normalized_percentile_distance(3.0, s, p = 0.95, symmetric = true)
-    nid50 = normalized_percentile_distance(50.5, s, p = 0.95, symmetric = true)
-    nid95 = normalized_percentile_distance(98.0, s, p = 0.95, symmetric = true)
+    nid5 = normalized_percentile(3.0, s, p = 0.95, symmetric = true)
+    nid50 = normalized_percentile(50.5, s, p = 0.95, symmetric = true)
+    nid95 = normalized_percentile(98.0, s, p = 0.95, symmetric = true)
 
     @test isapprox(nid5, -1)
     @test isapprox(nid50, 0)
