@@ -6,7 +6,7 @@ Estimate the AR1 regression coefficient `θ` of a vector time series `x`.
 Computation based on the analytic solution of the least-square parameter estimation:
 
 ```math
-    \\hat{\\theta} = \\dfrac{\\sum_{i=1}^{n} x_i \\, x_{i-1}}{\\sum_{i=1}^{n} x_i^2}
+    \\hat{\\theta} = \\dfrac{\\sum_{i=2}^{n} x_i \\, x_{i-1}}{\\sum_{i=2}^{n} x_{i-1}^2}
 ```
 
 """
