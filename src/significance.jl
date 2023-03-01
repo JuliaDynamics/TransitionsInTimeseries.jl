@@ -1,10 +1,33 @@
+#####################################################
+# Thresholding methods
+#####################################################
+
+"""
+
+    threshold_indicators(t, significances; n_indicators)
+
+Return the time steps at which `n_indicators` are significant, based on the
+`significance` over time `time`.
+"""
+function threshold_indicators(
+    t::Vector{T},
+    significances::Array{T, 3};
+    n_indicators::Int = size(significances, 3),
+) where {T<:AbstractFloat}
+    significant_indicators = vec(sum(significances .>= 1, dims = 3))
+    return t[significant_indicators .>= n_indicators]
+end
+
+#####################################################
+# Significance computation
+#####################################################
+
 """
 
     measure_significances(res, significance_metrics)
 
 Compute some `significance_metrics` on the results `res` of an indicator metaanalysis.
 """
-
 function measure_significances(
     res::IndicatorEvolutionResults{T},
     significance_metrics::Vector{Function},
