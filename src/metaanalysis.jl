@@ -1,15 +1,26 @@
-#=
-ns: number of surrogates
-nt_indicator: number of data points in the indicator time series
-nt_evolution: number of data points in the evolution metric time series
-ni: number of indicators to compute
-=#
+"""
+
+    IndicatorEvolutionResults
+
+Struct containing following `Arrays`:
+- `t_indicator`, dims = `nt_indicator`
+- `X_indicator`, dims = 1 x `nt_indicator` x `ni`
+- `t_evolution`, dims = `nt_evolution`
+- `X_evolution`, dims = 1 x `nt_evolution` x `ni`
+- `S_evolution`, dims = `ns` x `nt_evolution` x `ni`
+
+with:
+- `ns`: number of surrogates
+- `nt_indicator`: number of data points in the indicator time series
+- `nt_evolution`: number of data points in the evolution metric time series
+- `ni`: number of indicators to compute
+"""
 struct IndicatorEvolutionResults{T<:AbstractFloat}
-    t_indicator::Vector{T}      # nt_indicator
-    X_indicator::Array{T, 3}    # ns=1 x nt_indicator x ni
-    t_evolution::Vector{T}      # nt_evolution
-    X_evolution::Array{T, 3}    # ns=1 x nt_evolution x ni
-    S_evolution::Array{T, 3}    # ns x nt_evolution x ni
+    t_indicator::Vector{T}
+    X_indicator::Array{T, 3}
+    t_evolution::Vector{T}
+    X_evolution::Array{T, 3}
+    S_evolution::Array{T, 3}
 end
 
 struct MetaAnalysisParameters{S<:Surrogate, R<:AbstractRNG}
@@ -23,11 +34,11 @@ struct MetaAnalysisParameters{S<:Surrogate, R<:AbstractRNG}
 end
 
 """
+
     init_metaanalysis_params(kwargs...)
 
 Initialize a `MetaAnalysisParameters` struct with default choices. Custom values can
 be set by providing keyword arguments:
-
 - `n_surrogates`: number of surrogates to generate.
 - `surrogate_method`: surrogate generation method.
 - `rng`: random number generator.
