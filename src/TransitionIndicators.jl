@@ -38,6 +38,7 @@ export MetaAnalysisParameters
 export init_metaanalysis_params
 export analyze_indicators
 export analyze_indicator
+export mapwindow
 
 # Trend metaanalysis metrics
 export kendalltau, spearman     # from StatsBase
