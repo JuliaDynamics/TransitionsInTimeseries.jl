@@ -23,7 +23,7 @@ struct IndicatorEvolutionResults{T<:AbstractFloat}
     S_evolution::Array{T, 3}
 end
 
-struct MetaAnalysisParameters{S<:Surrogate, R<:AbstractRNG}
+struct HyperParams{S<:Surrogate, R<:AbstractRNG}
     n_surrogates::Int
     surrogate_method::S
     rng::R
@@ -35,9 +35,9 @@ end
 
 """
 
-    init_metaanalysis_params(kwargs...)
+    HyperParams(kwargs...)
 
-Initialize a `MetaAnalysisParameters` struct with default choices. Custom values can
+Initialize a `HyperParams` struct with default choices. Custom values can
 be set by providing keyword arguments:
 - `n_surrogates`: number of surrogates to generate.
 - `surrogate_method`: surrogate generation method. [Option list](https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods).
@@ -48,7 +48,7 @@ be set by providing keyword arguments:
 - `wv_evolution_stride`: window stride for `evolution_metric` computation.
 
 """
-function init_metaanalysis_params(;
+function HyperParams(;
     n_surrogates::Int = 10_000,
     surrogate_method::S = RandomFourier(),
     rng::AbstractRNG = Random.default_rng(),
@@ -57,7 +57,7 @@ function init_metaanalysis_params(;
     wv_evolution_width::Int = 50,
     wv_evolution_stride::Int = 5,
 ) where {S<:Surrogate}
-    return MetaAnalysisParameters(
+    return HyperParams(
         n_surrogates, surrogate_method, rng,
         wv_indicator_width, wv_indicator_stride,
         wv_evolution_width, wv_evolution_stride,
@@ -70,14 +70,14 @@ end
 
 Compute the `indicators` and their `evolution_metrics` for a timeseries `t`, `x` and
 its surrogates. If `t` is not provided, it is simply assumed to be `1:length(x)`.
-This meta-analysis is performed based on `p::MetaAnalysisParameters`.
+This meta-analysis is performed based on `p::HyperParams`.
 """
 function analyze_indicators(
     t::AbstractVector{T},
     x::AbstractVector{T},
     indicators::Vector{Function},
     evolution_metrics::Vector{Function},
-    p::MetaAnalysisParameters,
+    p::HyperParams,
 ) where {T<:AbstractFloat}
 
     n_ind = length(indicators)
@@ -126,7 +126,7 @@ function analyze_indicators(
     x::AbstractVector{T},
     indicators::Function,
     evolution_metrics::Function,
-    p::MetaAnalysisParameters,
+    p::HyperParams,
 ) where {T<:AbstractFloat}
     return analyze_indicators(t, x, Function[indicators], Function[evolution_metrics], p)
 end
@@ -137,7 +137,7 @@ function analyze_indicators(
     x::AbstractVector{T},
     indicators::Vector{Function},
     evolution_metrics::Function,
-    p::MetaAnalysisParameters,
+    p::HyperParams,
 ) where {T<:AbstractFloat}
     em = repeat(Function[evolution_metrics], outer = length(indicators))
     return analyze_indicators(t, x, indicators, em, p)
@@ -148,7 +148,7 @@ function analyze_indicators(
     x::AbstractVector{T},
     indicators::VFi,
     evolution_metrics::VFe,
-    p::MetaAnalysisParameters,
+    p::HyperParams,
 ) where {
     T<:AbstractFloat,
     F<:Function,
@@ -165,14 +165,14 @@ end
 
 Compute a single `indicator` and its `evolution_metric` for a timeseries `t`, `x` and
 some surrogates. If `t` is not provided, it is simply assumed to be `1:length(x)`.
-This meta-analysis is performed based on `p::MetaAnalysisParameters`.
+This meta-analysis is performed based on `p::HyperParams`.
 """
 function analyze_indicator(
     t::AbstractVector{T},
     x::Vector{T},
     indicator::Function,
     evolution_metric::Function,
-    p::MetaAnalysisParameters,
+    p::HyperParams,
 ) where {T<:AbstractFloat}
     t_indicator, x_indicator = mapwindow(t, x, indicator,
         p.wv_indicator_width, p.wv_indicator_stride)
@@ -186,7 +186,7 @@ function analyze_indicator(
     x::Vector{T},
     indicator::Function,
     evolution_metric::Function,
-    p::MetaAnalysisParameters,
+    p::HyperParams,
 ) where {T<:AbstractFloat}
     x_indicator = mapwindow(x, indicator, p.wv_indicator_width, p.wv_indicator_stride)
     x_evolution = mapwindow(x_indicator, evolution_metric,

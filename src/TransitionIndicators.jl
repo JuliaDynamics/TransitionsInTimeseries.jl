@@ -34,8 +34,8 @@ export variance, skw, krt
 
 # metaanalysis.jl
 export IndicatorEvolutionResults
-export MetaAnalysisParameters
-export init_metaanalysis_params
+export HyperParams
+export HyperParams
 export analyze_indicators
 export analyze_indicator
 export mapwindow
@@ -49,7 +49,7 @@ export precomputed_ridge_slope
 export threshold_indicators
 export measure_significance
 export measure_significances
-export confidence_intervall
+export confidence_interval
 export normalized_percentile
 export which_percentile
 export percentile_idx

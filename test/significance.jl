@@ -7,7 +7,7 @@ function generate_results()
     θ = rand()
     x = AR1(length(t), rand(), θ, Random.default_rng())
 
-    p = init_metaanalysis_params(
+    p = HyperParams(
         n_surrogates = 1_000,
         wv_indicator_width = 10,
         wv_evolution_width = 10,
@@ -33,8 +33,8 @@ end
     # positive in [4, 6]% of the cases.
     tol = intround.(length(res.X_evolution[1, :, 1]) .* [0.04, 0.06])
 
-    # Test if confidence_intervall() gives significance within tolerance
-    @test count_percentile(res, confidence_intervall) in tol[1]:tol[2]
+    # Test if confidence_interval() gives significance within tolerance
+    @test count_percentile(res, confidence_interval) in tol[1]:tol[2]
 
     # Test if symmetric_nqd() gives significance within tolerance
     symmetric_nqd(x, s) = normalized_percentile(x, s, symmetric = true)

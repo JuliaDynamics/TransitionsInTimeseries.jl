@@ -119,12 +119,12 @@ end
 
 """
 
-    confidence_intervall(x, s; nstd)
+    confidence_interval(x, s; nstd)
 
 Compute wheter an input value `x` is inside (< 1) or outside (> 1) of the confidence
-intervall of a dataset `s`, defined by `nstd` standard-deviations.
+interval of a dataset `s`, defined by `nstd` standard-deviations.
 """
-function confidence_intervall(
+function confidence_interval(
     x::T,
     s::AbstractVector{T};
     nstd::T=2.0,
