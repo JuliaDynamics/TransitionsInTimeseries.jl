@@ -1,6 +1,6 @@
 # TransitionIndicators.jl
 
-![TransitionIndicators.jl](assets/logo.gif)
+<!-- ![TransitionIndicators.jl](assets/logo.gif) -->
 
 ```@docs
 TransitionIndicators
@@ -12,13 +12,13 @@ TransitionIndicators
 
 ## [Content] (@id content)
 
-Multi-stability is an ubiquitous feature of real-world dynamical systems, as for instance in epidemiology, sociology and climate science. The transition between two stability regimes can be abrupt and of large magnitude, although its trigger can be gradual and of small amplitude. The repercusions of such transitions can be hard to mitigate. Finding mathematical tools to predict their occurence solely based on data has therefore been an active field of research over the last decades. Hereby, many terms were employed such as *early warning signals*, *resilience indicators*, *regime-shift identifiers*, *change-point detection* and *transition indicators*. `TransitionIndicators.jl` sticks to the latter terminology and provides an interface that:
+Multi-stable systems can display abrupt transitions between two stability regimes. To predict such tranistions in real-world systems solely based on data, mathematical tools have been developped in the last decades. Numerous terminologies have been used for them, such as *early warning signals*, *resilience indicators*, *regime-shift identifiers*, *change-point detection* and *transition indicators*. `TransitionIndicators.jl` sticks to the latter terminology and provides an interface that:
 
 - Allows a fast computation of common transition indicators with a couple of lines, as demonstrated in the [example section](@ref example).
 - Makes the surrogate analysis to test for significance [under the hub](@ref workflow).
 - Can be easily extended by any user without touching the source code.
 - Reduces the programming overhead for any researcher willing to benchmark new methods.
-- Eases the reproducibility thanks to a clear syntax and a simple installation.
+- Eases the reproducibility thanks to a clear syntax, a simple installation and RNG-seeded surrogate generation.
 - Increases trustworthiness thanks to a large test suite.
 
 !!! info "Similar projects"
@@ -37,10 +37,9 @@ Computing transition indicators is schmetically represented in the plot below an
 3. Generating many surrogates that preserve important statistical properties of the originial fluctuation time-series.
 4. Performing step 2 and 3 for the surrogate time series to check whether the indicator evolution of the original time series shows a significant feature (trend or jump).
 
-![Schematic representation of what is happening under the hub.](assets/workflow.svg)
+The below-depicted fowchart is flexible; boxes can be modified or skipped alltogether!
 
-!!! info "Adaptability"
-    Some approaches mentioned [above](@ref approaches) do not require all of these steps. For instance, a deep-learning classifier might not need the generation of surrogates, as an equivalent step might have been performed at training time. However, note that each of the listed steps can be easily by-passed. `TransitionIndicators.jl` therefore provides a general framework that is equally well suited for specific cases.
+![Schematic representation of what is happening under the hub.](assets/workflow.svg)
 
 ## [Example] (@id example)
 
@@ -53,13 +52,13 @@ t, x_linear, x_nlinear = load_linear_vs_doublewell()
 X = [x_linear, x_nlinear]
 ```
 
-Indicating a transition can now be easily done by defining some indicators and evolution metrics to compute based on some parameters initialized with `init_metaanalysis_params`. The detrending step is here performed by simply building the difference to the previous data point. After this, obtaining the time at which the evolution metric of the indicators is significant is a matter of three lines. Furthermore, let us visualize the results by using [`Makie.jl`](https://docs.makie.org/stable/):
+Indicating a transition can now be easily done by defining some indicators and evolution metrics to compute based on some parameters initialized with `HyperParams`. The detrending step is here performed by simply building the difference to the previous data point. After this, obtaining the time at which the evolution metric of the indicators is significant is a matter of three lines. Furthermore, let us visualize the results by using [`Makie.jl`](https://docs.makie.org/stable/):
 
 ```@example MAIN
 using CairoMakie
 
 # Initialize the indicator analysis
-p = init_metaanalysis_params(
+p = HyperParams(
     n_surrogates = 10_000,      # number of surrogates to test significance
     wv_indicator_width = 400,   # sliding window width for indicator estimation
     wv_indicator_stride = 1,    # sliding window stride for indicator estimation
@@ -86,7 +85,7 @@ for j in eachindex(X)
     x = X[j]
     fluctuation = diff(x)
     result = analyze_indicators(t[2:end], fluctuation, indicators, evolution_metrics, p)
-    significance = measure_significances(result, confidence_intervall)
+    significance = measure_significance(result, confidence_interval)
     t_indicator = threshold_indicators(result.t_evolution, significance)
     
     # Plot results
@@ -117,7 +116,7 @@ load_linear_vs_doublewell
 ### High-level interface
 ```@docs
 IndicatorEvolutionResults
-init_metaanalysis_params
+HyperParams
 analyze_indicators
 ```
 
@@ -138,15 +137,14 @@ spearman
 
 ### Surrogates
 
-For the surrogate generation, you can use any technique defined in [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods).
+For the surrogate generation, you can use any subtype of `Surrogate` defined in [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods).
 
 ### Significance metrics
 
 ```@docs
 threshold_indicators
 measure_significance
-measure_significances
-confidence_intervall
+confidence_interval
 normalized_percentile
 ```
 
