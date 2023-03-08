@@ -3,11 +3,11 @@
     IndicatorEvolutionResults
 
 Struct containing following `Arrays`:
-- `t_indicator`, dims = `nt_indicator`
-- `X_indicator`, dims = 1 x `nt_indicator` x `ni`
-- `t_evolution`, dims = `nt_evolution`
-- `X_evolution`, dims = 1 x `nt_evolution` x `ni`
-- `S_evolution`, dims = `ns` x `nt_evolution` x `ni`
+- `t_indicator`, the time vector of `X_indicator`. dims = `nt_indicator`.
+- `X_indicator`, the indicator time series. dims = 1 x `nt_indicator` x `ni`.
+- `t_evolution`, the time vector of `X_evolution` and `S_evolution`. dims = `nt_evolution`.
+- `X_evolution`, the time series of the evolution metric. dims = 1 x `nt_evolution` x `ni`.
+- `S_evolution`, the time series of the evolution metric computed on the surrogates. dims = `ns` x `nt_evolution` x `ni`.
 
 with:
 - `ns`: number of surrogates
@@ -66,10 +66,11 @@ end
 # TODO: init struct based on dimensions of input time-series
 
 """
-    [analyze_indicators(t, x, indicators, evolution_metrics, p)](@id analyze_indicators)
+    analyze_indicators(t, x, indicators, evolution_metrics, p)
 
-Compute the `indicators` and their `evolution_metrics` for a timeseries `t`, `x` and
-its surrogates. If `t` is not provided, it is simply assumed to be `1:length(x)`.
+Return the `indicators` and their `evolution_metrics` as [`IndicatorEvolutionResults`](@ref IndicatorEvolutionResults)
+for a timeseries `t`, `x` and its surrogates.
+If `t` is not provided, it is simply assumed to be `1:length(x)`.
 This meta-analysis is performed based on `p::HyperParams`.
 """
 function analyze_indicators(
@@ -163,8 +164,8 @@ end
 
     indicator_evolution(t, x, indicator, evolution)
 
-Compute a single `indicator` and its `evolution_metric` for a timeseries `t`, `x` and
-based on `p::HyperParams`.
+Based on `p::HyperParams`, compute an `indicator` and its `evolution_metric` for
+a timeseries `t`, `x`.
 If `t` is not provided, it is simply assumed to be `1:length(x)`.
 """
 function indicator_evolution(
