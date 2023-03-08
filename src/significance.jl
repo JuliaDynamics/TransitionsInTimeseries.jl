@@ -24,11 +24,12 @@ end
 
 """
 
-    measure_significances(res, significance_metrics)
+    measure_significance(res, significance_metrics)
 
-Compute some `significance_metrics` on the results `res` of an indicator metaanalysis.
+Compute some `significance_metrics` for the `IndicatorEvolutionResults` output by
+[`analyze_indicators`](@ref analyze_indicators).
 """
-function measure_significances(
+function measure_significance(
     res::IndicatorEvolutionResults{T},
     significance_metrics::Vector{Function},
 ) where {T<:AbstractFloat}
@@ -43,20 +44,14 @@ function measure_significances(
     return significances
 end
 
-function measure_significances(
+function measure_significance(
     res::IndicatorEvolutionResults{T},
     significance_metrics::Function,
 ) where {T<:AbstractFloat}
     sm = repeat(Function[significance_metrics], outer = size(res.X_evolution, 3))
-    return measure_significances(res, sm)
+    return measure_significance(res, sm)
 end
 
-"""
-
-    measure_significance(res, significance_metric)
-
-Compute the `significance_metric` on the results `res` of an indicator metaanalysis.
-"""
 function measure_significance(
     x_evolution::AbstractVector{T},
     s_evolution::AbstractMatrix{T},

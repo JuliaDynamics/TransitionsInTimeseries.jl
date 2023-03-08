@@ -18,7 +18,7 @@ function generate_results()
 end
 
 function count_percentile(res, sig)
-    significance = vec(measure_significances(res, sig))
+    significance = vec(measure_significance(res, sig))
     top5 = sum(significance .> 1.0)
     bottom5 = sum(significance .< -1.0)
     return bottom5 + top5
@@ -46,7 +46,7 @@ end
 
     # Test if which_percentile() gives significance within tolerance
     # which_percentile() is not normed and therefore needs special treatment
-    significance = measure_significances(res, which_percentile)
+    significance = measure_significance(res, which_percentile)
     significance = vec(significance)
     top5 = sum(significance .> 0.975)
     bottom5 = sum(significance .< 0.025)

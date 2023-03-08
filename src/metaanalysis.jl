@@ -66,7 +66,7 @@ end
 # TODO: init struct based on dimensions of input time-series
 
 """
-    analyze_indicators(t, x, indicators, evolution_metrics, p)
+    [analyze_indicators(t, x, indicators, evolution_metrics, p)](@id analyze_indicators)
 
 Compute the `indicators` and their `evolution_metrics` for a timeseries `t`, `x` and
 its surrogates. If `t` is not provided, it is simply assumed to be `1:length(x)`.
@@ -93,12 +93,12 @@ function analyze_indicators(
 
     for i in 1:n_ind
         if i == 1       # t_indicator and t_evolution only need to be computed once.
-            t1, x_indicator, t2, x_evolution = analyze_indicator(
+            t1, x_indicator, t2, x_evolution = indicator_evolution(
                 t, x, indicators[i], evolution_metrics[i], p)
             copy!(t_indicator, t1)
             copy!(t_evolution, t2)
         else
-            x_indicator, x_evolution = analyze_indicator(
+            x_indicator, x_evolution = indicator_evolution(
                 x, indicators[i], evolution_metrics[i], p)
         end
         X_indicator[1, :, i] .= x_indicator
@@ -110,7 +110,7 @@ function analyze_indicators(
     for j in 1:p.n_surrogates
         for i in 1:n_ind
             s = sgen()
-            s_indicator, s_evolution = analyze_indicator(
+            s_indicator, s_evolution = indicator_evolution(
                 s, indicators[i], evolution_metrics[i], p)
             S_evolution[j, :, i] .= s_evolution
         end
@@ -161,13 +161,13 @@ end
 
 """
 
-    analyze_indicator(t, x, indicator, evolution)
+    indicator_evolution(t, x, indicator, evolution)
 
 Compute a single `indicator` and its `evolution_metric` for a timeseries `t`, `x` and
-some surrogates. If `t` is not provided, it is simply assumed to be `1:length(x)`.
-This meta-analysis is performed based on `p::HyperParams`.
+based on `p::HyperParams`.
+If `t` is not provided, it is simply assumed to be `1:length(x)`.
 """
-function analyze_indicator(
+function indicator_evolution(
     t::AbstractVector{T},
     x::Vector{T},
     indicator::Function,
@@ -182,7 +182,7 @@ function analyze_indicator(
     return t_indicator, x_indicator, t_evolution, x_evolution
 end
 
-function analyze_indicator(
+function indicator_evolution(
     x::Vector{T},
     indicator::Function,
     evolution_metric::Function,

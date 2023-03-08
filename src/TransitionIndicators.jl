@@ -37,7 +37,7 @@ export IndicatorEvolutionResults
 export HyperParams
 export HyperParams
 export analyze_indicators
-export analyze_indicator
+export indicator_evolution
 export mapwindow
 
 # Trend metaanalysis metrics
@@ -48,7 +48,6 @@ export precomputed_ridge_slope
 # significance.jl
 export threshold_indicators
 export measure_significance
-export measure_significances
 export confidence_interval
 export normalized_percentile
 export which_percentile
