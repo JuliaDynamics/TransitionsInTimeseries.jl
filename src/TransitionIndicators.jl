@@ -29,13 +29,12 @@ export WindowViewer
 
 # indicators.jl
 export ar1_whitenoise
-export variance, skw, krt
+export std, variance, skw, krt, mean
 # TODO: add lfps, restoring rate
 
 # metaanalysis.jl
 export IndicatorEvolutionResults
-export HyperParams
-export HyperParams
+export SignificanceHyperParams
 export analyze_indicators
 export indicator_evolution
 export mapwindow

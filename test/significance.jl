@@ -7,7 +7,7 @@ function generate_results()
     θ = rand()
     x = AR1(length(t), rand(), θ, Random.default_rng())
 
-    p = HyperParams(
+    p = SignificanceHyperParams(
         n_surrogates = 1_000,
         wv_indicator_width = 10,
         wv_evolution_width = 10,

@@ -39,13 +39,22 @@ ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[1]
     precomputed_ridge_slope(p; lambda)
 
 Return a function that computes the slope obtained by ridge regression of an input `x`.
-For performance, some terms are pre-computed based on `p::HyperParams`.
+For performance, some terms are pre-computed based on `p::SignificanceHyperParams`.
 """
 function precomputed_ridge_slope(
-    p::HyperParams;
+    p::SignificanceHyperParams;
     lambda::Real = 0.0,
 )
     m = precompute_ridge_slope(1.0:p.wv_evolution_width+1, lambda = lambda)
+    curry(f, y) = x -> f(x, y)
+    return curry(precomputed_ridge_slope, m)
+end
+
+function precomputed_ridge_slope(
+    wv_evolution_width::Int;
+    lambda::Real = 0.0,
+)
+    m = precompute_ridge_slope(1.0:wv_evolution_width+1, lambda = lambda)
     curry(f, y) = x -> f(x, y)
     return curry(precomputed_ridge_slope, m)
 end
