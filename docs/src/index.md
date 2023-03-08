@@ -107,10 +107,10 @@ Here we see that a transition is correctly forecasted for the double-fold system
 
 ## API
 
-### Data generation
+### Load data
 
 ```@docs
-load_linear_vs_doublewell
+load_linear_vs_doublewell()
 ```
 
 ### High-level interface
@@ -146,10 +146,4 @@ threshold_indicators
 measure_significance
 confidence_interval
 normalized_percentile
-```
-
-### Load data
-
-```@docs
-load_linear_vs_doublewell()
 ```
