@@ -43,14 +43,14 @@ The below-depicted fowchart is flexible; boxes can be modified or skipped alltog
 
 ## [Example -- Step-by-step] (@id example_stepbystep)
 
-Let us load data from a bi-stable nonlinear model subject to noise and to a gradual change of the forcing that leads to a transition. Furthermore, we also load data from a linear model, which is by definition monostable and therefore incapable of transitionning. This is done to control the rate of false positives, a common problem that can emerge when looking for tranisiton indicators. The models are governed by:
+Let us load data from a bistable nonlinear model subject to noise and to a gradual change of the forcing that leads to a transition. Furthermore, we also load data from a linear model, which is by definition monostable and therefore incapable of transitionning. This is done to control the rate of false positives, a common problem that can emerge when looking for tranisiton indicators. The models are governed by:
 
 ```math
 \dfrac{\mathrm{d}x_{l}}{\mathrm{d}t} = - x_{l} - 1 + f(t) + n(t) \\
 \dfrac{\mathrm{d}x_{nl}}{\mathrm{d}t} = - x_{nl}^3 + x_{nl} + f(t) + n(t)
 ```
 
-with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the double-well model, $f$ the forcing and $n$ the noise. For $f=0$ they both display an equilibrium point at $x=-1$. However, the double-well model also displays a further equilibrium point at $x=1$. Loading (and visualizing with [`Makie.jl`](https://docs.makie.org/stable/)) such prototypical data to test some indicators can be done by simply running:
+with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable model, $f$ the forcing and $n$ the noise. For $f=0$ they both display an equilibrium point at $x=-1$. However, the bistable model also displays a further equilibrium point at $x=1$. Loading (and visualizing with [`Makie.jl`](https://docs.makie.org/stable/)) such prototypical data to test some indicators can be done by simply running:
 
 ```@example MAIN
 using TransitionIndicators
@@ -121,7 +121,7 @@ lines!(ax_s, t_fluctuations, fluctuations[2])
 fig_s
 ```
 
-We can now perform the same analysis for the surrogates. To simplify the syntax, we use [`SignificanceHyperParams`](@ref), a convenience constructor that stores sliding-window parameters, the method for surrogate generation, the number of surrogates... and provides default choices for unspecified hyperparameters. Based on these, we estimate the trend of the indicators computed on the surrogates by looping over them and using the convenience function [`indicator_evolution`](@ref) that wraps the steps of computing the indicator time series and its evolution. Finally, we plot the bands giving the $(-\sigma, \sigma)$, $(-2 \, \sigma, 2 \, \sigma)$ and $(-3 \, \sigma, 3 \, \sigma)$ intervals, with $\sigma$ the standard-deviation of indicator slope across the surrogate time series:
+We can now perform the same analysis for the surrogates. To simplify the syntax, we use [`SignificanceHyperParams`](@ref), a convenience constructor that stores hyperparameters of the significance analysis, such as the sliding-window parameters, the number of surrogaes... etc. Furthermore, it provides default choices for unspecified hyperparameters. We then estimate the trend of the indicators computed on the surrogates by looping over them and using the convenience function [`indicator_evolution`](@ref) that wraps the steps of computing the indicator time series and its evolution. To visualize significant trends, we plot the bands giving the $(-\sigma, \sigma)$, $(-2 \, \sigma, 2 \, \sigma)$ and $(-3 \, \sigma, 3 \, \sigma)$ intervals, with $\sigma$ the standard-deviation of indicator slope across the surrogate time series:
 
 ```@example MAIN
 p = SignificanceHyperParams(
@@ -193,11 +193,10 @@ for j in eachindex(X)
 end
 fig
 ```
+Here we see that a transition is correctly forecasted for the bistable system, whereas none is predicted for the linear system.
 
 !!! warning "Thresholding significance"
     Although thresholding the output of a significance computation might be hard to avoid in some applications, we recommend to rather look at the significance time series, as they provide richer, non-binary information.
-
-Here we see that a transition is correctly forecasted for the double-well system, whereas none is predicted for the linear system.
 
 ## API
 
