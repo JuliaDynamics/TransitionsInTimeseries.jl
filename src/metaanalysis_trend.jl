@@ -1,33 +1,33 @@
 #####################################################
 # Trend metrics
 #####################################################
-struct RidgeRegression{T}
+struct RidgeRegression{T} <: FunctionalStruct
     equispaced::Bool
     regression_matrix::Matrix{T}
 end
 
 """
 
-RidgeRegression(t, width; lambda = 0.0) -> rr
+    RidgeRegression(t, width; lambda = 0.0) ➡ rr
 
 Initialize a ridge regression for a time vector `t`, a sliding-window `width` and
 an optional regularizeation term `lambda`. The output `rr` can then be used as a
 function to perform the regression and extract the slope!
+If `lambda = 0`, linear regression is recovered (default case).
+For more information, visit: https://en.wikipedia.org/wiki/Ridge_regression.
 
-===============
-Example
-===============
-```julia
-t = 0.0:1.0:100
-m, p = 2.3, 1.2
-x = m .* t + p
-rr = RidgeRegression(t)
-rr(x) ≈ m
+# Examples
+```jldoctest
+julia> t = 0.0:1.0:100;
+julia> x = 2.3 .* t .+ 1.2;
+julia> rr = RidgeRegression(t);
+julia> rr(x)
+2.299999999999999
 ```
 """
 function RidgeRegression(t::AbstractVector, width::Int; lambda = 0.0)
     equispaced, mean_dt = is_equispaced(t)
-    t_regression = range(0.0, step = mean_dt, length = width)
+    t_regression = range(0.0, step = mean_dt, length = width+1)
     regression_matrix = precompute_ridge(t_regression, lambda = lambda)
     return RidgeRegression(equispaced, regression_matrix)
 end

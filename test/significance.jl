@@ -1,6 +1,5 @@
 using TimeseriesSurrogates, TransitionIndicators, Test, Random, Statistics
 
-curry(f, y) = x -> f(x, y)
 
 function generate_results()
     t = collect(0.0:100_000.0)
@@ -12,7 +11,7 @@ function generate_results()
         wv_indicator_width = 10,
         wv_evolution_width = 10,
     )
-    evolution_metric = precomputed_ridge_slope(p)
+    evolution_metric = RidgeRegression(t, p.wv_evolution_width)
     res = analyze_indicators(t, x, var, evolution_metric, p)
     return res
 end

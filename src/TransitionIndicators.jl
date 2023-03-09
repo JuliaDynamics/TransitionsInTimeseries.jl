@@ -18,6 +18,7 @@ using Reexport
 @reexport using TimeseriesSurrogates
 
 include("windowing.jl")
+include("timeseries.jl")
 include("indicators.jl")
 include("metaanalysis.jl")
 include("metaanalysis_trend.jl")
@@ -26,6 +27,7 @@ include("load_data.jl")
 
 # windowing.jl
 export WindowViewer
+export FunctionalStruct
 
 # indicators.jl
 export ar1_whitenoise
