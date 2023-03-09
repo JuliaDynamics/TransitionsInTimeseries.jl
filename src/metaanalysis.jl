@@ -66,7 +66,7 @@ end
 # TODO: init struct based on dimensions of input time-series
 
 """
-    analyze_indicators(t, x, indicators, evolution_metrics, p)
+    analyze_indicators(t, x, indicators, evolution_metrics, p) ➡ res::IndicatorEvolutionResults
 
 Return the `indicators` and their `evolution_metrics` as [`IndicatorEvolutionResults`](@ref IndicatorEvolutionResults)
 for a timeseries `t`, `x` and its surrogates.
@@ -161,8 +161,8 @@ function analyze_indicators(
 end
 
 """
-
-    indicator_evolution(t, x, indicator, evolution)
+    indicator_evolution(x, indicator, evolution, p)
+    indicator_evolution(t, x, indicator, evolution, p)
 
 Based on `p::SignificanceHyperParams`, compute an `indicator` and its `evolution_metric` for
 a timeseries `t`, `x`.
@@ -204,6 +204,7 @@ end
 Generate a `WindowViewer` of `x` with `wv_width` and `wv_stride` and map function `f`
 over it. If the time vector `t` is provided, additionally return the time vector resulting
 from applying the `WindowViewer`.
+If `t` is not provided, it is simply assumed to be `1:length(x)`.
 """
 function mapwindow(
     x::Vector{T},
