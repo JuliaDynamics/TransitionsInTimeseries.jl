@@ -1,69 +1,45 @@
 #####################################################
 # Trend metrics
 #####################################################
-"""
-
-    ridge(t, x; lambda = 0)
-
-Perform ridge regression of `x` over `t` with regularization parameter `lambda`.
-Return vector containing slope and offset.
-If `lambda = 0`, linear regression is recovered (default case).
-For more information, visit: https://en.wikipedia.org/wiki/Ridge_regression
-"""
-function ridge(
-    t::AbstractVector{T},
-    x::AbstractVector{T};
-    lambda::T = T(0),
-) where {T<:Real}
-    M = precompute_ridge(t, lambda = lambda)
-    return M * x
-end
-
-function ridge(
-    x::AbstractVector{T};
-    lambda::T = T(0),
-) where {T<:Real}
-    return ridge(T.(eachindex(x)), x, lambda=lambda)
+struct RidgeRegression{T}
+    equispaced::Bool
+    regression_matrix::Matrix{T}
 end
 
 """
 
-    ridge_slope(t, x; lambda)
+RidgeRegression(t, width; lambda = 0.0) -> rr
 
-Extract the slope of ridge regression of `x` over `t`.
+Initialize a ridge regression for a time vector `t`, a sliding-window `width` and
+an optional regularizeation term `lambda`. The output `rr` can then be used as a
+function to perform the regression and extract the slope!
+
+===============
+Example
+===============
+```julia
+t = 0.0:1.0:100
+m, p = 2.3, 1.2
+x = m .* t + p
+rr = RidgeRegression(t)
+rr(x) ≈ m
+```
 """
-ridge_slope(args...; kwargs...) = ridge(args...; kwargs...)[1]
-
-"""
-
-    precomputed_ridge_slope(p; lambda)
-
-Return a function that computes the slope obtained by ridge regression of an input `x`.
-For performance, some terms are pre-computed based on `p::SignificanceHyperParams`.
-"""
-function precomputed_ridge_slope(
-    p::SignificanceHyperParams;
-    lambda::Real = 0.0,
-)
-    m = precompute_ridge_slope(1.0:p.wv_evolution_width+1, lambda = lambda)
-    curry(f, y) = x -> f(x, y)
-    return curry(precomputed_ridge_slope, m)
+function RidgeRegression(t::AbstractVector, width::Int; lambda = 0.0)
+    equispaced, mean_dt = is_equispaced(t)
+    t_regression = range(0.0, step = mean_dt, length = width)
+    regression_matrix = precompute_ridge(t_regression, lambda = lambda)
+    return RidgeRegression(equispaced, regression_matrix)
 end
+RidgeRegression(t) = RidgeRegression(is_equispaced(t)[1], precompute_ridge(t))
 
-function precomputed_ridge_slope(
-    wv_evolution_width::Int;
-    lambda::Real = 0.0,
-)
-    m = precompute_ridge_slope(1.0:wv_evolution_width+1, lambda = lambda)
-    curry(f, y) = x -> f(x, y)
-    return curry(precomputed_ridge_slope, m)
-end
-
-function precomputed_ridge_slope(
-    x::AbstractVector{T},
-    m::AbstractVector{T},
-) where {T<:AbstractFloat} 
-    return m' * x
+function (rr::RidgeRegression)(x::AbstractVector{T}) where{T<:Real}
+    M = rr.regression_matrix
+    if !(rr.equispaced)
+        error("Time vector is not evenly spaced. So far, the API is only designed for evenly spaced time series!")
+        # For future something like: M .= precompute_ridge(window_view(t))
+    end
+    return M[1, :]' * x     # we are only interested in the slope.
 end
 
 """
@@ -80,15 +56,6 @@ function precompute_ridge(
     TT = hcat(t, ones(T, length(t)))'
     return inv(TT * TT' + lambda .* LinearAlgebra.I(2) ) * TT
 end
-
-"""
-
-    precompute_ridge_slope(t, lambda = 0)
-
-Precompute the vector arising in the ridge regression of the slope. Particularly suited
-if ridge regression is to be computed many times on evenly spaced time.
-"""
-precompute_ridge_slope(args...; kwargs...) = precompute_ridge(args...; kwargs...)[1,:]
 
 """
 

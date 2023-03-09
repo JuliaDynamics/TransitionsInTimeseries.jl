@@ -41,8 +41,7 @@ export mapwindow
 
 # Trend metaanalysis metrics
 export kendalltau, spearman     # from StatsBase
-export ridge, ridge_slope
-export precomputed_ridge_slope
+export RidgeRegression
 
 # significance.jl
 export threshold_indicators
