@@ -27,11 +27,10 @@ include("load_data.jl")
 
 # windowing.jl
 export WindowViewer
-export FunctionalStruct
 
 # indicators.jl
 export ar1_whitenoise
-export std, variance, skw, krt, mean
+export mean, std, variance, skw, krt
 # TODO: add lfps, restoring rate
 
 # metaanalysis.jl

@@ -52,10 +52,3 @@ function Base.eltype(::Type{<:WindowViewer{T,V}}) where {T,V}
 end
 Base.length(wv::WindowViewer) = length(wv.strided_indices)
 Base.size(wv::WindowViewer) = (length(wv),)
-
-#################################################
-# Type definition
-#################################################
-
-# Type for functions defined by struct
-abstract type FunctionalStruct <: Function end

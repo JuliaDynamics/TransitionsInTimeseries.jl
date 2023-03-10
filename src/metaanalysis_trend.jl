@@ -1,7 +1,7 @@
 #####################################################
 # Trend metrics
 #####################################################
-struct RidgeRegression{T} <: FunctionalStruct
+struct RidgeRegression{T} <: Function
     equispaced::Bool
     regression_matrix::Matrix{T}
 end
