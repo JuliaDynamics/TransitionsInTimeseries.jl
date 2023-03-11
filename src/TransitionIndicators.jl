@@ -26,7 +26,7 @@ include("significance.jl")
 include("load_data.jl")
 
 # windowing.jl
-export WindowViewer
+export WindowViewer, mapwindow
 
 # indicators.jl
 export ar1_whitenoise
@@ -38,7 +38,6 @@ export IndicatorEvolutionResults
 export SignificanceHyperParams
 export analyze_indicators
 export indicator_evolution
-export mapwindow
 
 # Trend metaanalysis metrics
 export kendalltau, spearman     # from StatsBase

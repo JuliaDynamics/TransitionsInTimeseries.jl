@@ -196,48 +196,6 @@ function indicator_evolution(
     return x_indicator, x_evolution
 end
 
-"""
-
-    mapwindow(x, f, wv_width, wv_stride)
-    mapwindow(t, x, f, wv_width, wv_stride)
-
-Generate a `WindowViewer` of `x` with `wv_width` and `wv_stride` and map function `f`
-over it. If the time vector `t` is provided, additionally return the time vector resulting
-from applying the `WindowViewer`.
-If `t` is not provided, it is simply assumed to be `1:length(x)`.
-"""
-function mapwindow(
-    x::Vector{T},
-    f::Function,
-    wv_width::Int,
-    wv_stride::Int,
-) where {T<:AbstractFloat}
-    wv = WindowViewer(x, wv_width, wv_stride)
-    return map(f, wv)
-end
-
-function mapwindow(
-    t::AbstractVector{T},
-    x::Vector{T},
-    f::Function,
-    wv_width::Int,
-    wv_stride::Int,
-) where {T<:AbstractFloat}
-    wv = WindowViewer(x, wv_width, wv_stride)
-    return t[wv.strided_indices], map(f, wv)
-end
-
-"""
-
-    get_mapwindowview_length(x, wv_width, wv_stride)
-
-Compute the length of the `WindowViewer` induced by `x`, `wv_width` and `wv_stride`.
-"""
-function get_mapwindowview_length(x, wv_width, wv_stride)
-    wv = WindowViewer(x, wv_width, wv_stride)
-    return length(wv)
-end
-
 #####################################################
 # Change-point metrics
 #####################################################
