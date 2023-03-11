@@ -57,15 +57,15 @@ Base.size(wv::WindowViewer) = (length(wv),)
 
 """
 
-    mapwindow(x, f, wv_width, wv_stride)
-    mapwindow(t, x, f, wv_width, wv_stride)
+    windowmap(x, f, wv_width, wv_stride)
+    windowmap(t, x, f, wv_width, wv_stride)
 
 Generate a `WindowViewer` of `x` with `wv_width` and `wv_stride` and map function `f`
 over it. If the time vector `t` is provided, additionally return the time vector resulting
 from applying the `WindowViewer`.
 If `t` is not provided, it is simply assumed to be `1:length(x)`.
 """
-function mapwindow(
+function windowmap(
     x::Vector{T},
     f::Function,
     wv_width::Int,
@@ -75,7 +75,7 @@ function mapwindow(
     return map(f, wv)
 end
 
-function mapwindow(
+function windowmap(
     t::AbstractVector{T},
     x::Vector{T},
     f::Function,
@@ -88,11 +88,11 @@ end
 
 """
 
-    get_mapwindowview_length(x, wv_width, wv_stride)
+    get_windowmapview_length(x, wv_width, wv_stride)
 
 Compute the length of the `WindowViewer` induced by `x`, `wv_width` and `wv_stride`.
 """
-function get_mapwindowview_length(x, wv_width, wv_stride)
+function get_windowmapview_length(x, wv_width, wv_stride)
     wv = WindowViewer(x, wv_width, wv_stride)
     return length(wv)
 end

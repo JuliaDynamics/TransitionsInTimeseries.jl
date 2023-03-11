@@ -26,7 +26,7 @@ include("significance.jl")
 include("load_data.jl")
 
 # windowing.jl
-export WindowViewer, mapwindow
+export WindowViewer, windowmap
 
 # indicators.jl
 export ar1_whitenoise

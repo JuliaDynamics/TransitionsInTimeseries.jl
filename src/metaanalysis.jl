@@ -82,9 +82,9 @@ function analyze_indicators(
 ) where {T<:AbstractFloat}
 
     n_ind = length(indicators)
-    indicator_length = get_mapwindowview_length(x,
+    indicator_length = get_windowmapview_length(x,
         p.wv_indicator_width, p.wv_indicator_stride)
-    evolution_length = get_mapwindowview_length(1:indicator_length,
+    evolution_length = get_windowmapview_length(1:indicator_length,
         p.wv_evolution_width, p.wv_evolution_stride)
 
     X_indicator = fill(T(0), 1, indicator_length, n_ind)
@@ -175,9 +175,9 @@ function indicator_evolution(
     evolution_metric::Function,
     p::SignificanceHyperParams,
 ) where {T<:AbstractFloat}
-    t_indicator, x_indicator = mapwindow(t, x, indicator,
+    t_indicator, x_indicator = windowmap(t, x, indicator,
         p.wv_indicator_width, p.wv_indicator_stride)
-    t_evolution, x_evolution = mapwindow(t_indicator, x_indicator, evolution_metric,
+    t_evolution, x_evolution = windowmap(t_indicator, x_indicator, evolution_metric,
         p.wv_evolution_width, p.wv_evolution_stride)
 
     return t_indicator, x_indicator, t_evolution, x_evolution
@@ -189,8 +189,8 @@ function indicator_evolution(
     evolution_metric::Function,
     p::SignificanceHyperParams,
 ) where {T<:AbstractFloat}
-    x_indicator = mapwindow(x, indicator, p.wv_indicator_width, p.wv_indicator_stride)
-    x_evolution = mapwindow(x_indicator, evolution_metric,
+    x_indicator = windowmap(x, indicator, p.wv_indicator_width, p.wv_indicator_stride)
+    x_evolution = windowmap(x_indicator, evolution_metric,
         p.wv_evolution_width, p.wv_evolution_stride)
 
     return x_indicator, x_evolution

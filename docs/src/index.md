@@ -83,11 +83,11 @@ We can then compute the time series of indicator by applying a sliding window, d
 slidingwindow_width = 400
 slidingwindow_stride = 1
 
-t_indicator = mapwindow(t_fluctuations, mean,
+t_indicator = windowmap(t_fluctuations, mean,
     slidingwindow_width, slidingwindow_stride)
-x_indicator_l = mapwindow(fluctuations[1], ar1_whitenoise,
+x_indicator_l = windowmap(fluctuations[1], ar1_whitenoise,
     slidingwindow_width, slidingwindow_stride)
-x_indicator_nl = mapwindow(fluctuations[2], ar1_whitenoise,
+x_indicator_nl = windowmap(fluctuations[2], ar1_whitenoise,
     slidingwindow_width, slidingwindow_stride)
 
 fig, ax = lines(t_indicator, x_indicator_l)
@@ -102,9 +102,9 @@ slidingwindow_width = 20
 slidingwindow_stride = 1
 rr = RidgeRegression(t_indicator, slidingwindow_width)
 
-t_evolution = mapwindow(t_indicator, mean, slidingwindow_width, slidingwindow_stride)
-x_evolution_l = mapwindow(x_indicator_l, rr, slidingwindow_width, slidingwindow_stride)
-x_evolution_nl = mapwindow(x_indicator_nl, rr, slidingwindow_width, slidingwindow_stride)
+t_evolution = windowmap(t_indicator, mean, slidingwindow_width, slidingwindow_stride)
+x_evolution_l = windowmap(x_indicator_l, rr, slidingwindow_width, slidingwindow_stride)
+x_evolution_nl = windowmap(x_indicator_nl, rr, slidingwindow_width, slidingwindow_stride)
 
 fig, ax = lines(t_evolution, x_evolution_l)
 lines!(ax, t_evolution, x_evolution_nl)
@@ -181,7 +181,7 @@ for j in eachindex(X)
         indicators, evolution_metrics, p)
     significance = measure_significance(result, confidence_interval)
     t_indicator = threshold_indicators(result.t_evolution, significance)
-    
+
     # Plot results
     lines!(axs[1, j], t, X[j])
     lines!(axs[2, j], t[2:end], fluctuations[j])
@@ -212,7 +212,7 @@ IndicatorEvolutionResults
 SignificanceHyperParams
 analyze_indicators
 indicator_evolution
-mapwindow
+windowmap
 ```
 
 ### [Indicators] (@id indicator_functions)
