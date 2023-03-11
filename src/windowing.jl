@@ -56,14 +56,12 @@ Base.size(wv::WindowViewer) = (length(wv),)
 
 
 """
+    windowmap(x::AbstractVector, f::Function, wv_width, wv_stride) → mapped_f
 
-    windowmap(x, f, wv_width, wv_stride)
-    windowmap(t, x, f, wv_width, wv_stride)
-
-Generate a `WindowViewer` of `x` with `wv_width` and `wv_stride` and map function `f`
-over it. If the time vector `t` is provided, additionally return the time vector resulting
-from applying the `WindowViewer`.
-If `t` is not provided, it is simply assumed to be `1:length(x)`.
+A shortcut for first generating a `wv = WindowViewer(x, wv_width, wv_stride)` and then
+applying `mapped_f = map(f, wv)`. If `x` is also accompanied with a time vector `t`,
+you probably also want to call this function with `t` instead of `x` and with one of
+`mean, first, last` as `f` to obtain a time vector for the `mapped_f` output.
 """
 function windowmap(
     x::Vector{T},
@@ -73,17 +71,6 @@ function windowmap(
 ) where {T<:AbstractFloat}
     wv = WindowViewer(x, wv_width, wv_stride)
     return map(f, wv)
-end
-
-function windowmap(
-    t::AbstractVector{T},
-    x::Vector{T},
-    f::Function,
-    wv_width::Int,
-    wv_stride::Int,
-) where {T<:AbstractFloat}
-    wv = WindowViewer(x, wv_width, wv_stride)
-    return t[wv.strided_indices], map(f, wv)
 end
 
 """
