@@ -10,7 +10,6 @@ Computation based on the analytic solution of the least-square parameter estimat
 ```math
     \\hat{\\theta} = \\dfrac{\\sum_{i=2}^{n} x_i \\, x_{i-1}}{\\sum_{i=2}^{n} x_{i-1}^2}
 ```
-
 """
 function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
     n = length(x)

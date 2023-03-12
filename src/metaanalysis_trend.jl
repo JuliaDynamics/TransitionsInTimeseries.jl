@@ -26,12 +26,16 @@ julia> rr(x)
 ```
 """
 function RidgeRegression(t::AbstractVector, width::Int; lambda = 0.0)
-    equispaced, mean_dt = is_equispaced(t)
+    equispaced = isequispaced(t)
+    if !equispaced
+        error("This code works only for equispaced input")
+    end
+    mean_dt = equispaced_step(t)
     t_regression = range(0.0, step = mean_dt, length = width+1)
     regression_matrix = precompute_ridge(t_regression, lambda = lambda)
     return RidgeRegression(equispaced, regression_matrix)
 end
-RidgeRegression(t) = RidgeRegression(is_equispaced(t)[1], precompute_ridge(t))
+RidgeRegression(t) = RidgeRegression(isequispaced(t)[1], precompute_ridge(t))
 
 function (rr::RidgeRegression)(x::AbstractVector{T}) where{T<:Real}
     M = rr.regression_matrix
