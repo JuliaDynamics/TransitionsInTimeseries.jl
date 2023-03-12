@@ -154,7 +154,7 @@ As here demonstrated, performing the step-by-step analysis of transition indicat
 ## [Example -- Fast-forward] (@id example_fastforward)
 
 !!! tip "Adaptability of `TransitionIndicators.jl`"
-    In most cases, computing **various** indicators and evolution metrics are desired. By specifying those either as `Vector{Function}`, the results of this analysis can be computed in a single line with [`analyze_indicators`](@ref). Note that **any** function complying with `f(x::Vector) ➡ y::Real` as an input-output structure can be used here! Most common indicators are already implemented in `TransitionIndicators.jl` and listed [here](@ref indicator_functions) but you can also use user-defined functions! The same holds for the evolution and significance metrics.
+    In most cases, computing **various** indicators and evolution metrics are desired. By specifying those either as `Vector{Function}`, the results of this analysis can be computed in a single line with [`analyze_indicators`](@ref). Note that **any** function complying with `f(x::Vector) → y::Real` as an input-output structure can be used here! Most common indicators are already implemented in `TransitionIndicators.jl` and listed [here](@ref indicator_functions) but you can also use user-defined functions! The same holds for the evolution and significance metrics.
 
 The significance analysis against the surrogate time series can subsequently be performed by applying [`measure_significance`](@ref). Finally, if a binary output is desired, one can apply [`threshold_indicators`](@ref):
 

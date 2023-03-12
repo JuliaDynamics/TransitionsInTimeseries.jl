@@ -8,7 +8,7 @@ end
 
 """
 
-    RidgeRegression(t, width; lambda = 0.0) ➡ rr
+    RidgeRegression(t, width; lambda = 0.0) → rr
 
 Initialize a ridge regression for a time vector `t`, a sliding-window `width` and
 an optional regularizeation term `lambda`. The output `rr` can then be used as a

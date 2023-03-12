@@ -66,7 +66,7 @@ end
 # TODO: init struct based on dimensions of input time-series
 
 """
-    analyze_indicators(t, x, indicators, evolution_metrics, p) ➡ res::IndicatorEvolutionResults
+    analyze_indicators(t, x, indicators, evolution_metrics, p) → res::IndicatorEvolutionResults
 
 Return the `indicators` and their `evolution_metrics` as [`IndicatorEvolutionResults`](@ref IndicatorEvolutionResults)
 for a timeseries `t`, `x` and its surrogates.

@@ -2,7 +2,7 @@ using Statistics: mean, var
 using StatsBase: skewness, kurtosis
 
 """
-    ar1_whitenoise(x) ➡ ̂θ
+    ar1_whitenoise(x) → ̂θ
 
 Estimate the AR1 regression coefficient `θ` of a vector time series `x`.
 Computation based on the analytic solution of the least-square parameter estimation:
