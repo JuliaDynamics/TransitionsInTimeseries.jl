@@ -2,7 +2,7 @@
 
     IndicatorEvolutionResults
 
-Struct containing following `Arrays`:
+Struct containing following `Arrays` as its fields:
 - `t_indicator`, the time vector of `X_indicator`. dims = `nt_indicator`.
 - `X_indicator`, the indicator time series. dims = 1 x `nt_indicator` x `ni`.
 - `t_evolution`, the time vector of `X_evolution` and `S_evolution`. dims = `nt_evolution`.
@@ -10,10 +10,10 @@ Struct containing following `Arrays`:
 - `S_evolution`, the time series of the evolution metric computed on the surrogates. dims = `ns` x `nt_evolution` x `ni`.
 
 with:
-- `ns`: number of surrogates
+- `ni`: number of indicators to compute
 - `nt_indicator`: number of data points in the indicator time series
 - `nt_evolution`: number of data points in the evolution metric time series
-- `ni`: number of indicators to compute
+- `ns`: number of surrogates
 """
 struct IndicatorEvolutionResults{T<:AbstractFloat}
     t_indicator::Vector{T}
@@ -37,16 +37,21 @@ end
 
     SignificanceHyperParams(kwargs...)
 
-Initialize a `SignificanceHyperParams` struct with default choices. Custom values can
-be set by providing keyword arguments:
-- `n_surrogates`: number of surrogates to generate.
-- `surrogate_method`: surrogate generation method. [Option list](https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods).
-- `rng`: random number generator. [Option list](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers).
-- `wv_indicator_width`: window width for `indicator` computation.
-- `wv_indicator_stride`: window stride for `indicator` computation.
-- `wv_evolution_width`: window width for `evolution_metric` computation.
-- `wv_evolution_stride`: window stride for `evolution_metric` computation.
+Initialize a `SignificanceHyperParams` struct that dictates how a significance
+meta-analysis will be done on transition indicators.
 
+## Keyword arguments
+- `n_surrogates::Int = 10_000`: how many surrogates to create.
+- `surrogate_method::S = RandomFourier()`: what method to use to create the surrogates.
+  Any `Surrogate` subtype from [TimeseriesSurrogates.jl](
+    https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods
+  ) is valid.
+- `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
+  See the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers) for more.
+- `wv_indicator_width::Int = 100`,
+- `wv_indicator_stride::Int = 5`,
+- `wv_evolution_width::Int = 50`,
+- `wv_evolution_stride::Int = 5`,
 """
 function SignificanceHyperParams(;
     n_surrogates::Int = 10_000,

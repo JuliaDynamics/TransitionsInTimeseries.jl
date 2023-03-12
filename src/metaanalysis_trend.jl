@@ -27,9 +27,6 @@ julia> rr(x)
 """
 function RidgeRegression(t::AbstractVector, width::Int; lambda = 0.0)
     equispaced = isequispaced(t)
-    if !equispaced
-        error("This code works only for equispaced input")
-    end
     mean_dt = equispaced_step(t)
     t_regression = range(0.0, step = mean_dt, length = width+1)
     regression_matrix = precompute_ridge(t_regression, lambda = lambda)
