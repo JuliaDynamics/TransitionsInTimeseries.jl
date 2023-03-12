@@ -29,9 +29,9 @@ include("load_data.jl")
 export WindowViewer, windowmap
 
 # indicators.jl
-export ar1_whitenoise
-export mean, std, variance, skw, krt
-# TODO: add lfps, restoring rate
+export ar1_whitenoise, midpoint
+export mean, std, var, skewness, kurtosis
+# TODO: add lfps, restoring rate, permutation entropy
 
 # metaanalysis.jl
 export IndicatorEvolutionResults

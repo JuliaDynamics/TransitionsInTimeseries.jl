@@ -1,5 +1,7 @@
-"""
+using Statistics: mean, var
+using StatsBase: skewness, kurtosis
 
+"""
     ar1_whitenoise(x) ➡ ̂θ
 
 Estimate the AR1 regression coefficient `θ` of a vector time series `x`.
@@ -16,31 +18,8 @@ function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
 end
 
 """
+    midpoint(x)
 
-    variance(x)
-
-Compute variance of `x`.
+Return `x[length(x)÷2]`. Typically useful in [`windowmap`](@ref) with a time vector.
 """
-function variance(args...; kwargs...)
-    return var(args...; kwargs...)
-end
-
-"""
-
-    skw(x)
-
-Compute skewness of `x`.
-"""
-function skw(args...; kwargs...)
-    return skewness(args...; kwargs...)
-end
-
-"""
-
-    krt(x)
-
-Compute kurtosis of `x`.
-"""
-function krt(args...; kwargs...)
-    return kurtosis(args...; kwargs...)
-end
+midpoint(x) = x[length(x)÷2]

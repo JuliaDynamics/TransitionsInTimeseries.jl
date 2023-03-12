@@ -56,23 +56,26 @@ Base.size(wv::WindowViewer) = (length(wv),)
 
 
 """
-    windowmap(x::AbstractVector, f::Function, wv_width, wv_stride) → mapped_f
+    windowmap(f::Function, x::AbstractVector, wv_width, wv_stride) → mapped_f
 
 A shortcut for first generating a `wv = WindowViewer(x, wv_width, wv_stride)` and then
-applying `mapped_f = map(f, wv)`. If `x` is also accompanied with a time vector `t`,
+applying `mapped_f = map(f, wv)`. If `x` is accompanied by a time vector `t`,
 you probably also want to call this function with `t` instead of `x` and with one of
 `mean, first, last` as `f` to obtain a time vector for the `mapped_f` output.
 """
 function windowmap(
-    x::Vector{T},
     f::Function,
+    x::AbstractVector,
     wv_width::Int,
     wv_stride::Int,
-) where {T<:AbstractFloat}
+)
     wv = WindowViewer(x, wv_width, wv_stride)
     return map(f, wv)
 end
 
+
+# TODO: This function shouldn't exist. We really have to stop providing
+# convenience functions to replace 2-loc calls.
 """
 
     get_windowmapview_length(x, wv_width, wv_stride)

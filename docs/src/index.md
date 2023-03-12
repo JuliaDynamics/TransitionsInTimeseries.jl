@@ -83,11 +83,11 @@ We can then compute the time series of indicator by applying a sliding window, d
 slidingwindow_width = 400
 slidingwindow_stride = 1
 
-t_indicator = windowmap(t_fluctuations, mean,
+t_indicator = windowmap(mean, t_fluctuations,
     slidingwindow_width, slidingwindow_stride)
-x_indicator_l = windowmap(fluctuations[1], ar1_whitenoise,
+x_indicator_l = windowmap(ar1_whitenoise, fluctuations[1],
     slidingwindow_width, slidingwindow_stride)
-x_indicator_nl = windowmap(fluctuations[2], ar1_whitenoise,
+x_indicator_nl = windowmap(ar1_whitenoise, fluctuations[2],
     slidingwindow_width, slidingwindow_stride)
 
 fig, ax = lines(t_indicator, x_indicator_l)
@@ -102,9 +102,9 @@ slidingwindow_width = 20
 slidingwindow_stride = 1
 rr = RidgeRegression(t_indicator, slidingwindow_width)
 
-t_evolution = windowmap(t_indicator, mean, slidingwindow_width, slidingwindow_stride)
-x_evolution_l = windowmap(x_indicator_l, rr, slidingwindow_width, slidingwindow_stride)
-x_evolution_nl = windowmap(x_indicator_nl, rr, slidingwindow_width, slidingwindow_stride)
+t_evolution = windowmap(mean, t_indicator, slidingwindow_width, slidingwindow_stride)
+x_evolution_l = windowmap(rr, x_indicator_l, slidingwindow_width, slidingwindow_stride)
+x_evolution_nl = windowmap(rr, x_indicator_nl, slidingwindow_width, slidingwindow_stride)
 
 fig, ax = lines(t_evolution, x_evolution_l)
 lines!(ax, t_evolution, x_evolution_nl)
