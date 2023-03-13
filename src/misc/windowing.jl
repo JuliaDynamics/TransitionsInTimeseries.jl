@@ -1,8 +1,8 @@
-struct WindowViewer{T, V<:AbstractVector{T}, I<:AbstractVector{Int}}
+struct WindowViewer{T, V<:AbstractVector{T}}
     timeseries::V
     width::Int
     stride::Int
-    strided_indices::I
+    strided_indices::StepRange{Int, Int}
 end
 
 """
@@ -13,34 +13,38 @@ window with a given `width`, incrementing the window views with the given
 `stride`. You can use this directly with `map`, such as `map(std, WindowViewer(x, ...))`
 would give you the moving-window-timeseries of the `std` of `x`.
 
-If not given, `width, stride` as taken as `length(x)÷100` and `1`.
+If not given, the keywords `width, stride` as taken as `length(x)÷100` and `1`.
 """
 function WindowViewer(
-        timeseries::V; width::Int = length(x)÷100, stride::Int = 1,
+        x::AbstractVector;
+        width::Int = default_window_width(x), stride::Int = default_window_stride(x),
     ) where {T<:Real, V<:AbstractVector{<:T}}
-    n = length(timeseries)
-    strided_indices = get_stride_indices(n, width, stride)
-    I = typeof(strided_indices)
-    return WindowViewer{T,V,I}(timeseries, width, stride, strided_indices)
+    n = length(x)
+    si = stride_indices(n, width, stride)
+    return WindowViewer{eltype(X),V}(x, width, stride, si)
 end
+
+default_window_width(x) = length(x)÷100
+default_window_stride(x) = 1
 
 """
 
-    get_stride_indices(l::Int, width::Int, stride::Int)
+    stride_indices(l::Int, width::Int, stride::Int)
 
 Return a vector with strided indices based on windowing parameters.
 """
-get_stride_indices(l::Int, width::Int, stride::Int) = width+1:stride:l
+stride_indices(l::Int, width::Int, stride::Int) = width+1:stride:l
 
 
 # Define iterator for WindowViewer.
 function Base.iterate(wv::WindowViewer, state::Int = 1)
-    if state > length(wv.strided_indices)               # Stop condition: end of vector containing strided indices.
+    if state > length(wv.strided_indices) # Stop condition: end of vector containing strided indices.
         return nothing
-    else
+    else # return a view of time series.
+        # TODO: Generalize for
         k = wv.strided_indices[state]
         i1, i2 = (k-wv.width, k)
-        return (view(wv.timeseries, i1:i2), state + 1)  # Else: return a view of time series.
+        return (view(wv.timeseries, i1:i2), state + 1)
     end
 end
 
@@ -50,36 +54,36 @@ end
 Base.length(wv::WindowViewer) = length(wv.strided_indices)
 Base.size(wv::WindowViewer) = (length(wv),)
 
-
-
 """
-    windowmap(f::Function, x::AbstractVector, wv_width, wv_stride) → mapped_f
+    windowmap(f::Function, x::AbstractVector; kwargs...) → mapped_f
 
-A shortcut for first generating a `wv = WindowViewer(x, wv_width, wv_stride)` and then
+A shortcut for first generating a `wv = WindowViewer(x; kwargs...)` and then
 applying `mapped_f = map(f, wv)`. If `x` is accompanied by a time vector `t`,
 you probably also want to call this function with `t` instead of `x` and with one of
-`mean, first, last` as `f` to obtain a time vector for the `mapped_f` output.
+`mean, midpoint, midvalue` as `f` to obtain a time vector for the `mapped_f` output.
 """
 function windowmap(
     f::Function,
     x::AbstractVector,
-    wv_width::Int,
-    wv_stride::Int,
 )
-    wv = WindowViewer(x, wv_width, wv_stride)
+    wv = WindowViewer(x; kwargs...)
     return map(f, wv)
 end
 
 
-# TODO: This function shouldn't exist. We really have to stop providing
-# convenience functions to replace 2-loc calls.
 """
+    midpoint(x)
 
-    get_windowmapview_length(x, wv_width, wv_stride)
+Return `x[midindex]` with `midindex = round(Int, 0.5(firstindex(x) + lastindex(x)))`.
 
-Compute the length of the `WindowViewer` induced by `x`, `wv_width` and `wv_stride`.
+Typically useful in [`windowmap`](@ref) with a time vector.
 """
-function get_windowmapview_length(x, wv_width, wv_stride)
-    wv = WindowViewer(x, wv_width, wv_stride)
-    return length(wv)
-end
+midpoint(x) = x[round(Int, 0.5(firstindex(x) + lastindex(x)))]
+midpoint(x::Vector) = x[length(x)÷2] # faster
+
+"""
+    midvalue(x)
+
+Return `0.5(first(x) + last(x))`
+"""
+midvalue(x) = 0.5(first(x) + last(x))

@@ -1,13 +1,12 @@
 struct IndicatorsInput{X<:AbstractVector, F<:Function, W}
-    # TODO: `x` will become a Timeseries type.
-    x::X
     indicators::Vector{<:F}
-    indicator_window::W
+    window_width::W
+    window_stride::W
 end
 
 FF = Union{Function, Vector{<:Function}}
 
-function IndicatorsInput(x::X, f::FF; kwargs...) where {X<:AbstractVector}
+function IndicatorsInput(f::FF; kwargs...) where {X<:AbstractVector}
     if f isa Function
         ff = [f]
     else
@@ -17,8 +16,45 @@ function IndicatorsInput(x::X, f::FF; kwargs...) where {X<:AbstractVector}
 end
 
 
+"""
 
-function analyze_indicators(input, significance_params)
+    SignificanceHyperParams(kwargs...)
+
+Initialize a `SignificanceHyperParams` struct that dictates how a significance
+meta-analysis will be done on transition indicators.
+
+## Keyword arguments
+- `n_surrogates::Int = 10_000`: how many surrogates to create.
+- `surrogate_method::S = RandomFourier()`: what method to use to create the surrogates.
+  Any `Surrogate` subtype from [TimeseriesSurrogates.jl](
+    https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods
+  ) is valid.
+- `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
+  See the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers) for more.
+- `wv_indicator_width::Int = 100`,
+- `wv_indicator_stride::Int = 5`,
+- `wv_evolution_width::Int = 50`,
+- `wv_evolution_stride::Int = 5`,
+"""
+function SignificanceHyperParams(;
+    n_surrogates::Int = 10_000,
+    surrogate_method::S = RandomFourier(),
+    rng::AbstractRNG = Random.default_rng(),
+    wv_indicator_width::Int = 100,
+    wv_indicator_stride::Int = 5,
+    wv_evolution_width::Int = 50,
+    wv_evolution_stride::Int = 5,
+) where {S<:Surrogate}
+    return SignificanceHyperParams(
+        n_surrogates, surrogate_method, rng,
+        wv_indicator_width, wv_indicator_stride,
+        wv_evolution_width, wv_evolution_stride,
+    )
+end
+
+
+
+function analyze_indicators(x, indicators, significance_params)
 
 
 
@@ -71,41 +107,6 @@ struct SignificanceHyperParams{S<:Surrogate, R<:AbstractRNG}
     wv_evolution_stride::Int
 end
 
-"""
-
-    SignificanceHyperParams(kwargs...)
-
-Initialize a `SignificanceHyperParams` struct that dictates how a significance
-meta-analysis will be done on transition indicators.
-
-## Keyword arguments
-- `n_surrogates::Int = 10_000`: how many surrogates to create.
-- `surrogate_method::S = RandomFourier()`: what method to use to create the surrogates.
-  Any `Surrogate` subtype from [TimeseriesSurrogates.jl](
-    https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods
-  ) is valid.
-- `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
-  See the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers) for more.
-- `wv_indicator_width::Int = 100`,
-- `wv_indicator_stride::Int = 5`,
-- `wv_evolution_width::Int = 50`,
-- `wv_evolution_stride::Int = 5`,
-"""
-function SignificanceHyperParams(;
-    n_surrogates::Int = 10_000,
-    surrogate_method::S = RandomFourier(),
-    rng::AbstractRNG = Random.default_rng(),
-    wv_indicator_width::Int = 100,
-    wv_indicator_stride::Int = 5,
-    wv_evolution_width::Int = 50,
-    wv_evolution_stride::Int = 5,
-) where {S<:Surrogate}
-    return SignificanceHyperParams(
-        n_surrogates, surrogate_method, rng,
-        wv_indicator_width, wv_indicator_stride,
-        wv_evolution_width, wv_evolution_stride,
-    )
-end
 # TODO: init struct based on dimensions of input time-series
 
 #####################################################

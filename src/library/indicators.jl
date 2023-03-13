@@ -16,13 +16,3 @@ function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
     n = length(x)
     return (view(x, 2:n)' * view(x, 1:n-1)) / (view(x, 1:n-1)' * view(x, 1:n-1))
 end
-
-"""
-    midpoint(x)
-
-Return `x[midindex]` with `midindex = round(Int, 0.5(firstindex(x) + lastindex(x)))`.
-
-Typically useful in [`windowmap`](@ref) with a time vector.
-"""
-midpoint(x) = x[round(Int, 0.5(firstindex(x) + lastindex(x)))]
-midpoint(x::Vector) = x[length(x)÷2] # faster
