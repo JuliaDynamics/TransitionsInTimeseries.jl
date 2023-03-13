@@ -65,7 +65,13 @@ Same as [`windowmap`](@ref), but writes the output in-place in `out`.
 """
 function windowmap!(f::Function, out::AbstractVector, x::AbstractVector; kwargs...)
     wv = WindowViewer(x; kwargs...)
-    map!(f, out, wv)
+    if length(out) != length(wv)
+        error("Allocated output doesn't match size of window viewer.")
+    end
+    @inbounds for (i, v) in enumerate(wv)
+        out[i] = f(v)
+    end
+    return out
 end
 
 """

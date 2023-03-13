@@ -28,7 +28,7 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     x_change = zeros(X, len_change, n_ind)
     s_change = zeros(X, len_change, n_ind, significance.n_surrogates)
     t_indicator = windowmap(midpoint, t; indicators.window_kwargs...)
-    t_change = windowmap(midpoint, t_change; width = significance.width, stride = significance.stride)
+    t_change = windowmap(midpoint, t_indicator; width = significance.width, stride = significance.stride)
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
     sgen = surrogenerator(x, significance.surrogate_method, significance.rng)

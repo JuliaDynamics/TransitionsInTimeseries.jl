@@ -1,8 +1,10 @@
 """
     IndicatorsConfig(indicators...; window_kwargs...)
 
-A configuration for computing indicators from timeseries. Any number of indicators
-(standard Julia functions) can be given. Indicators typically used in the literature
+A configuration for computing indicators from timeseries.
+Indicators are standard Julia functions that input an `AbstractVector` and output
+a real number. Any number of indicators can be given.
+Indicators typically used in the literature
 are listed in the documentation section [Indicators](@ref).
 
 Keywords are propagated into [`WindowViewer`](@ref)
@@ -11,11 +13,11 @@ to create a sliding window for estimating the indicators.
 Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
 """
 struct IndicatorsConfig{F<:Function, W<:NamedTuple}
-    indicators::Vector{<:F}
+    indicators::Vector{F}
     window_kwargs::W
 end
-IndicatorsConfig(f::Vararg{Function}; kwargs...) = IndicatorsConfig(collect(f), kwargs)
-IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, kwargs)
+IndicatorsConfig(f::Vararg{Function}; kwargs...) = IndicatorsConfig(collect(f), NamedTuple(kwargs))
+IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, NamedTuple(kwargs))
 
 """
     SignificanceConfig(change_metrics...; kwargs...)

@@ -6,6 +6,10 @@ struct RidgeRegression{T} <: Function
     regression_matrix::Matrix{T}
 end
 
+# TODO: This is clunky and inconvenient and doesn't allow a simple way to
+# just pick ridge regression as a change metric. It needs to be changed,
+# or it needs to offer a "slow" version where I can jsut pick ridge regression
+# without having to think about windows or whatever, and it "just works"
 """
 
     RidgeRegression(t, width; lambda = 0.0) → rr
