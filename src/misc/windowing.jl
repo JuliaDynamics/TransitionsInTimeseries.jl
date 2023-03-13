@@ -18,10 +18,10 @@ If not given, the keywords `width, stride` as taken as `length(x)÷100` and `1`.
 function WindowViewer(
         x::AbstractVector;
         width::Int = default_window_width(x), stride::Int = default_window_stride(x),
-    ) where {T<:Real, V<:AbstractVector{<:T}}
+    )
     n = length(x)
     si = width+1:stride:n
-    return WindowViewer{eltype(X),V}(x, width, stride, si)
+    return WindowViewer{eltype(x),typeof(x)}(x, width, stride, si)
 end
 
 default_window_width(x) = length(x)÷100
@@ -53,10 +53,7 @@ applying `mapped_f = map(f, wv)`. If `x` is accompanied by a time vector `t`,
 you probably also want to call this function with `t` instead of `x` and with one of
 `mean, midpoint, midvalue` as `f` to obtain a time vector for the `mapped_f` output.
 """
-function windowmap(
-    f::Function,
-    x::AbstractVector,
-)
+function windowmap(f::Function, x::AbstractVector; kwargs...)
     wv = WindowViewer(x; kwargs...)
     return map(f, wv)
 end

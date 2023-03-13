@@ -96,15 +96,14 @@ At this point, `x_l_fluct` and `x_nl_fluct` are considered the **input timeserie
 We can then compute the values of some "indicator" (a Julia function that inputs a timeseries and outputs a number). An indicator should be a quantity that is likely to change if a transition occurs in the timeseries. We compute indicators by applying a sliding window over the **input timeseries**, determined by the width and the stride with which it is applied. Here we demonstrate this computation with the AR1-regression coefficient (under white-noise assumption), implemented as [`ar1_whitenoise`](@ref):
 
 ```@example MAIN
-width_indicator = 400
-stride_indicator = 1
 indicator = ar1_whitenoise
+indicator_window = (width = 400, stride = 1)
 
-t_indicator = windowmap(midpoint, tfluct, width_indicator, stride_indicator)
+t_indicator = windowmap(midpoint, tfluct; indicator_window...)
 
-indicator_l = windowmap(indicator, x_l_fluct, width_indicator, stride_indicator)
+indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
 
-indicator_nl = windowmap(indicator, x_nl_fluct, width_indicator, stride_indicator)
+indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
 
 fig, ax = lines(t_indicator, indicator_l)
 lines!(ax, t_indicator, indicator_nl)
@@ -120,13 +119,12 @@ From here, we process the **indicator timeseries** to quantify changes in it. Th
 
 
 ```@example MAIN
-width_change = 20
-stride_change = 1
-ridgereg = RidgeRegression(t_indicator, width_change)
+change_window = (width = 20, stride = 1)
+ridgereg = RidgeRegression(t_indicator, change_window.width)
 
-t_change = windowmap(midpoint, t_indicator, width_change, stride_change)
-change_l = windowmap(ridgereg, indicator_l, width_change, stride_change)
-change_nl = windowmap(ridgereg, indicator_nl, width_change, stride_change)
+t_change = windowmap(midpoint, t_indicator; change_window...)
+change_l = windowmap(ridgereg, indicator_l; change_window...)
+change_nl = windowmap(ridgereg, indicator_nl; change_window...)
 
 fig, ax = lines(t_change, change_l)
 lines!(ax, t_change, change_nl)
@@ -152,8 +150,8 @@ lines!(ax, tfluct, s .- 0.05; color = Cycled(3))
 ax.title = "real signal vs. surrogate(s)"
 
 # compute and plot change metric
-indicator_s = windowmap(indicator, s, width_indicator, stride_indicator)
-change_s = windowmap(ridgereg, indicator_s, width_change, stride_change)
+indicator_s = windowmap(indicator, s; indicator_window...)
+change_s = windowmap(ridgereg, indicator_s; change_window...)
 
 ax, = lines(fig[1,2], t_change, change_nl; color = Cycled(2), label = "nonlin")
 lines!(ax, t_change, change_s; color = Cycled(3), label = "surrogate")
@@ -183,8 +181,8 @@ for (j, ax, x) in zip(1:2, (axl, axnl), (x_l_fluct, x_nl_fluct))
     # Collect all surrogate change metrics
     for i in 1:n_surrogates
         s = sgen()
-        indicator_s = windowmap(indicator, s, width_indicator, stride_indicator)
-        change_s = windowmap(ridgereg, indicator_s, width_change, stride_change)
+        indicator_s = windowmap(indicator, s; indicator_window...)
+        change_s = windowmap(ridgereg, indicator_s; change_window...)
         change_s_distr[i, :] .= change_s
     end
 
