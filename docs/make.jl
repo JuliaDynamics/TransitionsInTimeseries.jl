@@ -1,6 +1,6 @@
 cd(@__DIR__)
 
-using TransitionIndicators, StatsBase
+using TransitionIndicators, Statistics, StatsBase
 
 pages = [
     "index.md",
@@ -13,6 +13,6 @@ Downloads.download(
 )
 include("build_docs_with_style.jl")
 
-build_docs_with_style(pages, TransitionIndicators, StatsBase;
+build_docs_with_style(pages, TransitionIndicators, Statistics, StatsBase;
     authors = "Jan Swierczek-Jereczek <jan.jereczek@gmail.com>, George Datseris <datseris.george@gmail.com>"
 )

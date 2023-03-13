@@ -17,13 +17,15 @@ using DataFrames
 using Reexport
 @reexport using TimeseriesSurrogates
 
-include("windowing.jl")
-include("timeseries.jl")
-include("indicators.jl")
-include("metaanalysis.jl")
-include("metaanalysis_trend.jl")
-include("significance.jl")
-include("load_data.jl")
+include("misc/windowing.jl")
+include("misc/timeseries.jl")
+include("misc/load_data.jl")
+
+include("library/indicators.jl")
+include("library/change_metrics_trend.jl")
+
+include("analysis/metaanalysis.jl")
+include("analysis/significance.jl")
 
 # windowing.jl
 export WindowViewer, windowmap

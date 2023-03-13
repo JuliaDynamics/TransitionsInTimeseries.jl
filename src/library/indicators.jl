@@ -1,5 +1,6 @@
 # Indicators already in other packages are re-exported
-using StatsBase: mean, var, skewness, kurtosis
+using Statistics: mean, var
+using StatsBase: skewness, kurtosis
 
 """
     ar1_whitenoise(x) → ̂θ
@@ -19,6 +20,9 @@ end
 """
     midpoint(x)
 
-Return `x[length(x)÷2]`. Typically useful in [`windowmap`](@ref) with a time vector.
+Return `x[midindex]` with `midindex = round(Int, 0.5(firstindex(x) + lastindex(x)))`.
+
+Typically useful in [`windowmap`](@ref) with a time vector.
 """
-midpoint(x) = x[length(x)÷2]
+midpoint(x) = x[round(Int, 0.5(firstindex(x) + lastindex(x)))]
+midpoint(x::Vector) = x[length(x)÷2] # faster

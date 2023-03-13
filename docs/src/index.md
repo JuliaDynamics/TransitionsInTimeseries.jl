@@ -100,7 +100,7 @@ width_indicator = 400
 stride_indicator = 1
 indicator = ar1_whitenoise
 
-t_indicator = windowmap(mean, tfluct, width_indicator, stride_indicator)
+t_indicator = windowmap(midpoint, tfluct, width_indicator, stride_indicator)
 
 indicator_l = windowmap(indicator, x_l_fluct, width_indicator, stride_indicator)
 
@@ -124,7 +124,7 @@ width_change = 20
 stride_change = 1
 ridgereg = RidgeRegression(t_indicator, width_change)
 
-t_change = windowmap(mean, t_indicator, width_change, stride_change)
+t_change = windowmap(midpoint, t_indicator, width_change, stride_change)
 change_l = windowmap(ridgereg, indicator_l, width_change, stride_change)
 change_nl = windowmap(ridgereg, indicator_nl, width_change, stride_change)
 
@@ -272,10 +272,10 @@ windowmap
 ### [Indicators] (@id indicator_functions)
 ```@docs
 ar1_whitenoise
-mean
-var
-skewness
-kurtosis
+Statistics.mean(::Any)
+Statistics.var(::AbstractArray)
+StatsBase.skewness
+StatsBase.kurtosis
 ```
 
 ### Change metrics
