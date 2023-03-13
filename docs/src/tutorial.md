@@ -1,3 +1,18 @@
+# Tutorial
+
+## [Workflow] (@id workflow)
+
+Computing transition indicators is schematically represented in the plot below and essentially consists of:
+
+1. Doing any pre-processing of raw data first such as detrending (_not part of TransitionIndicators.jl_). This yields the **input timeseries**.
+1. Estimating the timeseries of an indicator by sliding a window over the input timeseries.
+2. Computing the changes of the indicator by sliding a window over its timeseries.
+3. Generating many surrogates that preserve important statistical properties of the original timeseries.
+4. Performing step 2 and 3 for the surrogate timeseries
+5. Checking whether the indicator change timeseries of the real timeseries shows a significant feature (trend or jump or anything else) when compared to the surrogate data.
+
+![Schematic representation of what is happening under the hub.](https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/videos/transitionindicators/workflow.svg)
+
 
 ## [Tutorial -- Educational] (@id example_stepbystep)
 
@@ -30,7 +45,7 @@ fig
     is not part of TransitionIndicators.jl and is the responsibility of the researcher.
 
 
-The nonlinear system clearly displays a transition between two stability regimes. To forecast such transition, we analyze the fluctuations of the time series around the tracked attractor. Therefore, a detrending step is needed - here simply obtained by building the difference of the time series with lag 1.
+The nonlinear system clearly displays a transition between two stability regimes. To forecast such transition, we analyze the fluctuations of the timeseries around the tracked attractor. Therefore, a detrending step is needed - here simply obtained by building the difference of the timeseries with lag 1.
 
 ```@example MAIN
 x_l_fluct = diff(x_linear)
@@ -92,7 +107,7 @@ fig
 
 ### Timeseries surrogates
 
-As expected from [Critical Slowing Down](@ref approaches), an increase of the AR1-regression coefficient can be observed. Although eyeballing the time series might already be suggestive, we want a rigorous framework for testing for significance.
+As expected from [Critical Slowing Down](@ref approaches), an increase of the AR1-regression coefficient can be observed. Although eyeballing the timeseries might already be suggestive, we want a rigorous framework for testing for significance.
 
 In TransitionsIdentifiers.jl we perform significance testing using the method of timeseries surrogates and the [TimeseriesSurrogates.jl](https://github.com/JuliaDynamics/TimeseriesSurrogates.jl) Julia package. This has the added benefits of flexibility in choosing the surrogate generation method, reproducibility, and automation. Note that `TimeseriesSurrogates` is re-exported by `TransitionIndicators`, so that you don't have to `using` both of them.
 
@@ -122,7 +137,7 @@ fig
 
 To quantify the significance of the values of the **change metric timeseries** we perform a standard surrogate test. We calculate the change metric for thousands of surrogates of the input timeseries, and then detect the points in time where the change metric timeseries exceeds a threshold (such as the 95-quantile) of the change metrics of the surrogates.
 
-To visualize significant trends, we plot the bands giving the $(-2 \, \sigma, 2 \, \sigma)$ and $(-3 \, \sigma, 3 \, \sigma)$ intervals of the surrogate values, with $\sigma$ the standard-deviation of indicator slope across the surrogate time series:
+To visualize significant trends, we plot the bands giving the $(-2 \, \sigma, 2 \, \sigma)$ and $(-3 \, \sigma, 3 \, \sigma)$ intervals of the surrogate values, with $\sigma$ the standard-deviation of indicator slope across the surrogate timeseries:
 
 ```@example MAIN
 n_surrogates = 1_000
@@ -162,9 +177,9 @@ Performing the step-by-step analysis of transition indicators is possible and mi
 
 ## [Tutorial -- TransitionIndicators.jl] (@id example_fastforward)
 
-TransitionIndicators.jl wraps the process of the step-by-step example into a simple, extendable, and modular API that researchers can use. In addition, it allows performing the same analysis for several different indicators / change metrics in one go.
+TransitionIndicators.jl wraps this typical workflow into a simple, extendable, and modular API that researchers can use with little effort. In addition, it allows performing the same analysis for several different indicators / change metrics in one go.
 
-The workflow is simple and it works is as follows:
+The interface is simple, and directly parallelizes the [Workflow](@ref) as follows:
 
 1. Create an instance of [`IndicatorsConfig`](@ref), that dictates which indicators will be used, and over what sliding window.
 2. Create an instance of [`SignificanceConfig`](@ref), that dictates what change metrics, surrogate types, and sliding window will be used to quantify a significant change of the indicators.
@@ -172,7 +187,6 @@ The workflow is simple and it works is as follows:
 4. The output, which is an [`IndicatorsResults`](@ref), can be used to visualize the results, or given to [`indicators_significance`](@ref) to provide flags of the timepoints where there is a significant change of each indicator.
 
 The following blocks apply this process, and visualize it, for the examples we used in the educational part of the tutorial.
-
 
 First we load, and do the necessary pre-processing, to get input data
 ```@example MAIN
@@ -183,7 +197,7 @@ t, x_linear, x_nlinear = load_linear_vs_doublewell()
 x_nl_fluct = diff(x_nlinear)
 tfluct = t[2:end]
 
-fig, ax = lines(tfluct, x_l_fluct)
+fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2))
 ax.title = "input timeseries"
 fig
 ```
@@ -215,7 +229,7 @@ for i in size(sig, 2)
     isempty(signif_idxs) && continue
     # get timepoints in real time
     tflags = tfluct[result.t_change[signif_idxs]]
-    vlines!(ax, tflags; label = "indicator $(indicators[i])")
+    vlines!(ax, tflags; label = "indicator $(indicators[i])", color = Cycled(2+i))
 end
 axislegend()
 fig
