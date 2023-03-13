@@ -62,6 +62,16 @@ function windowmap(
 end
 
 """
+    windowmap!(f::Function, out, x::AbstractVector; kwargs...)
+
+Same as [`windowmap`](@ref), but writes the output in-place in `out`.
+"""
+function windowmap!(f::Function, out::AbstractVector, x::AbstractVector; kwargs...)
+    wv = WindowViewer(x; kwargs...)
+    map!(f, out, wv)
+end
+
+"""
     midpoint(x)
 
 Return `x[midindex]` with `midindex = (firstindex(x) + lastindex(x))÷2`.

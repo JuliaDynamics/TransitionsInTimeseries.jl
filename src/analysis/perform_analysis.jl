@@ -15,9 +15,8 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     t = eachindex(x)
     X = eltype(x)
     # initialize sizes
-    wvx = WindowViewer(x; indicators.window_kwargs...)
     n_ind = length(indicators.indicators)
-    len_ind = length(wvx)
+    len_ind = length(WindowViewer(x; indicators.window_kwargs...))
     len_change = length(WindowViewer(1:len_ind; width = significance.width, stride = significance.stride))
     # initialize array containers
     x_indicator = zeros(X, len_ind, n_ind)
@@ -25,9 +24,41 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     s_change = zeros(X, len_change, n_ind, significance.n_surrogates)
     t_indicator = windowmap(midpoint, t; indicators.window_kwargs...)
     t_change = windowmap(midpoint, t_change; width = significance.width, stride = significance.stride)
-
-    # TODO: Actual computations
+    indicator_dummy = zeros(X, len_ind)
+    change_dummy = zeros(X, len_change)
+    sgen = surrogenerator(x, significance.surrogate_method, significance.rng)
+    # Actual computations
+    @inbounds for i in 1:n_ind
+        # indicator timeseries
+        z = view(x_indicator, :, i)
+        windowmap!(indicators.indicators[i], z, x; indicators.window_kwargs...)
+        # change metric timeseries
+        c = view(x_change, :, i)
+        windowmap!(significance.change_metrics[i], c, z;
+            width = significance.width, stride = significance.stride
+        )
+        # surrogates
+        for k in 1:significance.n_surrogates
+            s = sgen()
+            windowmap!(indicators.indicators[i], indicator_dummy, s; indicators.window_kwargs...)
+            windowmap!(significance.change_metrics[i], change_dummy, indicator_dummy;
+                width = significance.width, stride = significance.stride
+            )
+            s_change[:, i, k] .= change_dummy
+        end
+    end
+    # put everything together in the output type
+    return IndicatorEvolutionResults(
+        t, x,
+        indicators.indicators, t_indicator, x_indicator,
+        significance.change_metrics, t_change, x_change, s_change
+    )
 end
+
+
+
+
+
 
 
 """
