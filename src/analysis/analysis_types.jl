@@ -2,7 +2,10 @@
     IndicatorsConfig(indicators...; window_kwargs...)
 
 A configuration for computing indicators from timeseries. Any number of indicators
-(standard Julia functions) can be given. Keywords are propagated into [`WindowViewer`](@ref)
+(standard Julia functions) can be given. Indicators typically used in the literature
+are listed in the documentation section [Indicators](@ref).
+
+Keywords are propagated into [`WindowViewer`](@ref)
 to create a sliding window for estimating the indicators.
 
 Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
@@ -77,7 +80,7 @@ It has the following fields:
   metric, and third dimension = surrogate number. I.e.,
   `S_change[:, j, k]` will give the `k`-th surrogate timeseries of the `j`-th change metric.
 """
-struct IndicatorEvolutionResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, F<:Function, Z<:Function}
+struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, F<:Function, Z<:Function}
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
 

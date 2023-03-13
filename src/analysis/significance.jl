@@ -1,3 +1,35 @@
+using Statistics: quantile
+
+"""
+    indicators_significance(res::IndicatorsResults, q) → out
+
+Given the output of [`indicators_analysis`](@ref), estimate when the computed
+indicators have a statistically significant change, with "significant" defined by
+`q`, which is a quantile. If the value of the change metric is is greater then
+`q`-th quantile, or less than the `1-q`-th quantile of the surrogate data,
+a significance is claimed.
+
+The output is returned as a `n×m` matrix with `n` the length of the time
+vector of the change metric timeseries, and `m` the number of change metrics
+(which is the same as the number of indicators).
+The values of the matrix are Booleans (`true` for significant).
+
+You can use `prod(out; dim = 2)` for logical `&` product indicators.
+"""
+function indicators_significance(res::IndicatorsResults, q::Real)
+    out = zeros(Bool, length(res.t_change), size(res.x_change, 2))
+    for i in 1:length(res.t_change) # loop over time
+        for j in 1:size(res.x_change, 2) # loop over change metrics
+            val = res.x_change[i, j] # value of real change metric
+            s_vals = view(res.s_change, i, j, :) # values of all surrogates
+            low, high = quantile(s_vals, (1-q, q))
+            out[i, j] = val < low || val > high
+        end
+    end
+    return out
+end
+
+
 #####################################################
 # Thresholding methods
 #####################################################
@@ -26,11 +58,11 @@ end
 
     measure_significance(res, significance_metrics)
 
-Compute some `significance_metrics` for the `IndicatorEvolutionResults` output by
+Compute some `significance_metrics` for the `IndicatorsResults` output by
 [`analyze_indicators`](@ref analyze_indicators).
 """
 function measure_significance(
-    res::IndicatorEvolutionResults{T},
+    res::IndicatorsResults{T},
     significance_metrics::Vector{Function},
 ) where {T<:AbstractFloat}
     significances = similar(res.X_evolution)
@@ -45,7 +77,7 @@ function measure_significance(
 end
 
 function measure_significance(
-    res::IndicatorEvolutionResults{T},
+    res::IndicatorsResults{T},
     significance_metrics::Function,
 ) where {T<:AbstractFloat}
     sm = repeat(Function[significance_metrics], outer = size(res.X_evolution, 3))
@@ -98,7 +130,7 @@ end
     normalized_percentile(x, s; p, symmetric)
 
 Compute the normalized percentile of a value `x` within a dataset `s` and w.r.t. a
-percentile value `p`. 
+percentile value `p`.
 """
 function normalized_percentile(
     x::T,

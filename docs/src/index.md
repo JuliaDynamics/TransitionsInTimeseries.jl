@@ -262,7 +262,7 @@ load_linear_vs_doublewell()
 
 ### High-level interface
 ```@docs
-IndicatorEvolutionResults
+IndicatorsResults
 SignificanceHyperParams
 analyze_indicators
 indicator_evolution

@@ -53,7 +53,7 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
         end
     end
     # put everything together in the output type
-    return IndicatorEvolutionResults(
+    return IndicatorsResults(
         t, x,
         indicators.indicators, t_indicator, x_indicator,
         significance.change_metrics, t_change, x_change, s_change
