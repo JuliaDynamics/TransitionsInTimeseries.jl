@@ -7,7 +7,7 @@ TransitionIndicators
 ```
 
 !!! info "Star us on GitHub!"
-    If you have found this package useful, please consider starring it on [GitHub](https://github.com/JuliaDynamics/TransitionIndicators.jl).
+    If you have found this package useful, please consider staridgereging it on [GitHub](https://github.com/JuliaDynamics/TransitionIndicators.jl).
     This gives us an accurate lower bound of the (satisfied) user count.
 
 ## [Content] (@id content)
@@ -28,7 +28,7 @@ Multi-stable systems can display abrupt transitions between two stability regime
 
 Over the last decades, research on transition indicators has largely focused on Critical Slowing Down (CSD). CSD is observed when a system with continuous right-hand side approaches a bifurcation and consists in a resilience loss of the system. For instance this can be diagnosed by an increase of the variance and the AR1-regression coefficient, as demonstrated in the [example section](@ref example_stepbystep). However, we emphasize that this is one out of many possible approaches for obtaining transition indicators. Recent work has explored new approaches relying on nonlinear dynamics or machine learning. `TransitionIndicators.jl` is designed to allow these cutting-edge methods and foster the development of new ones.
 
-## [Under the hub] (@id workflow)
+## [Under the hood] (@id workflow)
 
 Computing transition indicators is schmetically represented in the plot below and essentially consists of:
 1. Detrending the time series to get the fluctuations around the tracked attractor.
@@ -42,6 +42,8 @@ The below-depicted fowchart is flexible; boxes can be modified or skipped alltog
 ![Schematic representation of what is happening under the hub.](https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/videos/transitionindicators/workflow.svg)
 
 ## [Example -- Step-by-step] (@id example_stepbystep)
+
+### Raw input data
 
 Let us load data from a bistable nonlinear model subject to noise and to a gradual change of the forcing that leads to a transition. Furthermore, we also load data from a linear model, which is by definition monostable and therefore incapable of transitionning. This is done to control the rate of false positives, a common problem that can emerge when looking for tranisiton indicators. The models are governed by:
 
@@ -57,99 +59,151 @@ using TransitionIndicators
 using CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
-X = [x_linear, x_nlinear]
+X = (x_linear, x_nlinear)
 fig, ax = lines(t, x_linear)
 lines!(ax, t, x_nlinear)
+ax.title = "raw data"
 fig
 ```
+
+### Preprocessing
+
+!!! note "Not part of TransitionIndicators.jl"
+    Any timeseries pre-processing, such as the de-trending step we do here,
+    is not part of TransitionIndicators.jl and is the responsibility of the researcher.
+
 
 The nonlinear system clearly displays a transition between two stability regimes. To forecast such transition, we analyze the fluctuations of the time series around the tracked attractor. Therefore, a detrending step is needed - here simply obtained by building the difference of the time series with lag 1.
 
 ```@example MAIN
-fluctuations = [diff(x) for x in [x_linear, x_nlinear]]
-t_fluctuations = t[2:end]
+x_l_fluct = diff(x_linear)
+x_nl_fluct = diff(x_nlinear)
+tfluct = t[2:end]
 
-fig, ax = lines(t_fluctuations, fluctuations[1])
-lines!(ax, t_fluctuations, fluctuations[2])
+fig, ax = lines(tfluct, x_l_fluct)
+lines!(ax, tfluct, x_nl_fluct .+ 0.05)
+ax.title = "input timeseries"
 fig
 ```
+
+At this point, `x_l_fluct` and `x_nl_fluct` are considered the **input timeseries**.
 
 !!! info "Detrending in Julia"
     Detrending can be performed in many ways and therefore remains an external step of `TransitionIndicators.jl`. A wide range of `Julia` packages exists to perform smoothing such as [`Loess.jl`](https://github.com/JuliaStats/Loess.jl) or [`DSP.jl`](https://docs.juliadsp.org/latest/contents/). The detrending step then simply consists of subtracting the smoothed signal from the original one.
 
-We can then compute the time series of indicator by applying a sliding window, determined by the width and the stride with which it is applied. Here we demonstrate this computation with the AR1-regression coefficient (under white-noise assumption), implemented as [`ar1_whitenoise`](@ref):
+### Indicator timeseries
+
+We can then compute the values of some "indicator" (a Julia function that inputs a timeseries and outputs a number). An indicator should be a quantity that is likely to change if a transition occurs in the timeseries. We compute indicators by applying a sliding window over the **input timeseries**, determined by the width and the stride with which it is applied. Here we demonstrate this computation with the AR1-regression coefficient (under white-noise assumption), implemented as [`ar1_whitenoise`](@ref):
 
 ```@example MAIN
-slidingwindow_width = 400
-slidingwindow_stride = 1
+width_indicator = 400
+stride_indicator = 1
+indicator = ar1_whitenoise
 
-t_indicator = windowmap(mean, t_fluctuations,
-    slidingwindow_width, slidingwindow_stride)
-x_indicator_l = windowmap(ar1_whitenoise, fluctuations[1],
-    slidingwindow_width, slidingwindow_stride)
-x_indicator_nl = windowmap(ar1_whitenoise, fluctuations[2],
-    slidingwindow_width, slidingwindow_stride)
+t_indicator = windowmap(mean, tfluct, width_indicator, stride_indicator)
 
-fig, ax = lines(t_indicator, x_indicator_l)
-lines!(ax, t_indicator, x_indicator_nl)
+indicator_l = windowmap(indicator, x_l_fluct, width_indicator, stride_indicator)
+
+indicator_nl = windowmap(indicator, x_nl_fluct, width_indicator, stride_indicator)
+
+fig, ax = lines(t_indicator, indicator_l)
+lines!(ax, t_indicator, indicator_nl)
+ax.title = "indicator timeseries"
 fig
 ```
 
-We can obtain the evolution of the indicator over time by applying, here again, a sliding window. We demonstrate this with the computation of the ridge regression slope, a way of measuring a potential increase of the AR1-regression coefficient:
+The lines plotted above are the **indicator timeseries**.
+
+### Change metric timeseries
+
+From here, we process the **indicator timeseries** to quantify changes in it. This step is in essence the same as before: we apply some function over a sliding window of the indicator timeseries. We call this new timeseries the **change metric timeseries**. In the example here, the change metric we will employ will be the slope (over a sliding window), calculated via means of a ridge regression
+
 
 ```@example MAIN
-slidingwindow_width = 20
-slidingwindow_stride = 1
-rr = RidgeRegression(t_indicator, slidingwindow_width)
+width_change = 20
+stride_change = 1
+ridgereg = RidgeRegression(t_indicator, width_change)
 
-t_evolution = windowmap(mean, t_indicator, slidingwindow_width, slidingwindow_stride)
-x_evolution_l = windowmap(rr, x_indicator_l, slidingwindow_width, slidingwindow_stride)
-x_evolution_nl = windowmap(rr, x_indicator_nl, slidingwindow_width, slidingwindow_stride)
+t_change = windowmap(mean, t_indicator, width_change, stride_change)
+change_l = windowmap(ridgereg, indicator_l, width_change, stride_change)
+change_nl = windowmap(ridgereg, indicator_nl, width_change, stride_change)
 
-fig, ax = lines(t_evolution, x_evolution_l)
-lines!(ax, t_evolution, x_evolution_nl)
+fig, ax = lines(t_change, change_l)
+lines!(ax, t_change, change_nl)
+ax.title = "change metric timeseries"
 fig
 ```
 
-As expected from [CSD](@ref approaches), an increase of the AR1-regression coefficient can be observed. Although eyeballing the time series might already be suggestive, surrogates of the fluctuation time series allow to rigorously test the observed increase in AR1-regression coefficient for statistical significance. Furthermore, it allows an automation of the significance computation. Surrogates of the flutuations (here demonstrated for the data generated by the nonlinear model) can be simply generated by:
+
+### Timeseries surrogates
+
+As expected from [Critical Slowing Down](@ref approaches), an increase of the AR1-regression coefficient can be observed. Although eyeballing the time series might already be suggestive, we want a rigorous framework for testing for significance.
+
+In TransitionsIdentifiers.jl we perform significance testing using the method of timeseries surrogates and the [TimeseriesSurrogates.jl](https://github.com/JuliaDynamics/TimeseriesSurrogates.jl) Julia package. This has the added benefits of flexibility in choosing the surrogate generation method, reproducibility, and automation. Note that `TimeseriesSurrogates` is re-exported by `TransitionIndicators`, so that you don't have to `using` both of them.
+
+To illustrate the surrogate, we compare the change metric computed from the bistable timeseries what that computed from a surrogate of the same timeseries.
 
 ```@example MAIN
-sgen = surrogenerator(fluctuations[2], RandomFourier())
-s = sgen()
-fig_s, ax_s = lines(t_fluctuations, s)
-lines!(ax_s, t_fluctuations, fluctuations[2])
-fig_s
+# Generate Fourier random-phase surrogates
+using Random: Xoshiro
+s = surrogate(x_nl_fluct, RandomFourier(), Xoshiro(123))
+fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2))
+lines!(ax, tfluct, s .- 0.05; color = Cycled(3))
+ax.title = "real signal vs. surrogate(s)"
+
+# compute and plot change metric
+indicator_s = windowmap(indicator, s, width_indicator, stride_indicator)
+change_s = windowmap(ridgereg, indicator_s, width_change, stride_change)
+
+ax, = lines(fig[1,2], t_change, change_nl; color = Cycled(2), label = "nonlin")
+lines!(ax, t_change, change_s; color = Cycled(3), label = "surrogate")
+axislegend()
+ax.title = "change metric"
+
+fig
 ```
 
-We can now perform the same analysis for the surrogates. To simplify the syntax, we use [`SignificanceHyperParams`](@ref), a convenience constructor that stores hyperparameters of the significance analysis, such as the sliding-window parameters, the number of surrogaes... etc. Furthermore, it provides default choices for unspecified hyperparameters. We then estimate the trend of the indicators computed on the surrogates by looping over them and using the convenience function [`indicator_evolution`](@ref) that wraps the steps of computing the indicator time series and its evolution. To visualize significant trends, we plot the bands giving the $(-\sigma, \sigma)$, $(-2 \, \sigma, 2 \, \sigma)$ and $(-3 \, \sigma, 3 \, \sigma)$ intervals, with $\sigma$ the standard-deviation of indicator slope across the surrogate time series:
+### Quantifying significance
+
+To quantify the significance of the values of the **change metric timeseries** we perform a standard surrogate test. We calculate the change metric for thousands of surrogates of the input timeseries, and then detect the points in time where the change metric timeseries exceeds a threshold (such as the 95-quantile) of the change metrics of the surrogates.
+
+To visualize significant trends, we plot the bands giving the $(-2 \, \sigma, 2 \, \sigma)$ and $(-3 \, \sigma, 3 \, \sigma)$ intervals of the surrogate values, with $\sigma$ the standard-deviation of indicator slope across the surrogate time series:
 
 ```@example MAIN
-p = SignificanceHyperParams(
-    n_surrogates = 10_000,      # number of surrogates to test significance
-    wv_indicator_width = 400,   # sliding window width for indicator estimation
-    wv_indicator_stride = 1,    # sliding window stride for indicator estimation
-    wv_evolution_width = 20,    # sliding window width for evolution metric computation
-    wv_evolution_stride = 1,    # sliding window stride for evolution metric computation
-)
+n_surrogates = 1_000
+fig = Figure()
+axl = Axis(fig[1,1]; title = "linear")
+axnl = Axis(fig[1,2]; title = "nonlinear")
 
-S_evolution = fill(0.0, p.n_surrogates, length(t_evolution))
-for i in 1:p.n_surrogates
-    s = sgen()
-    s_indicator, s_evolution = indicator_evolution(s, ar1_whitenoise, rr, p)
-    S_evolution[i, :] .= s_evolution
+for (j, ax, x) in zip(1:2, (axl, axnl), (x_l_fluct, x_nl_fluct))
+
+    sgen = surrogenerator(x, RandomFourier(), Xoshiro(123))
+    change_s_distr =  zeros(n_surrogates, length(change_s))
+
+    # Collect all surrogate change metrics
+    for i in 1:n_surrogates
+        s = sgen()
+        indicator_s = windowmap(indicator, s, width_indicator, stride_indicator)
+        change_s = windowmap(ridgereg, indicator_s, width_change, stride_change)
+        change_s_distr[i, :] .= change_s
+    end
+
+    mu = vec(mean(change_s_distr, dims = 1))
+    sigma = vec(std(change_s_distr, dims = 1))
+
+    # Plot (real signal) change metric and various confidence intervals
+    orig_change = j == 1 ? change_l : change_nl
+    lines!(ax, t_change, orig_change; color = Cycled(j))
+    band!(ax, t_change, mu .- 2 .* sigma, mu .+ 2 .* sigma, color = (:red, 0.2) )
+    band!(ax, t_change, mu .- 3 .* sigma, mu .+ 3 .* sigma, color = (:red, 0.1) )
 end
-mu = vec(mean(S_evolution, dims = 1))
-sigma = vec(std(S_evolution, dims = 1))
-band!(ax, t_evolution, mu .- sigma, mu .+ sigma, color = (:red, 0.4) )
-band!(ax, t_evolution, mu .- 2 .* sigma, mu .+ 2 .* sigma, color = (:red, 0.2) )
-band!(ax, t_evolution, mu .- 3 .* sigma, mu .+ 3 .* sigma, color = (:red, 0.1) )
 
 fig
 ```
 
 As expected, the data generated by the nonlinear model displays a significant increase of the AR1-regression coefficient before the transition, while the data generated by the linear model does not.
 
-As here demonstrated, performing the step-by-step analysis of transition indicators is possible and might be wishfull for users wanting high flexibility. However, this results in a substantial amount of code. We therefore provide convenience functions that wrap this analysis, as shown in the next section.
+Performing the step-by-step analysis of transition indicators is possible and might be preferred for users wanting high flexibility. However, this results in a substantial amount of code. We therefore provide convenience functions that wrap this analysis, as shown in the next section.
 
 ## [Example -- Fast-forward] (@id example_fastforward)
 
@@ -161,7 +215,7 @@ The significance analysis against the surrogate time series can subsequently be 
 ```@example MAIN
 # Initialize the indicator analysis
 indicators = [variance, ar1_whitenoise]
-evolution_metrics = rr
+evolution_metrics = ridgereg
 
 # Initialize figure and axes
 X = [x_linear, x_nlinear]
@@ -180,20 +234,20 @@ for j in eachindex(X)
     result = analyze_indicators(t_fluctuations, fluctuations[j],
         indicators, evolution_metrics, p)
     significance = measure_significance(result, confidence_interval)
-    t_indicator = threshold_indicators(result.t_evolution, significance)
+    t_indicator = threshold_indicators(result.t_change, significance)
 
     # Plot results
     lines!(axs[1, j], t, X[j])
     lines!(axs[2, j], t[2:end], fluctuations[j])
     lines!(axs[3, j], result.t_indicator, result.X_indicator[1, :,ind_idx])
-    lines!(axs[4, j], result.t_evolution, result.X_evolution[1, :, ind_idx])
-    lines!(axs[5, j], result.t_evolution, significance[1, :, 1])
-    lines!(axs[5, j], result.t_evolution, significance[1, :, 2])
+    lines!(axs[4, j], result.t_change, result.X_evolution[1, :, ind_idx])
+    lines!(axs[5, j], result.t_change, significance[1, :, 1])
+    lines!(axs[5, j], result.t_change, significance[1, :, 2])
     [vlines!(axs[i, j], t_indicator, linestyle = :dash, color = :red) for i in [1, 5]]
 end
 fig
 ```
-Here we see that a transition is correctly forecasted for the bistable system, whereas none is predicted for the linear system.
+Here we see that a transition is coridgeregectly forecasted for the bistable system, whereas none is predicted for the linear system.
 
 !!! warning "Thresholding significance"
     Although thresholding the output of a significance computation might be hard to avoid in some applications, we recommend to rather look at the significance time series, as they provide richer, non-binary information.
@@ -230,9 +284,9 @@ kendalltau
 spearman
 ```
 
-### Surrogates
+### surrogates
 
-For the surrogate generation, you can use any subtype of `Surrogate` defined in [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/stable/#Surrogate-methods).
+For the surrogate generation, you can use any subtype of `surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/Timeseriessurrogates.jl/stable/#surrogate-methods).
 
 ### Significance metrics
 

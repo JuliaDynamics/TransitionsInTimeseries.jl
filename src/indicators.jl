@@ -1,5 +1,5 @@
-using Statistics: mean, var
-using StatsBase: skewness, kurtosis
+# Indicators already in other packages are re-exported
+using StatsBase: mean, var, skewness, kurtosis
 
 """
     ar1_whitenoise(x) → ̂θ
