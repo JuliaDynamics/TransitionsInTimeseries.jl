@@ -1,27 +1,29 @@
-struct IndicatorsInput{X<:AbstractVector, F<:Function, W}
+"""
+    IndicatorsConfig(indicators...; window_kwargs...)
+
+A configuration for computing indicators from timeseries. Any number of indicators
+(standard Julia functions) can be given. Keywords are propagated into [`WindowViewer`](@ref)
+to create a sliding window for estimating the indicators.
+
+Along with [`SignificanceConfig`](@ref) it is given to [`analyze_indicators`](@ref).
+"""
+struct IndicatorsConfig{F<:Function, W<:NamedTuple}
     indicators::Vector{<:F}
-    window_width::W
-    window_stride::W
+    window_kwargs::W
 end
-
-FF = Union{Function, Vector{<:Function}}
-
-function IndicatorsInput(f::FF; kwargs...) where {X<:AbstractVector}
-    if f isa Function
-        ff = [f]
-    else
-        ff = f
-    end
-    return IndicatorsInput{X, typeof(ff), typeof(kwargs)}(x, ff, kwargs)
-end
-
+IndicatorsConfig(f::Function; kwargs...) = IndicatorsConfig([f], kwargs)
+IndicatorsConfig(f::Vararg{Function}; kwargs...) = IndicatorsConfig(collect(f), kwargs)
+IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, kwargs)
 
 """
+    SignificanceConfig(change_metrics; kwargs...)
 
-    SignificanceHyperParams(kwargs...)
+A configuration for estimating a significant change of indicators computed from timeseries.
+Along with [`IndicatorsConfig`](@ref) it is given to [`analyze_indicators`](@ref).
 
-Initialize a `SignificanceHyperParams` struct that dictates how a significance
-meta-analysis will be done on transition indicators.
+`change_metrics` can be a single Julia function, in which case
+the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
+`change_metrics` can also be a vector of functions, each one for each indicator.
 
 ## Keyword arguments
 - `n_surrogates::Int = 10_000`: how many surrogates to create.
@@ -33,82 +35,52 @@ meta-analysis will be done on transition indicators.
   See the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers) for more.
 - `wv_indicator_width::Int = 100`,
 - `wv_indicator_stride::Int = 5`,
-- `wv_evolution_width::Int = 50`,
-- `wv_evolution_stride::Int = 5`,
+- `width, stride = 20, 1`: width and stride given to the [`WindowViewer`](@ref) of the
+  indicator timeseries. Notice that here the default values are different.
 """
-function SignificanceHyperParams(;
-    n_surrogates::Int = 10_000,
-    surrogate_method::S = RandomFourier(),
-    rng::AbstractRNG = Random.default_rng(),
-    wv_indicator_width::Int = 100,
-    wv_indicator_stride::Int = 5,
-    wv_evolution_width::Int = 50,
-    wv_evolution_stride::Int = 5,
-) where {S<:Surrogate}
-    return SignificanceHyperParams(
-        n_surrogates, surrogate_method, rng,
-        wv_indicator_width, wv_indicator_stride,
-        wv_evolution_width, wv_evolution_stride,
-    )
+Base.@kwdef struct SignificanceConfig{S<:Surrogate, R<:AbstractRNG}
+    n_surrogates::Int = 10_000
+    surrogate_method::S = RandomFourier()
+    rng::R = Random.default_rng()
+    width::Int = 20
+    stride::Int = 1
 end
-
-
-
-function analyze_indicators(x, indicators, significance_params)
-
-
-
-end
-
-
 
 """
     IndicatorsResults
 
-A struct containing the input and output of the main computational part of
-TransitionIndicators.jl. It can be ginen to the [`indicator_significance`](@ref) function.
+A struct containing the output of [`indicators_analysis`](@ref), which is
+the main computational part of TransitionIndicators.jl.
+It can be given to the [`indicators_significance`](@ref) function
+or used for visualizations.
 
 It has the following fields:
 
-## Input
-
-- `t`: the time vector of the input timeseries
 - `x`: the input timeseries
+- `t`: the time vector of the input timeseries
+
 - `indicators::Vector{Function}`: indicators used in the processing
+- `X_indicator`, the indicator timeseries (matrix with each column one indicator)
+- `t_indicator`, the indicator timeseries time vector
 
-
-- `t_indicator`, the time vector of `X_indicator`. dims = `nt_indicator`.
-- `X_indicator`, the indicator time series. dims = 1 x `nt_indicator` x `ni`.
-- `t_evolution`, the time vector of `X_evolution` and `S_evolution`. dims = `nt_evolution`.
-- `X_evolution`, the time series of the evolution metric. dims = 1 x `nt_evolution` x `ni`.
-- `S_evolution`, the time series of the evolution metric computed on the surrogates. dims = `ns` x `nt_evolution` x `ni`.
-
-with:
-- `ni`: number of indicators to compute
-- `nt_indicator`: number of data points in the indicator time series
-- `nt_evolution`: number of data points in the evolution metric time series
-- `ns`: number of surrogates
+- `change_metrics::Vector{Function}`: change metrics used in the processing
+- `X_change`, the change metric timeseries (matrix with each column one change metric)
+- `t_change`, the change metric timeseries time vector
+- `S_change`, the result of computing the change metrics for the surrogates.
+  It is a 3-dimensional array, where first dimension = time, second dimension = change
+  metric, and third dimension = surrogate number. I.e.,
+  `S_change[:, j, k]` will give the `k`-th surrogate timeseries of the `j`-th change metric.
 """
-struct IndicatorEvolutionResults{T<:AbstractFloat}
+struct IndicatorEvolutionResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, F<:Function, Z<:Function}
+    t::TT # original time vector; most often it is `Base.OneTo`.
+    x::XX
+
+    indicators::Vector{F}
     t_indicator::Vector{T}
-    X_indicator::Array{T, 3}
-    t_evolution::Vector{T}
-    X_evolution::Array{T, 3}
-    S_evolution::Array{T, 3}
+    X_indicator::Matrix{T}
+
+    change_metrics::Vector{Z}
+    t_change::Vector{T}
+    X_change::Matrix{T}
+    S_change::Array{T, 3}
 end
-
-struct SignificanceHyperParams{S<:Surrogate, R<:AbstractRNG}
-    n_surrogates::Int
-    surrogate_method::S
-    rng::R
-    wv_indicator_width::Int
-    wv_indicator_stride::Int
-    wv_evolution_width::Int
-    wv_evolution_stride::Int
-end
-
-# TODO: init struct based on dimensions of input time-series
-
-#####################################################
-# Change-point metrics
-#####################################################

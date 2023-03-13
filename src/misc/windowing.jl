@@ -84,6 +84,7 @@ midpoint(x::Vector) = x[length(x)÷2] # faster
 """
     midvalue(x)
 
-Return `0.5(first(x) + last(x))`
+Return `(first(x) + last(x))/2`.
+Typically useful in [`windowmap`](@ref) with a time vector.
 """
-midvalue(x) = 0.5(first(x) + last(x))
+midvalue(x) = (first(x) + last(x))/2

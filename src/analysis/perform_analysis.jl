@@ -13,6 +13,8 @@ function analyze_indicators(
     indicators::Vector{Function},
     evolution_metrics::Vector{Function},
     p::SignificanceHyperParams,
+    # TODO:
+    midpoint_function,
 ) where {T<:AbstractFloat}
 
     n_ind = length(indicators)
