@@ -272,21 +272,22 @@ windowmap
 ### [Indicators] (@id indicator_functions)
 ```@docs
 ar1_whitenoise
-variance
-krt
-skw
+mean
+var
+skewness
+kurtosis
 ```
 
-### Evolution metrics
+### Change metrics
 ```@docs
 RidgeRegression
 kendalltau
 spearman
 ```
 
-### surrogates
+### Surrogates
 
-For the surrogate generation, you can use any subtype of `surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/Timeseriessurrogates.jl/stable/#surrogate-methods).
+For the surrogate generation, you can use any subtype of `Surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/Timeseriessurrogates.jl/stable/#surrogate-methods).
 
 ### Significance metrics
 
