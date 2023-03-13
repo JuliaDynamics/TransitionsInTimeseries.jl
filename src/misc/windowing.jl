@@ -6,20 +6,17 @@ struct WindowViewer{T, V<:AbstractVector{T}, I<:AbstractVector{Int}}
 end
 
 """
+    WindowViewer(x; width, stride)
 
-    WindowViewer(
-        timeseries::V,
-        width::Int,
-        stride::Int,
-    ) where {T<:Real, V<:AbstractVector{<:T}}
-
-Initialize an iterator that generates views over the given timeseries based on a
+Initialize an iterator that generates views over the given timeseries `x` based on a
 window with a given `width`, incrementing the window views with the given
 `stride`. You can use this directly with `map`, such as `map(std, WindowViewer(x, ...))`
 would give you the moving-window-timeseries of the `std` of `x`.
+
+If not given, `width, stride` as taken as `length(x)÷100` and `1`.
 """
 function WindowViewer(
-        timeseries::V, width::Int, stride::Int,
+        timeseries::V; width::Int = length(x)÷100, stride::Int = 1,
     ) where {T<:Real, V<:AbstractVector{<:T}}
     n = length(timeseries)
     strided_indices = get_stride_indices(n, width, stride)
