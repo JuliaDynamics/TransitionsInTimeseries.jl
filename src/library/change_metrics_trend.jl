@@ -64,7 +64,7 @@ end
 
 Compute the kendall-τ correlation coefficient of the time series `x`.
 """
-kendalltau(x) = corkendall(collect(1.0:length(x)), x)
+kendalltau(x) = corkendall(1:length(x), x)
 
 """
 
@@ -72,4 +72,4 @@ kendalltau(x) = corkendall(collect(1.0:length(x)), x)
 
 Compute the spearman correlation coefficient of the time series `x`.
 """
-spearman(x) = corspearman(collect(1.0:length(x)), x)
+spearman(x) = corspearman(1:length(x), x)

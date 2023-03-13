@@ -11,19 +11,18 @@ struct IndicatorsConfig{F<:Function, W<:NamedTuple}
     indicators::Vector{<:F}
     window_kwargs::W
 end
-IndicatorsConfig(f::Function; kwargs...) = IndicatorsConfig([f], kwargs)
 IndicatorsConfig(f::Vararg{Function}; kwargs...) = IndicatorsConfig(collect(f), kwargs)
 IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, kwargs)
 
 """
-    SignificanceConfig(change_metrics; kwargs...)
+    SignificanceConfig(change_metrics...; kwargs...)
 
 A configuration for estimating a significant change of indicators computed from timeseries.
 Along with [`IndicatorsConfig`](@ref) it is given to [`analyze_indicators`](@ref).
 
 `change_metrics` can be a single Julia function, in which case
 the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
-`change_metrics` can also be a vector of functions, each one for each indicator.
+`change_metrics` can also be many functions, each one for each indicator.
 
 ## Keyword arguments
 - `n_surrogates::Int = 10_000`: how many surrogates to create.
@@ -38,13 +37,20 @@ the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
 - `width, stride = 20, 1`: width and stride given to the [`WindowViewer`](@ref) of the
   indicator timeseries. Notice that here the default values are different.
 """
-Base.@kwdef struct SignificanceConfig{S<:Surrogate, R<:AbstractRNG}
+Base.@kwdef struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
+    change_metrics::M = [spearman]
     n_surrogates::Int = 10_000
     surrogate_method::S = RandomFourier()
     rng::R = Random.default_rng()
     width::Int = 20
     stride::Int = 1
 end
+
+SignificanceConfig(change_metrics::Vararg{Function}; kwargs...) =
+SignificanceConfig(collect(change_metrics); kwargs...)
+
+SignificanceConfig(change_metrics::Vector{<:Function}; kwargs...) =
+SignificanceConfig(; kwargs..., change_metrics)
 
 """
     IndicatorsResults
