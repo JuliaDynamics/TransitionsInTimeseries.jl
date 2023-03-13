@@ -4,6 +4,8 @@ using TransitionIndicators, Statistics, StatsBase
 
 pages = [
     "index.md",
+    "tutorial.md",
+    "api.md",
 ]
 
 import Downloads
