@@ -56,6 +56,7 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     return IndicatorsResults(
         t, x,
         indicators.indicators, t_indicator, x_indicator,
-        significance.change_metrics, t_change, x_change, s_change
+        significance.change_metrics, t_change, x_change, s_change,
+        significance.surrogate_method,
     )
 end

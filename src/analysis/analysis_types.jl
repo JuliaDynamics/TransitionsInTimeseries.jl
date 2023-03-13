@@ -82,7 +82,8 @@ It has the following fields:
   metric, and third dimension = surrogate number. I.e.,
   `S_change[:, j, k]` will give the `k`-th surrogate timeseries of the `j`-th change metric.
 """
-struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, F<:Function, Z<:Function}
+struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+        F<:Function, Z<:Function, S<:Surrogate}
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
 
@@ -94,4 +95,21 @@ struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, F<:Functio
     t_change::Vector{T}
     x_change::Matrix{X}
     s_change::Array{X, 3}
+    surrogate_method::S
+end
+
+function Base.show(io::IO, ::MIME"text/plain", res::IndicatorsResults)
+    println(io, "IndicatorsResults")
+    descriptors = [
+        "input timeseries" => summary(res.x),
+        "indicators" => res.indicators,
+        "indicator length" => length(res.t_indicator),
+        "change metrics" => res.change_metrics,
+        "surrogate" =>
+        "surrogate #" => size(res.s_change, 3),
+    ]
+    padlen = maximum(length(d[1]) for d in descriptors) + 3
+    for (desc, val) in descriptors
+        println(io, rpad(" $(desc): ", padlen), val)
+    end
 end
