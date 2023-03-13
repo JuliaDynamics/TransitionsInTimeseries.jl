@@ -1,3 +1,34 @@
+"""
+    indicators_analysis(x, indicators::IndicatorsConfig, significance::SignificanceConfig)
+
+Perform an analysis of transition indicators for input timeseries `x`.
+Return the output as [`IndicatorsResults`](@ref).
+
+This function performs the analysis described in the documentation
+Example sections. It computes various indicators over sliding windows of `x`,
+and then computes change metrics of over sliding windows of the indicators.
+In parallel it does exactly the same computations for surrogates of `x`.
+The returned output contains all these computed timeseries and can be given
+to [`indicators_significance`](@ref).
+"""
+function indicators_analysis(x, indicators::IndicatorsConfig, significance::SignificanceConfig)
+    t = eachindex(x)
+    X = eltype(x)
+    # initialize sizes
+    wvx = WindowViewer(x; indicators.window_kwargs...)
+    n_ind = length(indicators.indicators)
+    len_ind = length(wvx)
+    len_change = length(WindowViewer(1:len_ind; width = significance.width, stride = significance.stride))
+    # initialize array containers
+    x_indicator = zeros(X, len_ind, n_ind)
+    x_change = zeros(X, len_change, n_ind)
+    s_change = zeros(X, len_change, n_ind, significance.n_surrogates)
+    t_indicator = windowmap(midpoint, t; indicators.window_kwargs...)
+    t_change = windowmap(midpoint, t_change; width = significance.width, stride = significance.stride)
+
+    # TODO: Actual computations
+end
+
 
 """
     analyze_indicators(t, x, indicators, evolution_metrics, p) → res::IndicatorEvolutionResults
@@ -13,8 +44,7 @@ function analyze_indicators(
     indicators::Vector{Function},
     evolution_metrics::Vector{Function},
     p::SignificanceHyperParams,
-    # TODO:
-    midpoint_function,
+    # TODO: allow choosing how to create the time vectors besides mid point
 ) where {T<:AbstractFloat}
 
     n_ind = length(indicators)

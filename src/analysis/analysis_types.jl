@@ -5,7 +5,7 @@ A configuration for computing indicators from timeseries. Any number of indicato
 (standard Julia functions) can be given. Keywords are propagated into [`WindowViewer`](@ref)
 to create a sliding window for estimating the indicators.
 
-Along with [`SignificanceConfig`](@ref) it is given to [`analyze_indicators`](@ref).
+Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
 """
 struct IndicatorsConfig{F<:Function, W<:NamedTuple}
     indicators::Vector{<:F}
@@ -18,7 +18,7 @@ IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, kwargs)
     SignificanceConfig(change_metrics...; kwargs...)
 
 A configuration for estimating a significant change of indicators computed from timeseries.
-Along with [`IndicatorsConfig`](@ref) it is given to [`analyze_indicators`](@ref).
+Along with [`IndicatorsConfig`](@ref) it is given to [`indicators_analysis`](@ref).
 
 `change_metrics` can be a single Julia function, in which case
 the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
@@ -66,13 +66,13 @@ It has the following fields:
 - `t`: the time vector of the input timeseries
 
 - `indicators::Vector{Function}`: indicators used in the processing
-- `X_indicator`, the indicator timeseries (matrix with each column one indicator)
+- `x_indicator`, the indicator timeseries (matrix with each column one indicator)
 - `t_indicator`, the indicator timeseries time vector
 
 - `change_metrics::Vector{Function}`: change metrics used in the processing
-- `X_change`, the change metric timeseries (matrix with each column one change metric)
+- `x_change`, the change metric timeseries (matrix with each column one change metric)
 - `t_change`, the change metric timeseries time vector
-- `S_change`, the result of computing the change metrics for the surrogates.
+- `s_change`, the result of computing the change metrics for the surrogates.
   It is a 3-dimensional array, where first dimension = time, second dimension = change
   metric, and third dimension = surrogate number. I.e.,
   `S_change[:, j, k]` will give the `k`-th surrogate timeseries of the `j`-th change metric.
@@ -83,10 +83,10 @@ struct IndicatorEvolutionResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, F<
 
     indicators::Vector{F}
     t_indicator::Vector{T}
-    X_indicator::Matrix{T}
+    x_indicator::Matrix{X}
 
     change_metrics::Vector{Z}
     t_change::Vector{T}
-    X_change::Matrix{T}
-    S_change::Array{T, 3}
+    x_change::Matrix{X}
+    s_change::Array{X, 3}
 end

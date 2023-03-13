@@ -20,21 +20,12 @@ function WindowViewer(
         width::Int = default_window_width(x), stride::Int = default_window_stride(x),
     ) where {T<:Real, V<:AbstractVector{<:T}}
     n = length(x)
-    si = stride_indices(n, width, stride)
+    si = width+1:stride:n
     return WindowViewer{eltype(X),V}(x, width, stride, si)
 end
 
 default_window_width(x) = length(x)÷100
 default_window_stride(x) = 1
-
-"""
-
-    stride_indices(l::Int, width::Int, stride::Int)
-
-Return a vector with strided indices based on windowing parameters.
-"""
-stride_indices(l::Int, width::Int, stride::Int) = width+1:stride:l
-
 
 # Define iterator for WindowViewer.
 function Base.iterate(wv::WindowViewer, state::Int = 1)
@@ -70,15 +61,13 @@ function windowmap(
     return map(f, wv)
 end
 
-
 """
     midpoint(x)
 
-Return `x[midindex]` with `midindex = round(Int, 0.5(firstindex(x) + lastindex(x)))`.
-
+Return `x[midindex]` with `midindex = (firstindex(x) + lastindex(x))÷2`.
 Typically useful in [`windowmap`](@ref) with a time vector.
 """
-midpoint(x) = x[round(Int, 0.5(firstindex(x) + lastindex(x)))]
+midpoint(x) = x[(firstindex(x) + lastindex(x))÷2]
 midpoint(x::Vector) = x[length(x)÷2] # faster
 
 """
