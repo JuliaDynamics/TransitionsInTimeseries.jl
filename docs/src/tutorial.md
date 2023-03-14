@@ -2,30 +2,32 @@
 
 ## [Workflow] (@id workflow)
 
-Computing transition indicators is schematically represented in the plot below and essentially consists of:
+Computing transition indicators consists of the following steps:
 
 1. Doing any pre-processing of raw data first such as detrending (_not part of TransitionIndicators.jl_). This yields the **input timeseries**.
 1. Estimating the timeseries of an indicator by sliding a window over the input timeseries.
 2. Computing the changes of the indicator by sliding a window over its timeseries.
 3. Generating many surrogates that preserve important statistical properties of the original timeseries.
-4. Performing step 2 and 3 for the surrogate timeseries
+4. Performing step 2 and 3 for the surrogate timeseries.
 5. Checking whether the indicator change timeseries of the real timeseries shows a significant feature (trend or jump or anything else) when compared to the surrogate data.
 
-![Schematic representation of what is happening under the hub.](https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/videos/transitionindicators/workflow.svg)
+These steps are illustrated one by one in the tutorial below, and then summarized in the convenient API that TransitionIndicators.jl exports.
+
+<!-- ![Schematic representation of what is happening under the hub.](https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/videos/transitionindicators/workflow.svg) -->
 
 
 ## [Tutorial -- Educational] (@id example_stepbystep)
 
 ### Raw input data
 
-Let us load data from a bistable nonlinear model subject to noise and to a gradual change of the forcing that leads to a transition. Furthermore, we also load data from a linear model, which is by definition monostable and therefore incapable of transitionning. This is done to control the rate of false positives, a common problem that can emerge when looking for tranisiton indicators. The models are governed by:
+Let us load data from a bistable nonlinear model subject to noise and to a gradual change of the forcing that leads to a transition. Furthermore, we also load data from a linear model, which is by definition monostable and therefore incapable of transitioning. This is done to control the rate of false positives, a common problem that can emerge when looking for transition indicators. The models are governed by:
 
 ```math
 \dfrac{\mathrm{d}x_{l}}{\mathrm{d}t} = - x_{l} - 1 + f(t) + n(t) \\
 \dfrac{\mathrm{d}x_{nl}}{\mathrm{d}t} = - x_{nl}^3 + x_{nl} + f(t) + n(t)
 ```
 
-with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable model, $f$ the forcing and $n$ the noise. For $f=0$ they both display an equilibrium point at $x=-1$. However, the bistable model also displays a further equilibrium point at $x=1$. Loading (and visualizing with [`Makie.jl`](https://docs.makie.org/stable/)) such prototypical data to test some indicators can be done by simply running:
+with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable model, $f$ the forcing and $n$ the noise. For $f=0$ they both display an equilibrium point at $x=-1$. However, the bistable model also displays a further equilibrium point at $x=1$. Loading (and visualizing with [Makie](https://docs.makie.org/stable/)) such prototypical data to test some indicators can be done by simply running:
 
 ```@example MAIN
 using TransitionIndicators
@@ -61,7 +63,7 @@ fig
 At this point, `x_l_fluct` and `x_nl_fluct` are considered the **input timeseries**.
 
 !!! info "Detrending in Julia"
-    Detrending can be performed in many ways and therefore remains an external step of `TransitionIndicators.jl`. A wide range of `Julia` packages exists to perform smoothing such as [`Loess.jl`](https://github.com/JuliaStats/Loess.jl) or [`DSP.jl`](https://docs.juliadsp.org/latest/contents/). The detrending step then simply consists of subtracting the smoothed signal from the original one.
+    Detrending can be performed in many ways. A wide range of Julia packages exists to perform smoothing such as [Loess.jl](https://github.com/JuliaStats/Loess.jl) or [DSP.jl](https://docs.juliadsp.org/latest/contents/). There the detrending step consists of subtracting the smoothed signal from the original one.
 
 ### Indicator timeseries
 

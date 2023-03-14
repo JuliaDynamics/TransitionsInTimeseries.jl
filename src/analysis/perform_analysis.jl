@@ -42,20 +42,20 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     sgen = surrogenerator(x, significance.surrogate_method, significance.rng)
     # Actual computations
     @inbounds for i in 1:n_ind
-        i_metric = length()
+        i_metric = one2one ? i : 1
         # indicator timeseries
         z = view(x_indicator, :, i)
         windowmap!(indicators.indicators[i], z, x; indicators.window_kwargs...)
         # change metric timeseries
         c = view(x_change, :, i)
-        windowmap!(significance.change_metrics[i], c, z;
+        windowmap!(significance.change_metrics[i_metric], c, z;
             width = significance.width, stride = significance.stride
         )
         # surrogates
         for k in 1:significance.n_surrogates
             s = sgen()
             windowmap!(indicators.indicators[i], indicator_dummy, s; indicators.window_kwargs...)
-            windowmap!(significance.change_metrics[i], change_dummy, indicator_dummy;
+            windowmap!(significance.change_metrics[i_metric], change_dummy, indicator_dummy;
                 width = significance.width, stride = significance.stride
             )
             s_change[:, i, k] .= change_dummy

@@ -20,6 +20,7 @@ indicators_significance
 SignificanceTest
 Quantile
 Sigma
+significant
 ```
 
 ## [Indicators] (@id indicator_functions)

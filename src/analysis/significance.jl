@@ -7,12 +7,12 @@ Given the output of [`indicators_analysis`](@ref), estimate when the computed
 indicators have a statistically significant change, with "significant" defined by
 `q`, which is a subtype of [`SignificanceTest`](@ref).
 
-The output is returned as a `n×m` matrix with `n` the length of the time
+The output is returned as an `n×m` matrix with `n` the length of the time
 vector of the change metric timeseries, and `m` the number of change metrics
 (which is the same as the number of indicators).
 The values of the matrix are Booleans (`true` for significant).
 
-You can use `prod(out; dim = 2)` for logical `&` product indicators.
+You can use `prod(out; dim = 2)` for logical `&` product across indicators.
 """
 function indicators_significance(res::IndicatorsResults, q::Real)
     out = zeros(Bool, length(res.t_change), size(res.x_change, 2))
@@ -35,9 +35,14 @@ end
     SignificanceTest
 
 Abstract type encompassing ways to test for significance in the function
-[`indicators_significance`](@ref). Using its subtypes, the _real value_
+[`significant`](@ref). Using its subtypes, the _real value_
 derived from input data
 is compared with the _distribution of the surrogate values_.
+
+Subtypes:
+
+- [`Quantile`](@ref)
+- [`Sigma`](@ref)
 """
 abstract type Significance end
 
@@ -47,8 +52,9 @@ abstract type Significance end
 
 Return `true` if the value `v` is significant when compared to distribution of
 surrogate values `s_vals` according to the criterion `q` (see [`SignificanceTest`](@ref)).
-
 If not significant, return `false`.
+
+If given `q::Real`, then [`Quantile`](@ref) is used.
 """
 significant(v, s_vals, q::Real) = significant(v, s_vals, Quantile(q))
 
