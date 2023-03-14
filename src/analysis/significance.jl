@@ -1,13 +1,11 @@
 using Statistics: quantile
 
 """
-    indicators_significance(res::IndicatorsResults, q) → out
+    indicators_significance(res::IndicatorsResults, q::SignificanceTest) → out
 
 Given the output of [`indicators_analysis`](@ref), estimate when the computed
 indicators have a statistically significant change, with "significant" defined by
-`q`, which is a quantile. If the value of the change metric is is greater then
-`q`-th quantile, or less than the `1-q`-th quantile of the surrogate data,
-a significance is claimed.
+`q`, which is a subtype of [`SignificanceTest`](@ref).
 
 The output is returned as a `n×m` matrix with `n` the length of the time
 vector of the change metric timeseries, and `m` the number of change metrics
@@ -22,14 +20,108 @@ function indicators_significance(res::IndicatorsResults, q::Real)
         for j in 1:size(res.x_change, 2) # loop over change metrics
             val = res.x_change[i, j] # value of real change metric
             s_vals = view(res.s_change, i, j, :) # values of all surrogates
-            low, high = quantile(s_vals, (1-q, q))
-            out[i, j] = val < low || val > high
+            out[i, j] = significant(val, s_vals, q)
         end
     end
     return out
 end
 
 
+#####################################################
+# Thresholding methods
+#####################################################
+
+"""
+    SignificanceTest
+
+Abstract type encompassing ways to test for significance in the function
+[`indicators_significance`](@ref). Using its subtypes, the _real value_
+derived from input data
+is compared with the _distribution of the surrogate values_.
+"""
+abstract type Significance end
+
+
+"""
+    significant(v::Real, s_vals::AbstractVector, q::Significance) → true/false
+
+Return `true` if the value `v` is significant when compared to distribution of
+surrogate values `s_vals` according to the criterion `q` (see [`SignificanceTest`](@ref)).
+
+If not significant, return `false`.
+"""
+significant(v, s_vals, q::Real) = significant(v, s_vals, Quantile(q))
+
+"""
+    Quantile(q = 0.99, dir::Symbol = :updown) <: SignificanceTest
+
+Significance is claimed by comparing the real value `v` with the `q`-th quantile of the
+surrogate distribution. Three possibilities are provided depending on `dir`:
+- `dir = :updown`: Significance is claimed if `v` is more than the `q`-th or is
+  less than the `1-q`-th quantile
+- `dir = :up`: if `v` is more than `q`-th
+- `dir = :down`: if `v` is less than `1-q`-th
+"""
+struct Quantile <: Significance
+    q::Float64
+    dir::Symbol
+end
+
+function significant(val, s_vals, quant::Quantile)
+    q = quant.q
+    if quant.dir == :updown
+        low, high = quantile(s_vals, (1-q, q))
+        return val < low || val > high
+    elseif quant.dir == :up
+        high = quantile(s_vals, q)
+        return val > high
+    elseif quant.dir == :down
+        low = quantile(s_vals, 1-q)
+        return val < low
+    else
+        error()
+    end
+end
+
+
+
+
+"""
+    Sigma(n::Int = 3, dir::Symbol = :updown) <: SignificanceTest
+
+Significance is claimed by comparing the real value `v` with the
+mean `μ` and standard deviation `σ` of the surrogate distribution.
+Three possibilities are provided depending on `dir`:
+- `dir = :updown`: significance is claimed if `v` is more than `μ + n*σ` or less than
+  `μ - n*σ`.
+- `dir = :up`: if `v` is more than `μ + n*σ`
+- `dir = :down`: if `v` is less than `μ - n*σ`
+"""
+struct Sigma <: Significance
+    n::Int
+    dir::Symbol
+end
+Sigma(n = 3, dir = :updown) = Sigma(n, dir)
+
+using StatsBase: mean_and_std
+
+function significant(val, s_vals, sigma::Sigma)
+    n = sigma.n
+    μ, σ = mean_and_std(s_vals)
+    low, high = μ + n*σ, μ - n*σ
+    if sigma.dir == :updown
+        return val < low || val > high
+    elseif quant.dir == :up
+        return val > high
+    elseif quant.dir == :down
+        return val < low
+    else
+        error()
+    end
+end
+
+# TODO: everything below is old Jan code
+#=
 #####################################################
 # Thresholding methods
 #####################################################
@@ -173,3 +265,4 @@ function which_percentile(
 end
 
 intround(x::Real) = Int(round(x))
+=#

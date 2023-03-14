@@ -6,12 +6,20 @@
 load_linear_vs_doublewell()
 ```
 
-## High-level interface
+## Indicators analysis
 ```@docs
 IndicatorsConfig
 SignificanceConfig
 indicators_analysis
+```
+
+## Indicators significance
+
+```@docs
 indicators_significance
+SignificanceTest
+Quantile
+Sigma
 ```
 
 ## [Indicators] (@id indicator_functions)
