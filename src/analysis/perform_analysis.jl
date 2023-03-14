@@ -21,6 +21,14 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     X = eltype(x)
     # initialize sizes
     n_ind = length(indicators.indicators)
+    if length(significance.change_metrics[i]) == n_ind
+        one2one = true
+    elseif length(significance.change_metrics[i]) == 1
+        one2one = false
+    else
+        error("The amount of change metrics must either be 1 or be the same " *
+        "as the amount of indicators.")
+    end
     len_ind = length(WindowViewer(x; indicators.window_kwargs...))
     len_change = length(WindowViewer(1:len_ind; width = significance.width, stride = significance.stride))
     # initialize array containers
@@ -34,6 +42,7 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     sgen = surrogenerator(x, significance.surrogate_method, significance.rng)
     # Actual computations
     @inbounds for i in 1:n_ind
+        i_metric = length()
         # indicator timeseries
         z = view(x_indicator, :, i)
         windowmap!(indicators.indicators[i], z, x; indicators.window_kwargs...)
