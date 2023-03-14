@@ -105,7 +105,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::IndicatorsResults)
         "indicators" => res.indicators,
         "indicator length" => length(res.t_indicator),
         "change metrics" => res.change_metrics,
-        "surrogate" =>
+        "surrogate" => res.surrogate_method,
         "surrogate #" => size(res.s_change, 3),
     ]
     padlen = maximum(length(d[1]) for d in descriptors) + 3

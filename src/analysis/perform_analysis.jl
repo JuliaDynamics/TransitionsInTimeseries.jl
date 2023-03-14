@@ -21,9 +21,9 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     X = eltype(x)
     # initialize sizes
     n_ind = length(indicators.indicators)
-    if length(significance.change_metrics[i]) == n_ind
+    if length(significance.change_metrics) == n_ind
         one2one = true
-    elseif length(significance.change_metrics[i]) == 1
+    elseif length(significance.change_metrics) == 1
         one2one = false
     else
         error("The amount of change metrics must either be 1 or be the same " *

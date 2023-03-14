@@ -13,9 +13,6 @@ Computing transition indicators consists of the following steps:
 
 These steps are illustrated one by one in the tutorial below, and then summarized in the convenient API that TransitionIndicators.jl exports.
 
-<!-- ![Schematic representation of what is happening under the hub.](https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/videos/transitionindicators/workflow.svg) -->
-
-
 ## [Tutorial -- Educational] (@id example_stepbystep)
 
 ### Raw input data
@@ -199,7 +196,7 @@ t, x_linear, x_nlinear = load_linear_vs_doublewell()
 x_nl_fluct = diff(x_nlinear)
 tfluct = t[2:end]
 
-fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2))
+fig, ax = lines(tfluct, x_nl_fluct)
 ax.title = "input timeseries"
 fig
 ```
@@ -224,14 +221,14 @@ And lastly, obtain some flags for when there is a significant indicator change
 sig = indicators_significance(result, 0.99)
 
 # Plot the original timeseries
-fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2), label = "input")
+fig, ax = lines(tfluct, x_nl_fluct; label = "input")
 # Scatter the significance of each indicator
 for i in size(sig, 2)
     signif_idxs = findall(sig[:, i])
     isempty(signif_idxs) && continue
     # get timepoints in real time
     tflags = tfluct[result.t_change[signif_idxs]]
-    vlines!(ax, tflags; label = "indicator $(indicators[i])", color = Cycled(2+i))
+    vlines!(ax, tflags; label = "indicator $(indicators[i])", color = Cycled(1+i))
 end
 axislegend()
 fig

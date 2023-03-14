@@ -72,6 +72,7 @@ struct Quantile <: Significance
     q::Float64
     dir::Symbol
 end
+Quantile(q = 0.99, dir = :updown) = Quantile(q, dir)
 
 function significant(val, s_vals, quant::Quantile)
     q = quant.q
@@ -93,7 +94,7 @@ end
 
 
 """
-    Sigma(n::Int = 3, dir::Symbol = :updown) <: SignificanceTest
+    Sigma(n::Real = 3, dir::Symbol = :updown) <: SignificanceTest
 
 Significance is claimed by comparing the real value `v` with the
 mean `μ` and standard deviation `σ` of the surrogate distribution.
@@ -104,7 +105,7 @@ Three possibilities are provided depending on `dir`:
 - `dir = :down`: if `v` is less than `μ - n*σ`
 """
 struct Sigma <: Significance
-    n::Int
+    n::Float64
     dir::Symbol
 end
 Sigma(n = 3, dir = :updown) = Sigma(n, dir)
