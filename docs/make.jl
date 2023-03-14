@@ -1,9 +1,11 @@
 cd(@__DIR__)
 
-using TransitionIndicators
+using TransitionIndicators, Statistics, StatsBase
 
 pages = [
     "index.md",
+    "tutorial.md",
+    "api.md",
 ]
 
 import Downloads
@@ -13,6 +15,6 @@ Downloads.download(
 )
 include("build_docs_with_style.jl")
 
-build_docs_with_style(pages, TransitionIndicators;
+build_docs_with_style(pages, TransitionIndicators, Statistics, StatsBase;
     authors = "Jan Swierczek-Jereczek <jan.jereczek@gmail.com>, George Datseris <datseris.george@gmail.com>"
 )
