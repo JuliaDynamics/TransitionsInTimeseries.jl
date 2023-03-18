@@ -1,70 +1,84 @@
-using TimeseriesSurrogates, TransitionIndicators, Test, Random, Statistics
-
+using TransitionIndicators, Test, Random, Statistics
 
 function generate_results()
-    t = collect(0.0:100_000.0)
+    t = collect(0:10_000)
     θ = rand()
     x = AR1(length(t), rand(), θ, Random.default_rng())
 
-    p = SignificanceHyperParams(
-        n_surrogates = 1_000,
-        wv_indicator_width = 10,
-        wv_evolution_width = 10,
-    )
-    evolution_metric = RidgeRegression(t, p.wv_evolution_width)
-    res = analyze_indicators(t, x, var, evolution_metric, p)
-    return res
-end
+    indicators = [var, ar1_whitenoise]
+    ind_conf = IndicatorsConfig(indicators; width = 100, stride = 1)
 
-function count_percentile(res, sig)
-    significance = vec(measure_significance(res, sig))
-    top5 = sum(significance .> 1.0)
-    bottom5 = sum(significance .< -1.0)
-    return bottom5 + top5
+    change_width = 10
+    change_metric = RidgeRegression(t, change_width)
+    sig_conf = SignificanceConfig(change_metric; width = change_width, n_surrogates = 5_000)
+
+    return indicators_analysis(x, ind_conf, sig_conf)
 end
 
 @testset "measuring significance w.r.t. to n surrogates" begin
     # Generate long time series to check if statistics are well-behaved
     res = generate_results()
 
-    # We look at 95-th percentile (either symmetric or only one-sided).
-    # The significance of our AR1 process vs. AR1 surrogates should therefore be
-    # positive in [4, 6]% of the cases.
-    tol = intround.(length(res.X_evolution[1, :, 1]) .* [0.04, 0.06])
+    # We look at 95-th quantile. The significance of AR1 process vs. AR1 surrogates
+    # should therefore be positive in about 5% of the cases.
+    # Here we set the acceptable range to be [4, 6]%.
+    tol = size(res.x_change, 1) .* [0.04, 0.06]
+    up95quantile = Quantile(0.95, :up)
+    sig = indicators_significance(res, up95quantile)
+    @test tol[1] < sum(sig[:,1]) < tol[2]
+    @test tol[1] < sum(sig[:,2]) < tol[2]
 
-    # Test if confidence_interval() gives significance within tolerance
-    @test count_percentile(res, confidence_interval) in tol[1]:tol[2]
-
-    # Test if symmetric_nqd() gives significance within tolerance
-    symmetric_nqd(x, s) = normalized_percentile(x, s, symmetric = true)
-    @test count_percentile(res, symmetric_nqd) in tol[1]:tol[2]
-
-    # Test if asymmetric_nqd() gives significance within tolerance
-    asymmetric_nqd(x, s) = normalized_percentile(x, s)
-    @test count_percentile(res, asymmetric_nqd) in tol[1]:tol[2]
-
-    # Test if which_percentile() gives significance within tolerance
-    # which_percentile() is not normed and therefore needs special treatment
-    significance = measure_significance(res, which_percentile)
-    significance = vec(significance)
-    top5 = sum(significance .> 0.975)
-    bottom5 = sum(significance .< 0.025)
-    @test (top5 + bottom5) in tol[1]:tol[2]
+    # We look at (upper) 2σ confidence intervall. The significance of AR1 process
+    # vs. AR1 surrogates should therefore be positive in about 2.5% of the cases.
+    # Here we set the acceptable range to be [2, 3]%.
+    tol = size(res.x_change, 1) .* [0.02, 0.03]
+    up95confintervall = Sigma(2, :up)
+    sig = indicators_significance(res, up95confintervall)
+    @test tol[1] < sum(sig[:,1]) < tol[2]
+    @test tol[1] < sum(sig[:,2]) < tol[2]
 end
 
-@testset "computing normalized percentile distance" begin
-    s = 1.0:100.0
-    S = repeat(s, outer = (1, 20))
-    symmetric_percentile_idx = percentile_idx(s, p = 0.95, symmetric = true)
-    asymmetric_percentile_idx = percentile_idx(s, p = 0.95, symmetric = false)
-    @test symmetric_percentile_idx == (3, 98)
-    @test asymmetric_percentile_idx == (1, 95)
+@testset "significant quantile" begin
+    s = 1:100
 
-    nid5 = normalized_percentile(3.0, s, p = 0.95, symmetric = true)
-    nid50 = normalized_percentile(50.5, s, p = 0.95, symmetric = true)
-    nid95 = normalized_percentile(98.0, s, p = 0.95, symmetric = true)
+    updown95quantile = Quantile(0.95, :updown)
+    down95quantile = Quantile(0.95, :down)
+    up95quantile = Quantile(0.95, :up)
 
-    @test isapprox(nid5, -1)
-    @test isapprox(nid50, 0)
-    @test isapprox(nid95, 1)
+    @test significant(5, s, updown95quantile)
+    @test !significant(6, s, updown95quantile)
+    @test !significant(95, s, updown95quantile)
+    @test significant(96, s, updown95quantile)
+
+    @test significant(5, s, down95quantile)
+    @test !significant(6, s, down95quantile)
+    @test !significant(95, s, down95quantile)
+    @test !significant(96, s, down95quantile)
+
+    @test !significant(5, s, up95quantile)
+    @test !significant(6, s, up95quantile)
+    @test !significant(95, s, up95quantile)
+    @test significant(96, s, up95quantile)
+end
+
+@testset "significant confidence intervall" begin
+    s = randn(10_000)
+    updown95confintervall = Sigma(2, :updown)
+    down95confintervall = Sigma(2, :down)
+    up95confintervall = Sigma(2, :up)
+
+    @test significant(-2.1, s, updown95confintervall)
+    @test !significant(-1.9, s, updown95confintervall)
+    @test !significant(1.9, s, updown95confintervall)
+    @test significant(2.1, s, updown95confintervall)
+
+    @test significant(-2.1, s, down95confintervall)
+    @test !significant(-1.9, s, down95confintervall)
+    @test !significant(1.9, s, down95confintervall)
+    @test !significant(2.1, s, down95confintervall)
+
+    @test !significant(-2.1, s, up95confintervall)
+    @test !significant(-1.9, s, up95confintervall)
+    @test !significant(1.9, s, up95confintervall)
+    @test significant(2.1, s, up95confintervall)
 end
