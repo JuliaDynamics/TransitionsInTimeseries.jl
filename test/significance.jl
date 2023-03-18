@@ -3,6 +3,7 @@ using TransitionIndicators, Test, Random, Statistics
 function generate_results()
     t = collect(0:10_000)
     θ = rand()
+    Random.seed!(2023)
     x = AR1(length(t), rand(), θ, Random.default_rng())
 
     indicators = [var, ar1_whitenoise]
@@ -15,6 +16,8 @@ function generate_results()
     return indicators_analysis(x, ind_conf, sig_conf)
 end
 
+# This test might be too heavy + ran correctly on Jan's machine
+# but not remote (subject to randomness)
 @testset "measuring significance w.r.t. to n surrogates" begin
     # Generate long time series to check if statistics are well-behaved
     res = generate_results()
