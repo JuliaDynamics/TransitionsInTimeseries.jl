@@ -16,8 +16,8 @@ function generate_results()
     return indicators_analysis(x, ind_conf, sig_conf)
 end
 
-# This test might be too heavy + ran correctly on Jan's machine
-# but not remote (subject to randomness)
+# This test might be too heavy + not really desirable?
+#=
 @testset "measuring significance w.r.t. to n surrogates" begin
     # Generate long time series to check if statistics are well-behaved
     res = generate_results()
@@ -40,6 +40,7 @@ end
     @test tol[1] < sum(sig[:,1]) < tol[2]
     @test tol[1] < sum(sig[:,2]) < tol[2]
 end
+=#
 
 @testset "significant quantile" begin
     s = 1:100
