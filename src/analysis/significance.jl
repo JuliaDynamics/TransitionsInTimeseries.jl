@@ -1,6 +1,21 @@
 using Statistics: quantile
 
 """
+    SignificanceTest
+
+Abstract type encompassing ways to test for significance in the function
+[`significant`](@ref). Using its subtypes, the _real value_
+derived from input data
+is compared with the _distribution of the surrogate values_.
+
+Subtypes:
+
+- [`Quantile`](@ref)
+- [`Sigma`](@ref)
+"""
+abstract type Significance end
+
+"""
     indicators_significance(res::IndicatorsResults, q::SignificanceTest) → out
 
 Given the output of [`indicators_analysis`](@ref), estimate when the computed
@@ -30,21 +45,6 @@ end
 #####################################################
 # Thresholding methods
 #####################################################
-
-"""
-    SignificanceTest
-
-Abstract type encompassing ways to test for significance in the function
-[`significant`](@ref). Using its subtypes, the _real value_
-derived from input data
-is compared with the _distribution of the surrogate values_.
-
-Subtypes:
-
-- [`Quantile`](@ref)
-- [`Sigma`](@ref)
-"""
-abstract type Significance end
 
 
 """
