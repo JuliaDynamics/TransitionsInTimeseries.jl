@@ -7,6 +7,6 @@ Load prototypical data from a linear and a double-well model to test some indica
 function load_linear_vs_doublewell()
     url = "https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/timeseries/linear_vs_doublewell.csv"
     tmp = Downloads.download(url)
-    data = CSV.File(tmp) |> DataFrame
-    return data.t, data.xlin, data.xnlin
+    data = readdlm(tmp, ',', Float64, skipstart = 1)
+    return view(data, :, 1), view(data, :, 2), view(data, :, 3) # t, xlin, xnlin
 end
