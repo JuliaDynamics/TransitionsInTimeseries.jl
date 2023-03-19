@@ -3,13 +3,13 @@ using TransitionIndicators, Test, Statistics
 @testset "sliding variance over vector" begin
     n = 100
     x = collect(1:n)
-    width = Int(ceil(rand() * (n-1)))     # Draw integer on [1, n/2-1]. Any of those should work.
-    stride = 2
-    ground_truth = var(1:width+1)         # x is a linear function (x = t) -→ variance independent of window.
+    indicator_window = (width = Int(ceil(rand() * (n/2-1))), stride = 2)
+    windowed_time = windowmap(maximum, x; indicator_window...)
+    windowed_variance = windowmap(Statistics.var, x; indicator_window...)
 
-    wv = WindowViewer(x, width, stride)
-    variance_window_viewer = map(Statistics.var, wv)
-
-    # Check if all entries of result are equal to ground truth.
-    @test sum( variance_window_viewer .== ground_truth ) == length(variance_window_viewer)
+    # x is a linear function (x = t) -→ variance independent of window.
+    true_time = x[indicator_window.width+1:indicator_window.stride:end]
+    true_variance = var(1:indicator_window.width+1)
+    @test sum( windowed_variance .≈ true_variance ) == length(windowed_variance)
+    @test windowed_time == true_time
 end

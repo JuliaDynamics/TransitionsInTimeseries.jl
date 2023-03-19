@@ -1,6 +1,21 @@
 using Statistics: quantile
 
 """
+    SignificanceTest
+
+Abstract type encompassing ways to test for significance in the function
+[`significant`](@ref). Using its subtypes, the _real value_
+derived from input data
+is compared with the _distribution of the surrogate values_.
+
+Subtypes:
+
+- [`Quantile`](@ref)
+- [`Sigma`](@ref)
+"""
+abstract type Significance end
+
+"""
     indicators_significance(res::IndicatorsResults, q::SignificanceTest) → out
 
 Given the output of [`indicators_analysis`](@ref), estimate when the computed
@@ -14,7 +29,7 @@ The values of the matrix are Booleans (`true` for significant).
 
 You can use `prod(out; dim = 2)` for logical `&` product across indicators.
 """
-function indicators_significance(res::IndicatorsResults, q::Real)
+function indicators_significance(res::IndicatorsResults, q::Significance)
     out = zeros(Bool, length(res.t_change), size(res.x_change, 2))
     for i in 1:length(res.t_change) # loop over time
         for j in 1:size(res.x_change, 2) # loop over change metrics
@@ -30,21 +45,6 @@ end
 #####################################################
 # Thresholding methods
 #####################################################
-
-"""
-    SignificanceTest
-
-Abstract type encompassing ways to test for significance in the function
-[`significant`](@ref). Using its subtypes, the _real value_
-derived from input data
-is compared with the _distribution of the surrogate values_.
-
-Subtypes:
-
-- [`Quantile`](@ref)
-- [`Sigma`](@ref)
-"""
-abstract type Significance end
 
 
 """
@@ -115,12 +115,12 @@ using StatsBase: mean_and_std
 function significant(val, s_vals, sigma::Sigma)
     n = sigma.n
     μ, σ = mean_and_std(s_vals)
-    low, high = μ + n*σ, μ - n*σ
+    low, high = μ - n*σ, μ + n*σ
     if sigma.dir == :updown
         return val < low || val > high
-    elseif quant.dir == :up
+    elseif sigma.dir == :up
         return val > high
-    elseif quant.dir == :down
+    elseif sigma.dir == :down
         return val < low
     else
         error()

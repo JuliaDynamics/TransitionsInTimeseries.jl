@@ -44,7 +44,7 @@ function (rr::RidgeRegression)(x::AbstractVector{T}) where{T<:Real}
         error("Time vector is not evenly spaced. So far, the API is only designed for evenly spaced time series!")
         # For future something like: M .= precompute_ridge(window_view(t))
     end
-    return M[1, :]' * x     # we are only interested in the slope.
+    return view(M, 1, :)' * x     # we are only interested in the slope.
 end
 
 """

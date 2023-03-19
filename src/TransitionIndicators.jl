@@ -11,8 +11,7 @@ using LinearAlgebra
 using Random
 using StatsBase
 using Downloads
-using CSV
-using DataFrames
+using DelimitedFiles
 
 using Reexport
 @reexport using TimeseriesSurrogates
@@ -34,7 +33,7 @@ export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 # library
 export ar1_whitenoise
 export mean, std, var, skewness, kurtosis
-# TODO: add lfps, restoring rate, permutation entropy
+# TODO: permutation entropy
 export kendalltau, spearman     # from StatsBase
 export RidgeRegression
 
@@ -42,14 +41,11 @@ export RidgeRegression
 export IndicatorsConfig, SignificanceConfig, IndicatorsResults
 export indicators_analysis, indicators_significance
 
+# timeseries
+export isequispaced, equispaced_step
 
-# export threshold_indicators
-# export measure_significance
-# export confidence_interval
-# export normalized_percentile
-# export which_percentile
-# export percentile_idx
-# export intround
+# significance
+export significant, Quantile, Sigma
 
 # load_data.jl
 export load_linear_vs_doublewell
