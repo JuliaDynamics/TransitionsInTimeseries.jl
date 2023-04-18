@@ -8,6 +8,9 @@
 
 A Julia package that can estimate indicators of transitions (from one dynamic regime or stable state to another) in timeseries. Also bundles the indicators with significance testing via surrogate analysis using [TimeseriesSurrogates.jl](https://github.com/JuliaDynamics/TimeseriesSurrogates.jl). Alternative names for this package could have been: Early Warning Signals / Resilience Indicators / Regime-Shift Identifiers / Change-Point Detectors, or however else you want to call them!
 
-To install it, run `import Pkg; Pkg.add("TransitionIndicators")`.
+This package is currently under active development and not yet registered in the Julia general registry. To install it, first go into package-manager mode in the Julia REPL (press `]`) and then run
+```
+add https://github.com/JuliaDynamics/TransitionIndicators.jl
+```
 
 All further information is provided in the documentation, which you can either find [online](https://juliadynamics.github.io/TransitionIndicators.jl/dev/) or build locally by running the `docs/make.jl` file.
