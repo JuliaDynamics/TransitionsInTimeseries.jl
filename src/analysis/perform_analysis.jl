@@ -1,5 +1,5 @@
 """
-    indicators_analysis(x, indicators::IndicatorsConfig, significance::SignificanceConfig)
+    indicators_analysis(x, indicators::IndicatorsConfig, sigconfig::SignificanceConfig)
 
 Perform an analysis of transition indicators for input timeseries `x`
 by specifying which indicators to use and with what sliding window
@@ -15,48 +15,45 @@ In parallel it does exactly the same computations for surrogates of `x`.
 The returned output contains all these computed timeseries and can be given
 to [`indicators_significance`](@ref).
 """
-function indicators_analysis(x, indicators::IndicatorsConfig, significance::SignificanceConfig)
-    # TODO: Allow `x` to be a `Timeseries`, that has its own time vector.
-    t = eachindex(x)
+function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, sigconfig::SignificanceConfig)
     X = eltype(x)
     # initialize sizes
-    n_ind = length(indicators.indicators)
-    if length(significance.change_metrics) == n_ind
+    n_ind = length(indconfig.indicators)
+    if length(sigconfig.change_metrics) == n_ind
         one2one = true
-    elseif length(significance.change_metrics) == 1
+    elseif length(sigconfig.change_metrics) == 1
         one2one = false
     else
         error("The amount of change metrics must either be 1 or be the same " *
         "as the amount of indicators.")
     end
-    len_ind = length(WindowViewer(x; indicators.window_kwargs...))
-    len_change = length(WindowViewer(1:len_ind; width = significance.width, stride = significance.stride))
+    len_ind = length(WindowViewer(x; indconfig.window_kwargs...))
+    len_change = length(WindowViewer(1:len_ind; width = sigconfig.width, stride = sigconfig.stride))
     # initialize array containers
     x_indicator = zeros(X, len_ind, n_ind)
     x_change = zeros(X, len_change, n_ind)
-    s_change = zeros(X, len_change, n_ind, significance.n_surrogates)
-    t_indicator = windowmap(midpoint, t; indicators.window_kwargs...)
-    t_change = windowmap(midpoint, t_indicator; width = significance.width, stride = significance.stride)
+    s_change = zeros(X, len_change, n_ind, sigconfig.n_surrogates)
+    t_indicator = windowmap(midpoint, t; indconfig.window_kwargs...)
+    t_change = windowmap(midpoint, t_indicator; width = sigconfig.width, stride = sigconfig.stride)
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
-    sgen = surrogenerator(x, significance.surrogate_method, significance.rng)
+    sgen = surrogenerator(x, sigconfig.surrogate_method, sigconfig.rng)
     # Actual computations
     @inbounds for i in 1:n_ind
         i_metric = one2one ? i : 1
         # indicator timeseries
         z = view(x_indicator, :, i)
-        windowmap!(indicators.indicators[i], z, x; indicators.window_kwargs...)
+        windowmap!(indconfig.indicators[i], z, x; indconfig.window_kwargs...)
         # change metric timeseries
         c = view(x_change, :, i)
-        windowmap!(significance.change_metrics[i_metric], c, z;
-            width = significance.width, stride = significance.stride
-        )
+        windowmap!(sigconfig.change_metrics[i_metric], c, z;
+            width = sigconfig.width, stride = sigconfig.stride)
         # surrogates
-        for k in 1:significance.n_surrogates
+        for k in 1:sigconfig.n_surrogates
             s = sgen()
-            windowmap!(indicators.indicators[i], indicator_dummy, s; indicators.window_kwargs...)
-            windowmap!(significance.change_metrics[i_metric], change_dummy, indicator_dummy;
-                width = significance.width, stride = significance.stride
+            windowmap!(indconfig.indicators[i], indicator_dummy, s; indconfig.window_kwargs...)
+            windowmap!(sigconfig.change_metrics[i_metric], change_dummy, indicator_dummy;
+                width = sigconfig.width, stride = sigconfig.stride
             )
             s_change[:, i, k] .= change_dummy
         end
@@ -64,8 +61,13 @@ function indicators_analysis(x, indicators::IndicatorsConfig, significance::Sign
     # put everything together in the output type
     return IndicatorsResults(
         t, x,
-        indicators.indicators, t_indicator, x_indicator,
-        significance.change_metrics, t_change, x_change, s_change,
-        significance.surrogate_method,
+        indconfig.indicators, t_indicator, x_indicator,
+        sigconfig.change_metrics, t_change, x_change, s_change,
+        sigconfig.surrogate_method,
     )
+end
+
+function indicators_analysis(x, indconfig::IndicatorsConfig, sigconfig::SignificanceConfig)
+    t = eachindex(x)
+    return indicators_analysis(t, x, indconfig, sigconfig)
 end

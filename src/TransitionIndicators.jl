@@ -45,7 +45,7 @@ export indicators_analysis, indicators_significance
 export isequispaced, equispaced_step
 
 # significance
-export significant, Quantile, Sigma
+export significant, Quantile, ThresholdQuantile, Sigma, ThresholdSigma
 
 # load_data.jl
 export load_linear_vs_doublewell

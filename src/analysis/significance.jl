@@ -11,9 +11,13 @@ is compared with the _distribution of the surrogate values_.
 Subtypes:
 
 - [`Quantile`](@ref)
+- [`ThresholdQuantile`](@ref)
 - [`Sigma`](@ref)
+- [`ThresholdSigma`](@ref)
 """
 abstract type Significance end
+abstract type ThresholdSignificance <: Significance end
+abstract type ContinuousSignificance <: Significance end
 
 """
     indicators_significance(res::IndicatorsResults, q::SignificanceTest) → out
@@ -29,8 +33,19 @@ The values of the matrix are Booleans (`true` for significant).
 
 You can use `prod(out; dim = 2)` for logical `&` product across indicators.
 """
-function indicators_significance(res::IndicatorsResults, q::Significance)
+function indicators_significance(res::IndicatorsResults, q::ThresholdSignificance)
     out = zeros(Bool, length(res.t_change), size(res.x_change, 2))
+    get_significance!(out, res, q)
+    return out
+end
+
+function indicators_significance(res::IndicatorsResults, q::ContinuousSignificance)
+    out = zeros(eltype(res.x_change), length(res.t_change), size(res.x_change, 2))
+    get_significance!(out, res, q)
+    return out
+end
+
+function get_significance!(out, res::IndicatorsResults, q::Significance)
     for i in 1:length(res.t_change) # loop over time
         for j in 1:size(res.x_change, 2) # loop over change metrics
             val = res.x_change[i, j] # value of real change metric
@@ -38,9 +53,8 @@ function indicators_significance(res::IndicatorsResults, q::Significance)
             out[i, j] = significant(val, s_vals, q)
         end
     end
-    return out
+    return nothing
 end
-
 
 #####################################################
 # Thresholding methods
@@ -54,12 +68,12 @@ Return `true` if the value `v` is significant when compared to distribution of
 surrogate values `s_vals` according to the criterion `q` (see [`SignificanceTest`](@ref)).
 If not significant, return `false`.
 
-If given `q::Real`, then [`Quantile`](@ref) is used.
+If given `q::Real`, then [`ThresholdQuantile`](@ref) is used.
 """
-significant(v, s_vals, q::Real) = significant(v, s_vals, Quantile(q))
+significant(v, s_vals, q::Real) = significant(v, s_vals, ThresholdQuantile(q))
 
 """
-    Quantile(q = 0.99, dir::Symbol = :updown) <: SignificanceTest
+    ThresholdQuantile(q = 0.99, dir::Symbol = :updown) <: SignificanceTest
 
 Significance is claimed by comparing the real value `v` with the `q`-th quantile of the
 surrogate distribution. Three possibilities are provided depending on `dir`:
@@ -68,13 +82,13 @@ surrogate distribution. Three possibilities are provided depending on `dir`:
 - `dir = :up`: if `v` is more than `q`-th
 - `dir = :down`: if `v` is less than `1-q`-th
 """
-struct Quantile <: Significance
+struct ThresholdQuantile <: ThresholdSignificance
     q::Float64
     dir::Symbol
 end
-Quantile(q = 0.99, dir = :updown) = Quantile(q, dir)
+ThresholdQuantile(q = 0.99, dir = :updown) = ThresholdQuantile(q, dir)
 
-function significant(val, s_vals, quant::Quantile)
+function significant(val, s_vals, quant::ThresholdQuantile)
     q = quant.q
     if quant.dir == :updown
         low, high = quantile(s_vals, (1-q, q))
@@ -90,7 +104,16 @@ function significant(val, s_vals, quant::Quantile)
     end
 end
 
+"""
+    Quantile() <: SignificanceTest
 
+"""
+struct Quantile <: ContinuousSignificance
+end
+
+function significant(val, s_vals, quant::Quantile)
+    return sum(val .> s_vals) / length(s_vals)
+end
 
 
 """
@@ -104,15 +127,15 @@ Three possibilities are provided depending on `dir`:
 - `dir = :up`: if `v` is more than `μ + n*σ`
 - `dir = :down`: if `v` is less than `μ - n*σ`
 """
-struct Sigma <: Significance
+struct ThresholdSigma <: ThresholdSignificance
     n::Float64
     dir::Symbol
 end
-Sigma(n = 3, dir = :updown) = Sigma(n, dir)
+ThresholdSigma(n = 3, dir = :updown) = ThresholdSigma(n, dir)
 
 using StatsBase: mean_and_std
 
-function significant(val, s_vals, sigma::Sigma)
+function significant(val, s_vals, sigma::ThresholdSigma)
     n = sigma.n
     μ, σ = mean_and_std(s_vals)
     low, high = μ - n*σ, μ + n*σ
@@ -258,18 +281,17 @@ function confidence_interval(
     return (x - mean(s)) / (nstd * std(s))
 end
 
+
 """
 
-    which_percentile(x, s)
+    which_quantile(x, s)
 
 Compute the percentile represented by the input value `x` w.r.t. the vector `s`.
 """
-function which_percentile(
-    x::T,
-    s::AbstractVector{T},
-) where{T<:AbstractFloat}
-    return sum(x .> s) / length(s)
+function which_quantile(x::T, s::AbstractVector{T}) where{T<:Real}
+    return 
 end
+
 
 intround(x::Real) = Int(round(x))
 =#
