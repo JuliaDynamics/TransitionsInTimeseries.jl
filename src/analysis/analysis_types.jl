@@ -1,3 +1,21 @@
+function init_structfuntions(
+    change_metrics::Vector,
+    t::AbstractVector,
+    p::Params,
+)
+    f = Function[]
+    for change_metric in change_metrics
+        if change_metric in subtypes(StructFunction)
+            push!(f, change_metric(t, p))
+        elseif isa(change_metric, Function)
+            push!(f, change_metric)
+        else
+            error("The function $change_metric has an erroneous type.")
+        end
+    end
+    return f
+end
+
 """
     IndicatorsConfig(indicators...; window_kwargs...)
 
@@ -12,12 +30,31 @@ to create a sliding window for estimating the indicators.
 
 Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
 """
-struct IndicatorsConfig{F<:Function, W<:NamedTuple}
+struct IndicatorsConfig{F<:Function}
+    t_indicator::AbstractVector
     indicators::Vector{F}
-    window_kwargs::W
+    indicators_params::IndicatorsParams
+    width::Int
+    stride::Int
 end
-IndicatorsConfig(f::Vararg{Function}; kwargs...) = IndicatorsConfig(collect(f), NamedTuple(kwargs))
-IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, NamedTuple(kwargs))
+
+function IndicatorsConfig(
+    t::AbstractVector,
+    indicators::Vector;
+    iparams = IndicatorsParams(),
+    width = default_window_width(t),
+    stride = default_window_stride(t),
+)
+    indicators = init_structfuntions(indicators, t[1:width], iparams)
+    return IndicatorsConfig(t[width:stride:end], indicators, iparams, width, stride)
+end
+
+function IndicatorsConfig(
+    t::AbstractVector,
+    f::Vararg{Function};
+    kwargs...)
+    return IndicatorsConfig(t, collect(f), kwargs...)
+end
 
 """
     SignificanceConfig(change_metrics...; kwargs...)
@@ -42,20 +79,53 @@ the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
 - `width, stride = 20, 1`: width and stride given to the [`WindowViewer`](@ref) of the
   indicator timeseries. Notice that here the default values are different.
 """
-Base.@kwdef struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
-    change_metrics::M = [spearman]
-    n_surrogates::Int = 10_000
-    surrogate_method::S = RandomFourier()
-    rng::R = Random.default_rng()
-    width::Int = 20
-    stride::Int = 1
+struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
+    t_change::AbstractVector
+    change_metrics::M
+    change_metrics_params::ChangeMetricsParams
+    n_surrogates::Int
+    surrogate_method::S
+    rng::R
+    width::Int
+    stride::Int
 end
 
-SignificanceConfig(change_metrics::Vararg{Function}; kwargs...) =
-SignificanceConfig(collect(change_metrics); kwargs...)
+function SignificanceConfig(
+    indconfig::IndicatorsConfig,
+    change_metrics::Vector;
+    change_metrics_params::ChangeMetricsParams = ChangeMetricsParams(),
+    n_surrogates::Int = default_n_surrogates(),
+    surrogate_method::S = default_surrogate_method(),
+    rng::R = Random.default_rng(),
+    width::Int = default_window_width(indconfig.t_indicator),
+    stride::Int = default_window_stride(indconfig.t_indicator),
+) where {S<:Surrogate, R<:AbstractRNG}
 
-SignificanceConfig(change_metrics::Vector{<:Function}; kwargs...) =
-SignificanceConfig(; kwargs..., change_metrics)
+    change_metrics = init_structfuntions(
+        change_metrics,
+        indconfig.t_indicator[1:width],
+        change_metrics_params)
+    return SignificanceConfig(
+        indconfig.t_indicator[width:stride:end],
+        change_metrics,
+        change_metrics_params,
+        n_surrogates,
+        surrogate_method,
+        rng,
+        width,
+        stride,
+    )
+end
+
+function SignificanceConfig(
+    indconfig::IndicatorsConfig,
+    change_metrics::Vararg{Function};
+    kwargs...)
+    return SignificanceConfig(indconfig, collect(change_metrics); kwargs...)
+end
+
+default_n_surrogates() = 10_000
+default_surrogate_method() = RandomFourier()
 
 """
     IndicatorsResults
