@@ -12,6 +12,8 @@ using Random
 using StatsBase
 using Downloads
 using DelimitedFiles
+using InteractiveUtils
+using FFTW
 
 using Reexport
 @reexport using TimeseriesSurrogates
@@ -31,7 +33,8 @@ include("analysis/significance.jl")
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 
 # library
-export ar1_whitenoise
+export IndicatorsParams, ChangeMetricsParams
+export ar1_whitenoise, LowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis
 # TODO: permutation entropy
 export kendalltau, spearman     # from StatsBase
