@@ -6,6 +6,7 @@ abstract type Params end
 abstract type StructFunction <: Function end
 Base.@kwdef struct IndicatorsParams <: Params
     q_lofreq::Real = 0.1
+    m::Int = 3
 end
 
 """
@@ -40,4 +41,19 @@ end
 function (lfps::LowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
     return sum(view(ps, 1:lfps.i_lofreq)) / sum(ps)
+end
+
+"""
+"""
+struct PermutationEntropy <: StructFunction
+    probest::SymbolicPermutation
+end
+
+function PermutationEntropy(x::AbstractVector, iparams::IndicatorsParams)
+    probest = SymbolicPermutation(m = iparams.m)
+    return PermutationEntropy(probest)
+end
+
+function (perment::PermutationEntropy)(x::AbstractVector)
+    return entropy_normalized(perment.probest, x)
 end

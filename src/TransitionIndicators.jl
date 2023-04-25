@@ -14,6 +14,7 @@ using Downloads
 using DelimitedFiles
 using InteractiveUtils
 using FFTW
+using ComplexityMeasures
 
 using Reexport
 @reexport using TimeseriesSurrogates
@@ -35,9 +36,9 @@ export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 # library
 export IndicatorsParams, ChangeMetricsParams
 export ar1_whitenoise, LowfreqPowerSpectrum
-export mean, std, var, skewness, kurtosis
-# TODO: permutation entropy
-export kendalltau, spearman     # from StatsBase
+export mean, std, var, skewness, kurtosis       # from StatsBase
+export PermutationEntropy
+export kendalltau, spearman                     # from StatsBase
 export RidgeRegression
 
 # analysis
