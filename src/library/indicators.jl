@@ -39,5 +39,5 @@ end
 
 function (lfps::LowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
-    return sum(view(ps, 1:lfps.i_lofreq))
+    return sum(view(ps, 1:lfps.i_lofreq)) / sum(ps)
 end
