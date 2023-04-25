@@ -15,6 +15,11 @@ In parallel it does exactly the same computations for surrogates of `x`.
 The returned output contains all these computed timeseries and can be given
 to [`indicators_significance`](@ref).
 """
+function indicators_analysis(x, indconfig::IndicatorsConfig, sigconfig::SignificanceConfig)
+    t = eachindex(x)
+    return indicators_analysis(t, x, indconfig, sigconfig)
+end
+
 function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, sigconfig::SignificanceConfig)
     X = eltype(x)
     # initialize sizes
@@ -27,14 +32,14 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
         error("The amount of change metrics must either be 1 or be the same " *
         "as the amount of indicators.")
     end
-    len_ind = length(WindowViewer(x; indconfig.window_kwargs...))
-    len_change = length(WindowViewer(1:len_ind; width = sigconfig.width, stride = sigconfig.stride))
+    t_indicator = indconfig.t_indicator
+    t_change = sigconfig.t_change
+    len_ind = length(t_indicator)
+    len_change = length(t_change)
     # initialize array containers
     x_indicator = zeros(X, len_ind, n_ind)
     x_change = zeros(X, len_change, n_ind)
     s_change = zeros(X, len_change, n_ind, sigconfig.n_surrogates)
-    t_indicator = windowmap(midpoint, t; indconfig.window_kwargs...)
-    t_change = windowmap(midpoint, t_indicator; width = sigconfig.width, stride = sigconfig.stride)
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
     sgen = surrogenerator(x, sigconfig.surrogate_method, sigconfig.rng)
@@ -43,7 +48,8 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
         i_metric = one2one ? i : 1
         # indicator timeseries
         z = view(x_indicator, :, i)
-        windowmap!(indconfig.indicators[i], z, x; indconfig.window_kwargs...)
+        windowmap!(indconfig.indicators[i], z, x;
+            width = indconfig.width, stride = indconfig.stride)
         # change metric timeseries
         c = view(x_change, :, i)
         windowmap!(sigconfig.change_metrics[i_metric], c, z;
@@ -51,7 +57,8 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
         # surrogates
         for k in 1:sigconfig.n_surrogates
             s = sgen()
-            windowmap!(indconfig.indicators[i], indicator_dummy, s; indconfig.window_kwargs...)
+            windowmap!(indconfig.indicators[i], indicator_dummy, s;
+                width = indconfig.width, stride = indconfig.stride)
             windowmap!(sigconfig.change_metrics[i_metric], change_dummy, indicator_dummy;
                 width = sigconfig.width, stride = sigconfig.stride
             )
@@ -65,9 +72,4 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
         sigconfig.change_metrics, t_change, x_change, s_change,
         sigconfig.surrogate_method,
     )
-end
-
-function indicators_analysis(x, indconfig::IndicatorsConfig, sigconfig::SignificanceConfig)
-    t = eachindex(x)
-    return indicators_analysis(t, x, indconfig, sigconfig)
 end
