@@ -20,7 +20,7 @@ function WindowViewer(
         width::Int = default_window_width(x), stride::Int = default_window_stride(x),
     )
     n = length(x)
-    si = width+1:stride:n
+    si = width:stride:n
     return WindowViewer{eltype(x),typeof(x)}(x, width, stride, si)
 end
 
@@ -48,7 +48,7 @@ function Base.iterate(wv::WindowViewer, state::Int = 1)
     else # return a view of time series.
         # TODO: Generalize for
         k = wv.strided_indices[state]
-        i1, i2 = (k-wv.width, k)
+        i1, i2 = (k-wv.width+1, k)
         return (view(wv.timeseries, i1:i2), state + 1)
     end
 end
@@ -80,6 +80,7 @@ Same as [`windowmap`](@ref), but writes the output in-place in `out`.
 function windowmap!(f::Function, out::AbstractVector, x::AbstractVector; kwargs...)
     wv = WindowViewer(x; kwargs...)
     if length(out) != length(wv)
+        println(length(out), "  ", length(wv))
         error("Allocated output doesn't match size of window viewer.")
     end
     @inbounds for (i, v) in enumerate(wv)
