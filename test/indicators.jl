@@ -21,6 +21,8 @@ end
     @test indconfig.indicators[1](y_hifreq[1:indconfig.width]) < 0.05
 end
 
+# TODO: improve this test. For now, simply based on what is observed in:
+# https://github.com/JuliaDynamics/NonlinearDynamicsComplexSystemsCourse/blob/main/notebooks/nonlinear_causal_timeseries_analysis.ipynb
 @testset "perment" begin
     file = Downloads.download("https://raw.githubusercontent.com/JuliaDynamics/" * 
         "NonlinearDynamicsTextbook/master/exercise_data/7.csv")
@@ -28,7 +30,7 @@ end
     t = collect(eachindex(x))
 
     indconfig = IndicatorsConfig(t, [PermutationEntropy], width = 50)
-    sigconfig = SignificanceConfig(indconfig, [RidgeRegression], width = 50, stride = 1, n_surrogates = 2)
+    sigconfig = SignificanceConfig(indconfig, [RidgeRegressionSlope], width = 50, stride = 1, n_surrogates = 2)
     res = indicators_analysis(t, x, indconfig, sigconfig)
     @test mean(res.x_indicator[7000:7500]) < mean(res.x_indicator[5500:6000])
 end
