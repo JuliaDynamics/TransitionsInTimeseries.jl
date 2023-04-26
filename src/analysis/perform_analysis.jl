@@ -1,19 +1,19 @@
 """
-    indicators_analysis(x, indicators::IndicatorsConfig, sigconfig::SignificanceConfig)
+    indicators_analysis(t, x, indicators::IndicatorsConfig, sigconfig::SignificanceConfig)
 
-Perform an analysis of transition indicators for input timeseries `x`
-by specifying which indicators to use and with what sliding window
-([`IndicatorsConfig`](@ref)), as well as how to measure significant changes in the
-indicators ([`SignificanceConfig`](@redf)).
+Perform an analysis of transition indicators for input timeseries `x` with time vector `t`
+by specifying which indicators to use and with what sliding window ([`IndicatorsConfig`](@ref)),
+as well as how to measure significant changes in the indicators ([`SignificanceConfig`](@ref)).
+If `t` is not provided, it is assumed that `t=eachindex(x).`
 
 Return the output as [`IndicatorsResults`](@ref).
 
 This function performs the analysis described in the documentation
 Example sections. It computes various indicators over sliding windows of `x`,
 and then computes change metrics of over sliding windows of the indicators.
-In parallel it does exactly the same computations for surrogates of `x`.
-The returned output contains all these computed timeseries and can be given
-to [`indicators_significance`](@ref).
+It does exactly the same computations for surrogates of `x` and use this
+result to check for significance of the change metrics by computing the p-value.
+The returned output contains all these computed timeseries.
 """
 function indicators_analysis(x, indconfig::IndicatorsConfig, sigconfig::SignificanceConfig)
     t = eachindex(x)
@@ -39,7 +39,7 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
     # initialize array containers
     x_indicator = zeros(X, len_ind, n_ind)
     x_change = zeros(X, len_change, n_ind)
-    s_change = zeros(X, len_change, n_ind, sigconfig.n_surrogates)
+    pval = zeros(X, len_change, n_ind)
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
     sgen = surrogenerator(x, sigconfig.surrogate_method, sigconfig.rng)
@@ -62,14 +62,27 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
             windowmap!(sigconfig.change_metrics[i_metric], change_dummy, indicator_dummy;
                 width = sigconfig.width, stride = sigconfig.stride
             )
-            s_change[:, i, k] .= change_dummy
+            # This should be replaced by a simple call of pvalue() in future.
+            # However, the use of pvalue() is less trivial for an incremental
+            # computation over the surrogates.
+            if sigconfig.tail == :right
+                pval[:, i] += c .> change_dummy
+            elseif sigconfig.tail == :left
+                pval[:, i] += c .< change_dummy
+            else
+                pval[:, i] += 2min.(c .> change_dummy, c .< change_dummy)
+            end
         end
     end
+    # pvalue = 1 - count / n_surrogates.
+    pval ./= sigconfig.n_surrogates
+    map!(x -> 1-x, pval, pval)
+
     # put everything together in the output type
     return IndicatorsResults(
         t, x,
         indconfig.indicators, t_indicator, x_indicator,
-        sigconfig.change_metrics, t_change, x_change, s_change,
+        sigconfig.change_metrics, t_change, x_change, pval,
         sigconfig.surrogate_method,
     )
 end
