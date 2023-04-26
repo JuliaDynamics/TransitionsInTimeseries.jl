@@ -13,45 +13,29 @@ SignificanceConfig
 indicators_analysis
 ```
 
-## Indicators significance
-
-```@docs
-indicators_significance
-SignificanceTest
-Quantile
-Sigma
-significant
-```
-
 ## [Indicators] (@id indicator_functions)
 ```@docs
-ar1_whitenoise
+IndicatorsParams
 Statistics.mean(::Any)
 Statistics.var(::AbstractArray)
 StatsBase.skewness
 StatsBase.kurtosis
+ar1_whitenoise
+LowfreqPowerSpectrum
+PermutationEntropy
 ```
 
 ## Change metrics
 ```@docs
+ChangeMetricsParams
+StatsBase.kendalltau
+StatsBase.spearman
 RidgeRegressionSlope
-kendalltau
-spearman
 ```
 
 ## Surrogates
 
 For the surrogate generation, you can use any subtype of `Surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/Timeseriessurrogates.jl/stable/#surrogate-methods).
-
-
-## Significance metrics
-
-```@docs
-threshold_indicators
-measure_significance
-confidence_interval
-normalized_percentile
-```
 
 ## Sliding windows
 ```@docs
