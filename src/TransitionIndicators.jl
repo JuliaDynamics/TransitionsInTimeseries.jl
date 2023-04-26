@@ -28,7 +28,6 @@ include("library/change_metrics_trend.jl")
 
 include("analysis/analysis_types.jl")
 include("analysis/perform_analysis.jl")
-include("analysis/significance.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
@@ -37,9 +36,10 @@ export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 export IndicatorsParams, ChangeMetricsParams
 export ar1_whitenoise, LowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis       # from StatsBase
+export SymbolicPermutation, entropy_normalized  # from ComplexityMeasures
 export PermutationEntropy
 export kendalltau, spearman                     # from StatsBase
-export RidgeRegression
+export RidgeRegressionSlope
 
 # analysis
 export IndicatorsConfig, SignificanceConfig, IndicatorsResults
@@ -47,9 +47,6 @@ export indicators_analysis, indicators_significance
 
 # timeseries
 export isequispaced, equispaced_step
-
-# significance
-export significant, Quantile, ThresholdQuantile, Sigma, ThresholdSigma
 
 # load_data.jl
 export load_linear_vs_doublewell
