@@ -34,7 +34,7 @@ StatsBase.kurtosis
 
 ## Change metrics
 ```@docs
-RidgeRegression
+RidgeRegressionSlope
 kendalltau
 spearman
 ```

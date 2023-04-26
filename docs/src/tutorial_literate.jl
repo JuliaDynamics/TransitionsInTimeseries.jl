@@ -29,7 +29,7 @@ fig
 
 #
 change_window = (width = 20, stride = 1)
-ridgereg = RidgeRegression(t_indicator, change_window.width)
+ridgereg = RidgeRegressionSlope(t_indicator, change_window.width)
 
 t_change = windowmap(midpoint, t_indicator; change_window...)
 change_l = windowmap(ridgereg, indicator_l; change_window...)

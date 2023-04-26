@@ -1,5 +1,16 @@
+"""
+    ChangeMetricsParams <: Params
+
+A `struct` containing the parameters inherent to the functions estimating the change
+metrics. `ChangeMetricsParams` comes with default choices and can simply be initialized
+by `IndicatorsParams()`. Parameters can be user-defined through the keyword arguments.
+
+## Keyword arguments
+- `lambda_ridge::Real`: between `0` and `Inf`, the regularization parameter of the
+ridge regression.
+"""
 Base.@kwdef struct ChangeMetricsParams <: Params
-    lambda::Real = 0.0
+    lambda_ridge::Real = 0.0
 end
 
 #####################################################
@@ -23,45 +34,36 @@ Compute the spearman correlation coefficient of the time series `x`.
 spearman(x) = corspearman(1:length(x), x)
 
 """
+    RidgeRegressionSlope(x::AbstractVector)
 
-    RidgeRegression(t, width; lambda = 0.0) → rr
+Returns the slope of the [ridge regression](https://en.wikipedia.org/wiki/Ridge_regression) of `x`.
 
-Initialize a ridge regression for a time vector `t`, a sliding-window `width` and
-an optional regularizeation term `lambda`. The output `rr` can then be used as a
-function to perform the regression and extract the slope!
-If `lambda = 0`, linear regression is recovered (default case).
-For more information, visit: https://en.wikipedia.org/wiki/Ridge_regression.
-
-# Examples
-```jldoctest
-julia> t = 0.0:1.0:100;
-julia> x = 2.3 .* t .+ 1.2;
-julia> rr = RidgeRegression(t);
-julia> rr(x)
-2.299999999999999
-```
+The computation is based on `lambda_ridge::Real`, a regularizing constant.
+This parameter is passed within a parameter set [`ChangeMetricsParams`](@ref) at
+initialization time. It is handled automatically within [`SignificanceConfig`](@ref).
 """
-struct RidgeRegression{T} <: StructFunction
+struct RidgeRegressionSlope{T} <: StructFunction
     equispaced::Bool
     regression_matrix::Matrix{T}
 end
 
-function RidgeRegression(t::AbstractVector, cmp::ChangeMetricsParams)
-    regression_matrix = precompute_ridge(t, cmp.lambda)
-    return RidgeRegression(isequispaced(t), regression_matrix)
+function RidgeRegressionSlope(t::AbstractVector, cmp::ChangeMetricsParams)
+    regression_matrix = precompute_ridge(t, cmp.lambda_ridge)
+    return RidgeRegressionSlope(isequispaced(t), regression_matrix)
 end
-RidgeRegression(t) = RidgeRegression(isequispaced(t), precompute_ridge(t))
+RidgeRegressionSlope(t) = RidgeRegressionSlope(isequispaced(t), precompute_ridge(t))
 
-function (rr::RidgeRegression)(x::AbstractVector{T}) where{T<:Real}
+function (rr::RidgeRegressionSlope)(x::AbstractVector{T}) where{T<:Real}
     M = rr.regression_matrix
     if !(rr.equispaced)
-        error("Time vector is not evenly spaced. So far, the API is only designed for evenly spaced time series!")
+        error("Time vector is not evenly spaced." * 
+            "So far, the API is only designed for evenly spaced time series!")
         # For future something like: M .= precompute_ridge(window_view(t))
     end
     return view(M, 1, :)' * x     # we are only interested in the slope.
 end
 
-function precompute_ridge(t::AbstractVector{T}, lambda::Real) where {T<:Real}
+function precompute_ridge(t::AbstractVector{T}, lambda_ridge::Real) where {T<:Real}
     TT = hcat(t, ones(T, length(t)))'
-    return inv(TT * TT' + lambda .* LinearAlgebra.I(2) ) * TT
+    return inv(TT * TT' + lambda_ridge .* LinearAlgebra.I(2) ) * TT
 end
