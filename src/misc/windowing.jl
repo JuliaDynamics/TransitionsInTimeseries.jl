@@ -24,23 +24,6 @@ function WindowViewer(
     return WindowViewer{eltype(x),typeof(x)}(x, width, stride, si)
 end
 
-function default_window_width(x)
-    w = max(length(x)÷100, 10)
-    if w < 20
-        @warn "The window width chosen by default is w = $w and might be too small!"
-    else
-        @info "The window width chosen by default is w = $w."
-    end
-    return w
-end
-
-function default_window_stride(x)
-    s = 1
-    @info "The window stride chosen by default is s = $s."
-    return s
-end
-
-
 # Define iterator for WindowViewer.
 function Base.iterate(wv::WindowViewer, state::Int = 1)
     if state > length(wv.strided_indices) # Stop condition: end of vector containing strided indices.

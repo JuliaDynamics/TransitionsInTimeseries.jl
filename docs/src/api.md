@@ -6,16 +6,23 @@
 load_linear_vs_doublewell()
 ```
 
+## Params
+```@docs
+IndicatorsParams
+ChangeMetricsParams
+init_metrics
+```
+
 ## Indicators analysis
 ```@docs
 IndicatorsConfig
 SignificanceConfig
 indicators_analysis
+IndicatorsResults
 ```
 
 ## [Indicators] (@id indicator_functions)
 ```@docs
-IndicatorsParams
 Statistics.mean(::Any)
 Statistics.var(::AbstractArray)
 StatsBase.skewness
@@ -23,13 +30,14 @@ StatsBase.kurtosis
 ar1_whitenoise
 LowfreqPowerSpectrum
 PermutationEntropy
+SymbolicPermutation
+entropy_normalized
 ```
 
 ## Change metrics
 ```@docs
-ChangeMetricsParams
-StatsBase.kendalltau
-StatsBase.spearman
+kendalltau
+spearman
 RidgeRegressionSlope
 ```
 

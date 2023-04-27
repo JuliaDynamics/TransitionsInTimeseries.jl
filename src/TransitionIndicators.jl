@@ -29,6 +29,9 @@ include("library/change_metrics_trend.jl")
 include("analysis/analysis_types.jl")
 include("analysis/perform_analysis.jl")
 
+# params.jl
+export IndicatorsParams, ChangeMetricsParams, init_metrics
+
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 
@@ -38,7 +41,7 @@ export ar1_whitenoise, LowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis       # from StatsBase
 export SymbolicPermutation, entropy_normalized  # from ComplexityMeasures
 export PermutationEntropy
-export kendalltau, spearman                     # from StatsBase
+export kendalltau, spearman
 export RidgeRegressionSlope
 
 # analysis

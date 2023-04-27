@@ -2,26 +2,6 @@
 using Statistics: mean, var
 using StatsBase: skewness, kurtosis
 
-abstract type Params end
-abstract type StructFunction <: Function end
-
-"""
-    IndicatorsParams <: Params
-
-A `struct` containing the parameters inherent to the functions estimating the indicators.
-`IndicatorsParams` comes with default choices and can simply be initialized by
-`IndicatorsParams()`. The parameters can be user-defined through the keyword arguments.
-
-## Keyword arguments
-- `q_lofreq::Real`: between `0` and `1`, defines the fraction of low frequencies
-in the power density spectrum.
-- `m_perm::Int`: defines the order of symbolic permutations for the permutation entropy.
-"""
-Base.@kwdef struct IndicatorsParams <: Params
-    q_lofreq::Real = 0.1
-    m_perm::Int = 3
-end
-
 """
     ar1_whitenoise(x) → ̂θ
 

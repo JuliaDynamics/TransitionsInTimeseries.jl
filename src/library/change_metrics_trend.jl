@@ -1,24 +1,8 @@
-"""
-    ChangeMetricsParams <: Params
-
-A `struct` containing the parameters inherent to the functions estimating the change
-metrics. `ChangeMetricsParams` comes with default choices and can simply be initialized
-by `IndicatorsParams()`. Parameters can be user-defined through the keyword arguments.
-
-## Keyword arguments
-- `lambda_ridge::Real`: between `0` and `Inf`, the regularization parameter of the
-ridge regression.
-"""
-Base.@kwdef struct ChangeMetricsParams <: Params
-    lambda_ridge::Real = 0.0
-end
-
 #####################################################
 # Trend metrics
 #####################################################
 
 """
-
     kendalltau(x)
 
 Compute the kendall-τ correlation coefficient of the time series `x`.
@@ -26,7 +10,6 @@ Compute the kendall-τ correlation coefficient of the time series `x`.
 kendalltau(x) = corkendall(1:length(x), x)
 
 """
-
     spearman(x)
 
 Compute the spearman correlation coefficient of the time series `x`.
@@ -67,3 +50,7 @@ function precompute_ridge(t::AbstractVector{T}, lambda_ridge::Real) where {T<:Re
     TT = hcat(t, ones(T, length(t)))'
     return inv(TT * TT' + lambda_ridge .* LinearAlgebra.I(2) ) * TT
 end
+
+#####################################################
+# Change-point metrics
+#####################################################
