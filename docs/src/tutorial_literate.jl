@@ -34,7 +34,7 @@ change_window = (width = 30, stride = 1)
 cmp = ChangeMetricsParams(lambda_ridge = 0.0)
 ridgereg = RidgeRegressionSlope(t_indicator[1:change_window.width], cmp)
 
-t_change = windowmap(maximum, t_indicator; change_window...)
+t_change = windowmap(last, t_indicator; change_window...)
 change_l = windowmap(ridgereg, indicator_l; change_window...)
 change_nl = windowmap(ridgereg, indicator_nl; change_window...)
 

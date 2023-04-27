@@ -4,7 +4,7 @@ using TransitionIndicators, Test, Statistics
     n = 1_000
     x = collect(1:n)
     w, s = 23, 2
-    windowed_time = windowmap(maximum, x; width = w, stride = s)
+    windowed_time = windowmap(last, x; width = w, stride = s)
     windowed_variance = windowmap(Statistics.var, x; width = w, stride = s)
 
     # x is a linear function (x = t) -→ variance independent of window.
