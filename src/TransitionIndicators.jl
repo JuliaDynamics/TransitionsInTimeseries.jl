@@ -40,8 +40,8 @@ export WindowViewer, windowmap, windowmap!, slidebracket, midpoint, midvalue
 export IndicatorsParams, ChangeMetricsParams
 export ar1_whitenoise, LowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis       # from StatsBase
-export SymbolicPermutation, entropy_normalized  # from ComplexityMeasures
 export PermutationEntropy
+export SymbolicPermutation, entropy_normalized  # from ComplexityMeasures
 export kendalltau, spearman
 export RidgeRegressionSlope
 

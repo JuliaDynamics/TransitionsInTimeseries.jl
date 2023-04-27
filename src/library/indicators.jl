@@ -50,7 +50,7 @@ end
     PermutationEntropy(x::AbstractVector)
 
 Returns the permutation entropy of `x`. This computation breaks down in computing
-the [`entropy_normalized`](@ref) of a [`SymbolicPermutation`](@ref).
+the [`entropy_normalized`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/entropies/#ComplexityMeasures.entropy_normalized) of a [`SymbolicPermutation`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/probabilities/#ComplexityMeasures.SymbolicPermutation).
 
 The latter is based on `m_perm::Int`, the order of the permutation.
 This parameter is passed within a parameter set [`IndicatorsParams`](@ref) at

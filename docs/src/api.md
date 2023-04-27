@@ -30,8 +30,6 @@ StatsBase.kurtosis
 ar1_whitenoise
 LowfreqPowerSpectrum
 PermutationEntropy
-SymbolicPermutation
-entropy_normalized
 ```
 
 ## Change metrics
