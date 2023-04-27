@@ -69,7 +69,8 @@ We can then compute the values of some "indicator" (a Julia function that inputs
 indicator = ar1_whitenoise
 indicator_window = (width = 400, stride = 1)
 
-t_indicator = windowmap(last, tfluct; indicator_window...)
+# left-bracketing respects information available until t. Alternatives: center, right.
+t_indicator = slidebracket(tfluct, :left; indicator_window...)
 indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
 indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
 
@@ -91,7 +92,7 @@ change_window = (width = 20, stride = 1)
 cmp = ChangeMetricsParams(lambda_ridge = 0.0)   # can be set >0 to have regularization
 ridgereg = RidgeRegressionSlope(t_indicator[1:change_window.width], cmp)
 
-t_change = windowmap(last, t_indicator; change_window...)
+t_change = slidebracket(t_indicator, :left; change_window...)
 change_l = windowmap(ridgereg, indicator_l; change_window...)
 change_nl = windowmap(ridgereg, indicator_nl; change_window...)
 

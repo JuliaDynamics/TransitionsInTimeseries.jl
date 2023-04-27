@@ -73,6 +73,31 @@ function windowmap!(f::Function, out::AbstractVector, x::AbstractVector; kwargs.
 end
 
 """
+    slidebracket(t::AbstractVector, bracketing::Symbol; kwargs...)
+
+Return bracketing of `t` based on [`windowmap`](@ref).
+The type of bracketing used can be chosen among:
+- `:left`: the last element of the window is returned.
+- `:center`: the center element of the window is returned.
+- `:right`: the first element of the window is returned.
+
+## Keyword arguments:
+- `width::Int` of the sliding window.
+- `stride::Int` of the sliding window.
+"""
+function slidebracket(t::AbstractVector, bracketing::Symbol; kwargs...)
+    if bracketing == :left
+        return windowmap(last, t; kwargs...)
+    elseif bracketing == :center
+        return windowmap(midpoint, t; kwargs...)
+    elseif bracketing == :right
+        return windowmap(first, t; kwargs...)
+    else
+        error("Invalid choice of bracketing.")
+    end
+end
+
+"""
     midpoint(x)
 
 Return `x[midindex]` with `midindex = (firstindex(x) + lastindex(x))÷2`.

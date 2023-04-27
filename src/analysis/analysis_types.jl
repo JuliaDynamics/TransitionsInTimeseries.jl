@@ -1,32 +1,4 @@
 """
-    init_metrics(metrics, t, p)
-
-Initialize the functions contained in `metrics::Vector` that require an initialization
-based on the time vector `t:.AbstractVector` and parameters `p::Params`.
-These functions are typed as `StructFunction` and share the same initialization
-syntax `metric(t, p)`.
-
-The output `f::Vector{Function}` contains the ready-to-use metrics.
-"""
-function init_metrics(
-    metrics::Vector,
-    t::AbstractVector,
-    p::Params,
-)
-    f = Function[]
-    for metric in metrics
-        if metric in subtypes(StructFunction)
-            push!(f, metric(t, p))
-        elseif isa(metric, Function)
-            push!(f, metric)
-        else
-            error("The function $metric has an erroneous type.")
-        end
-    end
-    return f
-end
-
-"""
     IndicatorsConfig(t, indicators...; kwargs...)
 
 A configuration for computing indicators from timeseries with time vector `t`.
@@ -41,11 +13,11 @@ Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@
 
 ## Keyword arguments
 - `indicators_params::IndicatorsParams`: contains the parameters related to the
-indicator functions and needed for initialization in [`init_metrics`](@ref)
+  indicator functions and needed for initialization in [`init_metrics`](@ref)
 - `width::Int`: width given to the [`WindowViewer`](@ref) of the input data
-to estimate indicators.
+  to estimate indicators.
 - `stride::Int`: stride given to the [`WindowViewer`](@ref) of the input data
-to estimate indicators.
+  to estimate indicators.
 """
 struct IndicatorsConfig{F<:Function}
     t_indicator::AbstractVector
@@ -61,9 +33,11 @@ function IndicatorsConfig(
     iparams = IndicatorsParams(),
     width = default_window_width(t),
     stride = default_window_stride(t),
+    bracketing::Symbol = :left,
 )
     indicators = init_metrics(indicators, t[1:width], iparams)
-    return IndicatorsConfig(t[width:stride:end], indicators, iparams, width, stride)
+    t_indicator = slidebracket(t, bracketing, width = width, stride = stride)
+    return IndicatorsConfig(t_indicator, indicators, iparams, width, stride)
 end
 
 function IndicatorsConfig(
@@ -94,9 +68,9 @@ the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
 - `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
   See the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers) for more.
 - `width::Int`: width given to the [`WindowViewer`](@ref) of the indicator timeseries
-to estimate transient changes of the indicator.
+  to estimate transient changes of the indicator.
 - `stride::Int`: stride given to the [`WindowViewer`](@ref) of the indicator timeseries
-to estimate transient changes of the indicator.
+  to estimate transient changes of the indicator.
 - `tail::Symbol`: kind of tail test to do (one of `:left, :right, :both`).
 """
 struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
@@ -108,6 +82,7 @@ struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
     rng::R
     width::Int
     stride::Int
+    bracketing::Symbol
     tail::Symbol
 end
 
@@ -120,24 +95,18 @@ function SignificanceConfig(
     rng::R = Random.default_rng(),
     width::Int = default_window_width(indconfig.t_indicator),
     stride::Int = default_window_stride(indconfig.t_indicator),
+    bracketing::Symbol = :left,
     tail::Symbol = :right,
 ) where {S<:Surrogate, R<:AbstractRNG}
 
-    change_metrics = init_metrics(
-        change_metrics,
-        indconfig.t_indicator[1:width],
+    change_metrics = init_metrics(change_metrics, indconfig.t_indicator[1:width],
         change_metrics_params)
+    t_change = slidebracket(indconfig.t_indicator, bracketing, width = width, stride = stride)
+
     return SignificanceConfig(
-        indconfig.t_indicator[width:stride:end],
-        change_metrics,
-        change_metrics_params,
-        n_surrogates,
-        surrogate_method,
-        rng,
-        width,
-        stride,
-        tail,
-    )
+        t_change, change_metrics, change_metrics_params,
+        n_surrogates, surrogate_method, rng,
+        width, stride, bracketing, tail)
 end
 
 function SignificanceConfig(
@@ -146,9 +115,6 @@ function SignificanceConfig(
     kwargs...)
     return SignificanceConfig(indconfig, collect(change_metrics); kwargs...)
 end
-
-default_n_surrogates() = 10_000
-default_surrogate_method() = RandomFourier()
 
 """
     IndicatorsResults

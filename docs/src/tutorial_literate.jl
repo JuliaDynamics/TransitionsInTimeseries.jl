@@ -20,7 +20,7 @@ fig
 indicator = ar1_whitenoise
 indicator_window = (width = 400, stride = 1)
 
-t_indicator = windowmap(midpoint, tfluct; indicator_window...)
+t_indicator = slidebracket(tfluct, :left; indicator_window...)
 indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
 indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
 
@@ -34,7 +34,7 @@ change_window = (width = 30, stride = 1)
 cmp = ChangeMetricsParams(lambda_ridge = 0.0)
 ridgereg = RidgeRegressionSlope(t_indicator[1:change_window.width], cmp)
 
-t_change = windowmap(last, t_indicator; change_window...)
+t_change = slidebracket(t_indicator, :left; change_window...)
 change_l = windowmap(ridgereg, indicator_l; change_window...)
 change_nl = windowmap(ridgereg, indicator_nl; change_window...)
 

@@ -34,7 +34,7 @@ include("analysis/perform_analysis.jl")
 export IndicatorsParams, ChangeMetricsParams, init_metrics
 
 # windowing.jl
-export WindowViewer, windowmap, windowmap!, midpoint, midvalue
+export WindowViewer, windowmap, windowmap!, slidebracket, midpoint, midvalue
 
 # library
 export IndicatorsParams, ChangeMetricsParams
