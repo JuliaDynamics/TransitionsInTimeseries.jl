@@ -19,6 +19,7 @@ using ComplexityMeasures
 using Reexport
 @reexport using TimeseriesSurrogates
 
+include("misc/params.jl")
 include("misc/windowing.jl")
 include("misc/timeseries.jl")
 include("misc/load_data.jl")
