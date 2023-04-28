@@ -30,20 +30,21 @@ within a parameter set [`IndicatorsParams`](@ref) at initialization time.
 It is handled automatically within [`IndicatorsConfig`](@ref).
 """
 struct LowfreqPowerSpectrum <: StructFunction
-    plan::Any
-    i_lofreq::Int
+    plan::FFTW.FFTWPlan     # plan for FFT
+    i_pos                   # fftfreq(N)[1:i_pos] only includes positive freqs.
+    i_lofreq::Int           # fftfreq(N)[1:i_lofreq] only includes low freqs (>0).
 end
 
 function LowfreqPowerSpectrum(x::AbstractVector, iparams::IndicatorsParams)
-    p = plan_rfft(x)
-    fft_x = p*x
-    i_lofreq = Int(round(length(fft_x) * iparams.q_lofreq))
-    return LowfreqPowerSpectrum(p, i_lofreq)
+    p = plan_fft(x)
+    i_pos = Int(ceil(length(x)))                    # c.f. struct LowfreqPowerSpectrum
+    i_lofreq = Int(round(i_pos * iparams.q_lofreq)) # c.f. struct LowfreqPowerSpectrum
+    return LowfreqPowerSpectrum(p, i_pos, i_lofreq)
 end
 
 function (lfps::LowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
-    return sum(view(ps, 1:lfps.i_lofreq)) / sum(ps)
+    return sum(view(ps, 1:lfps.i_lofreq)) / sum(view(ps, 1:lfps.i_pos))
 end
 
 """
