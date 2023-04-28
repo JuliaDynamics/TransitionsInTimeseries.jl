@@ -55,7 +55,7 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
         windowmap!(sigconfig.change_metrics[i_metric], c, z;
             width = sigconfig.width, stride = sigconfig.stride)
         # surrogates
-        for k in 1:sigconfig.n_surrogates
+        @inbounds for k in 1:sigconfig.n_surrogates
             s = sgen()
             windowmap!(indconfig.indicators[i], indicator_dummy, s;
                 width = indconfig.width, stride = indconfig.stride)
