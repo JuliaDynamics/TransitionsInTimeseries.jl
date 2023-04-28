@@ -153,12 +153,10 @@ for (j, ax, axsig, x) in zip(1:2, (axl, axnl), (axsigl, axsignl), (x_l_fluct, x_
         s = sgen()
         indicator_s = windowmap(indicator, s; indicator_window...)
         change_s = windowmap(ridgereg, indicator_s; change_window...)
-        # change_s_distr[i, :] .= change_s
-        pval += orig_change .> change_s
+        pval += orig_change .< change_s
     end
 
     pval ./= n_surrogates
-    map!(x -> 1 .- x, pval, pval)
     lines!(ax, t_change, orig_change; color = Cycled(j))
     lines!(axsig, t_change, pval; color = Cycled(j+2))
 end
