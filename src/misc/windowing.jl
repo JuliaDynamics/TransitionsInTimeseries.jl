@@ -87,10 +87,17 @@ The type of bracketing used can be chosen among:
 """
 function slidebracket(t::AbstractVector, bracketing::Symbol; kwargs...)
     if bracketing == :left
+        @info "Left-sided bracketing chosen: best suited for "*
+        "online analysis (only takes time steps before the current one)"
         return windowmap(last, t; kwargs...)
     elseif bracketing == :center
+        @info "Centered bracketing chosen: best suited for "*
+        "offline analysis (takes time steps before and after the current one)"
         return windowmap(midpoint, t; kwargs...)
     elseif bracketing == :right
+        @info "Right-sided bracketing chosen: best suited for "*
+        "nothing, but some experimental minds might want to use it "*
+        "(only takes time steps after the current one)."
         return windowmap(first, t; kwargs...)
     else
         error("Invalid choice of bracketing.")
