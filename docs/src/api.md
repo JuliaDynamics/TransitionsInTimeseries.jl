@@ -6,22 +6,16 @@
 load_linear_vs_doublewell()
 ```
 
-## Params
-```@docs
-IndicatorsParams
-ChangeMetricsParams
-init_metrics
-```
-
 ## Indicators analysis
 ```@docs
+precompute_metrics
 IndicatorsConfig
 SignificanceConfig
 indicators_analysis
 IndicatorsResults
 ```
 
-## [Indicators] (@id indicator_functions)
+## [Indicators](@id Indicators)
 ```@docs
 Statistics.mean(::Any)
 Statistics.var(::AbstractArray)
@@ -41,7 +35,7 @@ RidgeRegressionSlope
 
 ## Surrogates
 
-For the surrogate generation, you can use any subtype of `Surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/Timeseriessurrogates.jl/stable/#surrogate-methods).
+For the surrogate generation, you can use any subtype of `Surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/v1.0/#Surrogate-methods-1).
 
 ## Sliding windows
 ```@docs

@@ -10,19 +10,10 @@ Keywords are propagated into [`WindowViewer`](@ref)
 to create a sliding window for estimating the indicators.
 
 Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
-
-## Keyword arguments
-- `indicators_params::IndicatorsParams`: contains the parameters related to the
-  indicator functions and needed for initialization in [`init_metrics`](@ref)
-- `width::Int`: width given to the [`WindowViewer`](@ref) of the input data
-  to estimate indicators.
-- `stride::Int`: stride given to the [`WindowViewer`](@ref) of the input data
-  to estimate indicators.
 """
 struct IndicatorsConfig{F<:Function}
     t_indicator::AbstractVector
     indicators::Vector{F}
-    indicators_params::IndicatorsParams
     width::Int
     stride::Int
 end
@@ -30,20 +21,16 @@ end
 function IndicatorsConfig(
     t::AbstractVector,
     indicators::Vector;
-    iparams = IndicatorsParams(),
     width = default_window_width(t),
     stride = default_window_stride(t),
     bracketing::Symbol = :left,
 )
-    indicators = init_metrics(indicators, t[1:width], iparams)
+    indicators = precompute_metrics(indicators, t[1:width])
     t_indicator = slidebracket(t, bracketing, width = width, stride = stride)
-    return IndicatorsConfig(t_indicator, indicators, iparams, width, stride)
+    return IndicatorsConfig(t_indicator, indicators, width, stride)
 end
 
-function IndicatorsConfig(
-    t::AbstractVector,
-    f::Vararg{Function};
-    kwargs...)
+function IndicatorsConfig(t::AbstractVector, f::Vararg{Function}; kwargs...)
     return IndicatorsConfig(t, collect(f), kwargs...)
 end
 
@@ -59,7 +46,6 @@ the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
 `change_metrics` can also be many functions, each one for each indicator.
 
 ## Keyword arguments
-- `change_metrics_params::ChangeMetricsParams`
 - `n_surrogates::Int = 10_000`: how many surrogates to create.
 - `surrogate_method::S = RandomFourier()`: what method to use to create the surrogates.
   Any `Surrogate` subtype from [TimeseriesSurrogates.jl](
@@ -76,7 +62,6 @@ the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
 struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
     t_change::AbstractVector
     change_metrics::M
-    change_metrics_params::ChangeMetricsParams
     n_surrogates::Int
     surrogate_method::S
     rng::R
@@ -89,7 +74,6 @@ end
 function SignificanceConfig(
     indconfig::IndicatorsConfig,
     change_metrics::Vector;
-    change_metrics_params::ChangeMetricsParams = ChangeMetricsParams(),
     n_surrogates::Int = default_n_surrogates(),
     surrogate_method::S = default_surrogate_method(),
     rng::R = Random.default_rng(),
@@ -99,12 +83,11 @@ function SignificanceConfig(
     tail::Symbol = :right,
 ) where {S<:Surrogate, R<:AbstractRNG}
 
-    change_metrics = init_metrics(change_metrics, indconfig.t_indicator[1:width],
-        change_metrics_params)
+    change_metrics = precompute_metrics(change_metrics, indconfig.t_indicator[1:width])
     t_change = slidebracket(indconfig.t_indicator, bracketing, width = width, stride = stride)
 
     return SignificanceConfig(
-        t_change, change_metrics, change_metrics_params,
+        t_change, change_metrics,
         n_surrogates, surrogate_method, rng,
         width, stride, bracketing, tail)
 end

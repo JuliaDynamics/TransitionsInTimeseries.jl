@@ -25,24 +25,25 @@ in the low frequencies of the power density spectrum of `x`.
 A result of `0.1` means that 10% of the integrated power is contained in low frequencies.
 
 The computation is based on `q_lofreq::Real`, a number between `0` and `1` that
-determines which frequencies are considered to be "low". This parameter is passed
-within a parameter set [`IndicatorsParams`](@ref) at initialization time.
-It is handled automatically within [`IndicatorsConfig`](@ref).
+determines which frequencies are considered to be "low".
 """
-struct LowfreqPowerSpectrum <: StructFunction
+Base.@kwdef struct LowfreqPowerSpectrum <: PrecomputableFunction
+    q_lofreq::Real = 0.1
+end
+struct PrecomputedLowfreqPowerSpectrum <: Function
     plan::FFTW.FFTWPlan     # plan for FFT
     i_pos                   # fftfreq(N)[1:i_pos] only includes positive freqs.
     i_lofreq::Int           # fftfreq(N)[1:i_lofreq] only includes low freqs (>0).
 end
 
-function LowfreqPowerSpectrum(x::AbstractVector, iparams::IndicatorsParams)
-    p = plan_fft(x)
-    i_pos = Int(ceil(length(x)))                    # c.f. struct LowfreqPowerSpectrum
-    i_lofreq = Int(round(i_pos * iparams.q_lofreq)) # c.f. struct LowfreqPowerSpectrum
-    return LowfreqPowerSpectrum(p, i_pos, i_lofreq)
+function precompute(lfps::LowfreqPowerSpectrum, t::AbstractVector)
+    p = plan_fft(t)
+    i_pos = Int(ceil(length(t) / 2))                # c.f. struct LowfreqPowerSpectrum
+    i_lofreq = Int(round(i_pos * lfps.q_lofreq))    # c.f. struct LowfreqPowerSpectrum
+    return PrecomputedLowfreqPowerSpectrum(p, i_pos, i_lofreq)
 end
 
-function (lfps::LowfreqPowerSpectrum)(x::AbstractVector)
+function (lfps::PrecomputedLowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
     return sum(view(ps, 1:lfps.i_lofreq)) / sum(view(ps, 1:lfps.i_pos))
 end
@@ -52,19 +53,11 @@ end
 
 Returns the permutation entropy of `x`. This computation breaks down in computing
 the [`entropy_normalized`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/entropies/#ComplexityMeasures.entropy_normalized) of a [`SymbolicPermutation`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/probabilities/#ComplexityMeasures.SymbolicPermutation).
-
-The latter is based on `m_perm::Int`, the order of the permutation.
-This parameter is passed within a parameter set [`IndicatorsParams`](@ref) at
-initialization time. It is handled automatically within [`IndicatorsConfig`](@ref).
 """
-struct PermutationEntropy <: StructFunction
-    probest::SymbolicPermutation
+Base.@kwdef struct PermutationEntropy <: Function
+    probest::SymbolicPermutation = SymbolicPermutation(m = 3)
 end
-
-function PermutationEntropy(x::AbstractVector, iparams::IndicatorsParams)
-    probest = SymbolicPermutation(m = iparams.m_perm)
-    return PermutationEntropy(probest)
-end
+PermutationEntropy(m::Int) = PermutationEntropy( SymbolicPermutation(m = m) )
 
 function (perment::PermutationEntropy)(x::AbstractVector)
     return entropy_normalized(perment.probest, x)

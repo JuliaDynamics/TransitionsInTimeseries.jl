@@ -9,7 +9,6 @@ end TransitionIndicators
 
 using LinearAlgebra
 using Random
-using StatsBase
 using Downloads
 using DelimitedFiles
 using InteractiveUtils
@@ -24,26 +23,25 @@ include("misc/windowing.jl")
 include("misc/timeseries.jl")
 include("misc/load_data.jl")
 
+include("library/precomputation.jl")
 include("library/indicators.jl")
 include("library/change_metrics_trend.jl")
 
 include("analysis/analysis_types.jl")
 include("analysis/perform_analysis.jl")
 
-# params.jl
-export IndicatorsParams, ChangeMetricsParams, init_metrics
-
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, slidebracket, midpoint, midvalue
 
 # library
-export IndicatorsParams, ChangeMetricsParams
-export ar1_whitenoise, LowfreqPowerSpectrum
+export PrecomputableFunction, precompute_metrics, precompute
+export ar1_whitenoise
+export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis       # from StatsBase
 export PermutationEntropy
 export SymbolicPermutation, entropy_normalized  # from ComplexityMeasures
 export kendalltau, spearman
-export RidgeRegressionSlope
+export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 
 # analysis
 export IndicatorsConfig, SignificanceConfig, IndicatorsResults

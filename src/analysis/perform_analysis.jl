@@ -66,12 +66,12 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
             # However, the use of pvalue() is less trivial for an incremental
             # computation over the surrogates.
             if sigconfig.tail == :right
-                pval[:, i] += Int.(c .< change_dummy)
+                pval[:, i] += c .< change_dummy
             elseif sigconfig.tail == :left
-                pval[:, i] += Int.(c .> change_dummy)
+                pval[:, i] += c .> change_dummy
             else
-                pr = Int.(c .< change_dummy)
-                pl = Int.(c .> change_dummy)
+                pr = c .< change_dummy
+                pl = c .> change_dummy
                 pval[:, i] += 2min.(pr, pl)
             end
         end

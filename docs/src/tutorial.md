@@ -30,8 +30,8 @@ with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable m
 using TransitionIndicators, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
-fig, ax = lines(t, x_linear)
-lines!(ax, t, x_nlinear)
+fig, ax = lines(t, x_nlinear)
+lines!(ax, t, x_linear)
 ax.title = "raw data"
 fig
 ```
@@ -71,8 +71,8 @@ indicator_window = (width = 400, stride = 1)
 
 # left-bracketing respects information available until t. Alternatives: center, right.
 t_indicator = slidebracket(tfluct, :left; indicator_window...)
-indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
 indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
+indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
 
 fig, ax = lines(t_indicator, indicator_l)
 lines!(ax, t_indicator, indicator_nl)
@@ -88,13 +88,13 @@ From here, we process the **indicator timeseries** to quantify changes in it. Th
 
 
 ```@example MAIN
-change_window = (width = 20, stride = 1)
-cmp = ChangeMetricsParams(lambda_ridge = 0.0)   # can be set >0 to have regularization
-ridgereg = RidgeRegressionSlope(t_indicator[1:change_window.width], cmp)
+change_window = (width = 30, stride = 1)
+ridgereg = RidgeRegressionSlope(lambda = 0.0)
+precompridgereg = precompute(ridgereg, t[1:change_window.width])
 
 t_change = slidebracket(t_indicator, :left; change_window...)
-change_l = windowmap(ridgereg, indicator_l; change_window...)
-change_nl = windowmap(ridgereg, indicator_nl; change_window...)
+change_l = windowmap(precompridgereg, indicator_l; change_window...)
+change_nl = windowmap(precompridgereg, indicator_nl; change_window...)
 
 fig, ax = lines(t_change, change_l)
 lines!(ax, t_change, change_nl)
@@ -118,9 +118,9 @@ fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2))
 lines!(ax, tfluct, s .- 0.05; color = Cycled(3))
 ax.title = "real signal vs. surrogate(s)"
 
-# compute and plot change metric
+# compute and plot indicator and change metric
 indicator_s = windowmap(indicator, s; indicator_window...)
-change_s = windowmap(ridgereg, indicator_s; change_window...)
+change_s = windowmap(precompridgereg, indicator_s; change_window...)
 
 ax, = lines(fig[1,2], t_change, change_nl; color = Cycled(2), label = "nonlin")
 lines!(ax, t_change, change_s; color = Cycled(3), label = "surrogate")
@@ -152,7 +152,7 @@ for (j, ax, axsig, x) in zip(1:2, (axl, axnl), (axsigl, axsignl), (x_l_fluct, x_
     for i in 1:n_surrogates
         s = sgen()
         indicator_s = windowmap(indicator, s; indicator_window...)
-        change_s = windowmap(ridgereg, indicator_s; change_window...)
+        change_s = windowmap(precompridgereg, indicator_s; change_window...)
         pval += orig_change .< change_s
     end
 
@@ -197,16 +197,17 @@ fig
 Then we decide what indicators and change metrics to use and run the analysis.
 
 ```@example MAIN
-# these indicators are suitable for Critical Slowing Down
+# These indicators are suitable for Critical Slowing Down
 indicators = [var, ar1_whitenoise]
 indconfig = IndicatorsConfig(tfluct, indicators; width = 400)
 
+
 # use the ridge regression slope for both indicators
-change_metrics = [RidgeRegressionSlope]
+change_metrics = [RidgeRegressionSlope()]
 sigconfig = SignificanceConfig(indconfig, change_metrics; width = 30, n_surrogates = 1000)
 
 # perform the full analysis
-results = indicators_analysis(t, x_nl_fluct, indconfig, sigconfig)
+results = indicators_analysis(tfluct, x_nl_fluct, indconfig, sigconfig)
 ```
 
 That's it, just a couple of lines! To get insight on the results, we plot the obtained p-values vs. the original time series:
@@ -221,12 +222,12 @@ axislegend(axpval)
 fig
 ```
 
-Thresholding the p-value results in a loss of information and is therefore to be avoided. For automation purposes it might however be unavoidable. Here we show an example where we consider that both the variance and the AR1-regression coefficient need to show a p-value below 0.05:
+Thresholding the p-value results in a loss of information and it is therefore preferable to be avoided. For automation purposes it might however be unavoidable. Here we show an example where we consider that both the variance and the AR1-regression coefficient need to show a p-value below 0.05 for a transition to be indicated in a binary sense:
 
 ```@example MAIN
 threshold = 0.05
 signif_idxs = vec(count(results.pval .< threshold, dims = 2) .>= 2)
-tflags = sigconfig.t_change[signif_idxs]
+tflags = results.t_change[signif_idxs]
 vlines!(ax, tflags; label = "flags", color = Cycled(3), linestyle = :dash)
 axislegend(ax)
 fig
