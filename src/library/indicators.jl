@@ -18,21 +18,41 @@ function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
 end
 
 """
-    LowfreqPowerSpectrum(x::AbstractVector)
+    LowfreqPowerSpectrum()
 
-Returns a number between `0` and `1` that characterizes the amount of power contained
-in the low frequencies of the power density spectrum of `x`.
-A result of `0.1` means that 10% of the integrated power is contained in low frequencies.
+Return a [`PrecomputableFunction`](@ref) containing all the necessary fields to
+generate a [`PrecomputedLowfreqPowerSpectrum`](@ref). The latter can be
+initialized by [`precompute`](@ref):
 
-The computation is based on `q_lofreq::Real`, a number between `0` and `1` that
-determines which frequencies are considered to be "low".
+```julia
+lfps = precompute( LowfreqPowerSpectrum(q_lofreq = 0.1) )
+```
+
+Keyword arguments:
+ - `q_lofreq`: a number between `0` and `1` that characterises which portion of the
+ frequency spectrum is considered to be low. For instance, `q_lofreq = 0.1` implies
+ that the lowest 10% of frequencies are considered to be the low ones.
 """
 Base.@kwdef struct LowfreqPowerSpectrum <: PrecomputableFunction
     q_lofreq::Real = 0.1
 end
+
+"""
+    PrecomputedLowfreqPowerSpectrum(x::AbstractVector)
+
+A struct containing all the precomputed fields to efficiently perform repetitive
+computation of the low-frequency power spectrum (LFPS), a number between `0` and `1`
+that characterizes the amount of power contained in the low frequencies of the power
+density spectrum of `x`. Once `lfps::PrecomputedLowfreqPowerSpectrum` is initialized,
+it can be used as a function to obtain the LFPS of `x::AbstractVector` by:
+
+```julia
+lfps(x)
+```
+"""
 struct PrecomputedLowfreqPowerSpectrum <: Function
-    plan::FFTW.FFTWPlan     # plan for FFT
-    i_pos                   # fftfreq(N)[1:i_pos] only includes positive freqs.
+    plan::FFTW.cFFTWPlan{ComplexF64, -1, false, 1, UnitRange{Int64}}
+    i_pos::Int              # fftfreq(N)[1:i_pos] only includes positive freqs.
     i_lofreq::Int           # fftfreq(N)[1:i_lofreq] only includes low freqs (>0).
 end
 
@@ -54,8 +74,8 @@ end
 Returns the permutation entropy of `x`. This computation breaks down in computing
 the [`entropy_normalized`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/entropies/#ComplexityMeasures.entropy_normalized) of a [`SymbolicPermutation`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/probabilities/#ComplexityMeasures.SymbolicPermutation).
 """
-Base.@kwdef struct PermutationEntropy <: Function
-    probest::SymbolicPermutation = SymbolicPermutation(m = 3)
+Base.@kwdef struct PermutationEntropy{S<:SymbolicPermutation} <: Function
+    probest::S = SymbolicPermutation(m = 3)
 end
 PermutationEntropy(m::Int) = PermutationEntropy( SymbolicPermutation(m = m) )
 
