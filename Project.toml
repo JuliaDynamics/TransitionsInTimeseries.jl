@@ -20,3 +20,6 @@ TimeseriesSurrogates = "c804724b-8c18-5caa-8579-6025a0767c70"
 Reexport = "1.2"
 StatsBase = "0.33"
 TimeseriesSurrogates = "2"
+ComplexityMeasures = "^2.7"
+FFTW = "^1.6"
+
