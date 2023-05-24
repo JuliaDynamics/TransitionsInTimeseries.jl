@@ -80,7 +80,7 @@ function SignificanceConfig(
     width::Int = default_window_width(indconfig.t_indicator),
     stride::Int = DEFAULT_WINDOW_STRIDE,
     bracketing::Symbol = :left,
-    tail::Symbol = :right,
+    tail::Symbol = :both,
 ) where {S<:Surrogate, R<:AbstractRNG}
 
     change_metrics = precompute_metrics(change_metrics, indconfig.t_indicator[1:width])
