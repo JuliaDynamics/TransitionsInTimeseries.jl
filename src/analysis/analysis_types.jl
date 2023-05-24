@@ -22,7 +22,7 @@ function IndicatorsConfig(
     t::AbstractVector,
     indicators::Vector;
     width = default_window_width(t),
-    stride = default_window_stride(t),
+    stride = DEFAULT_WINDOW_STRIDE,
     bracketing::Symbol = :left,
 )
     indicators = precompute_metrics(indicators, t[1:width])
@@ -74,11 +74,11 @@ end
 function SignificanceConfig(
     indconfig::IndicatorsConfig,
     change_metrics::Vector;
-    n_surrogates::Int = default_n_surrogates(),
-    surrogate_method::S = default_surrogate_method(),
+    n_surrogates::Int = DEFAULT_N_SURROGATES,
+    surrogate_method::S = DEFAULT_SURROGATE_METHOD,
     rng::R = Random.default_rng(),
     width::Int = default_window_width(indconfig.t_indicator),
-    stride::Int = default_window_stride(indconfig.t_indicator),
+    stride::Int = DEFAULT_WINDOW_STRIDE,
     bracketing::Symbol = :left,
     tail::Symbol = :right,
 ) where {S<:Surrogate, R<:AbstractRNG}

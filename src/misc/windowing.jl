@@ -17,7 +17,7 @@ If not given, the keywords `width, stride` as taken as `length(x)÷100` and `1`.
 """
 function WindowViewer(
         x::AbstractVector;
-        width::Int = default_window_width(x), stride::Int = default_window_stride(x),
+        width::Int = default_window_width(x), stride::Int = DEFAULT_WINDOW_STRIDE,
     )
     n = length(x)
     si = width:stride:n
