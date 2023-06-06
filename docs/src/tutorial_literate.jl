@@ -20,10 +20,12 @@ fig
 indicator = ar1_whitenoise
 indicator_window = (width = 400, stride = 1)
 
-# left-bracketing respects information available until t. Alternatives: center, right.
-t_indicator = slidebracket(tfluct, :left; indicator_window...)
-indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
+# By mapping `last::Function` over a windowviewer of the time vector, we obtain the last time step of each window.
+# This therefore only uses information from `k-width` to `k` at time step `k`.
+# Alternatives: `first::Function`, `midpoint:::Function`.
+t_indicator = windowmap(last, tfluct; indicator_window...)
 indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
+indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
 
 fig, ax = lines(t_indicator, indicator_l)
 lines!(ax, t_indicator, indicator_nl)
@@ -35,7 +37,7 @@ change_window = (width = 30, stride = 1)
 ridgereg = RidgeRegressionSlope(lambda = 0.0)
 precompridgereg = precompute(ridgereg, t[1:change_window.width])
 
-t_change = slidebracket(t_indicator, :left; change_window...)
+t_change = windowmap(last, t_indicator; change_window...)
 change_l = windowmap(precompridgereg, indicator_l; change_window...)
 change_nl = windowmap(precompridgereg, indicator_nl; change_window...)
 

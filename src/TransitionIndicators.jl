@@ -31,7 +31,7 @@ include("analysis/analysis_types.jl")
 include("analysis/perform_analysis.jl")
 
 # windowing.jl
-export WindowViewer, windowmap, windowmap!, slidebracket, midpoint, midvalue
+export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 
 # library
 export PrecomputableFunction, precompute_metrics, precompute

@@ -42,5 +42,4 @@ For the surrogate generation, you can use any subtype of `Surrogate` defined in 
 WindowViewer
 windowmap
 windowmap!
-slidebracket
 ```

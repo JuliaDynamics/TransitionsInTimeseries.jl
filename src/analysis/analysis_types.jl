@@ -20,13 +20,13 @@ end
 
 function IndicatorsConfig(
     t::AbstractVector,
+    f_windowmaptime::Function,
     indicators::Vector;
     width = default_window_width(t),
     stride = DEFAULT_WINDOW_STRIDE,
-    bracketing::Symbol = :left,
 )
     indicators = precompute_metrics(indicators, t[1:width])
-    t_indicator = slidebracket(t, bracketing, width = width, stride = stride)
+    t_indicator = windowmap(f_windowmaptime, t; width = width, stride = stride)
     return IndicatorsConfig(t_indicator, indicators, width, stride)
 end
 
@@ -67,29 +67,27 @@ struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
     rng::R
     width::Int
     stride::Int
-    bracketing::Symbol
     tail::Symbol
 end
 
 function SignificanceConfig(
     indconfig::IndicatorsConfig,
+    f_windowmaptime::Function,
     change_metrics::Vector;
     n_surrogates::Int = DEFAULT_N_SURROGATES,
     surrogate_method::S = DEFAULT_SURROGATE_METHOD,
     rng::R = Random.default_rng(),
     width::Int = default_window_width(indconfig.t_indicator),
     stride::Int = DEFAULT_WINDOW_STRIDE,
-    bracketing::Symbol = :left,
     tail::Symbol = :both,
 ) where {S<:Surrogate, R<:AbstractRNG}
 
     change_metrics = precompute_metrics(change_metrics, indconfig.t_indicator[1:width])
-    t_change = slidebracket(indconfig.t_indicator, bracketing, width = width, stride = stride)
+    t_change = windowmap(f_windowmaptime, indconfig.t_indicator;
+        width = width, stride = stride)
 
-    return SignificanceConfig(
-        t_change, change_metrics,
-        n_surrogates, surrogate_method, rng,
-        width, stride, bracketing, tail)
+    return SignificanceConfig(t_change, change_metrics, n_surrogates, surrogate_method,
+        rng, width, stride, tail)
 end
 
 function SignificanceConfig(
