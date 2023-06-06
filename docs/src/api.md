@@ -8,50 +8,38 @@ load_linear_vs_doublewell()
 
 ## Indicators analysis
 ```@docs
+PrecomputableFunction
+precompute_metrics
 IndicatorsConfig
 SignificanceConfig
 indicators_analysis
+IndicatorsResults
 ```
 
-## Indicators significance
-
+## [Indicators](@id Indicators)
 ```@docs
-indicators_significance
-SignificanceTest
-Quantile
-Sigma
-significant
-```
-
-## [Indicators] (@id indicator_functions)
-```@docs
-ar1_whitenoise
 Statistics.mean(::Any)
 Statistics.var(::AbstractArray)
 StatsBase.skewness
 StatsBase.kurtosis
+ar1_whitenoise
+LowfreqPowerSpectrum
+PrecomputedLowfreqPowerSpectrum
+PermutationEntropy()
+PermutationEntropy(::AbstractVector)
 ```
 
 ## Change metrics
 ```@docs
-RidgeRegression
 kendalltau
 spearman
+RidgeRegressionSlope
+PrecomputedRidgeRegressionSlope
 ```
 
 ## Surrogates
 
-For the surrogate generation, you can use any subtype of `Surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/Timeseriessurrogates.jl/stable/#surrogate-methods).
-
-
-## Significance metrics
-
-```@docs
-threshold_indicators
-measure_significance
-confidence_interval
-normalized_percentile
-```
+For the surrogate generation, you can use any subtype of `Surrogate` defined in [Timeseriessurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/v1.0/#Surrogate-methods-1).
 
 ## Sliding windows
 ```@docs

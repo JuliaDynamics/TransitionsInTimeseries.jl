@@ -1,29 +1,67 @@
 """
-    IndicatorsConfig(indicators...; window_kwargs...)
+    IndicatorsConfig(t::AbstractVector, f::Function, indicators...; kwargs...)
 
-A configuration for computing indicators from timeseries.
-Indicators are standard Julia functions that input an `AbstractVector` and output
-a real number. Any number of indicators can be given.
-Indicators typically used in the literature
-are listed in the documentation section [Indicators](@ref).
+A configuration for computing indicators from timeseries with time `t`.
+Indicators are standard Julia functions that input an `::AbstractVector` and output
+a `::Real`. Any number of indicators can be given. Indicators typically used in
+the literature are listed in the documentation section [Indicators](@ref).
 
-Keywords are propagated into [`WindowViewer`](@ref)
-to create a sliding window for estimating the indicators.
+Keywords are propagated into [`WindowViewer`](@ref) to create a sliding window
+for estimating the indicators. The time vector resulting from the sliding window
+is obtained under the hood by:
+```julia
+t_indicator = windowmap(f, t, kwargs...)
+```
+
+Common choices for `f` are:
+ - `last`: use `x[k-width:k]` to estimate the indicator at time step `k`.
+ - `midpoint`: use `x[k-width÷2:k+width÷2]` to estimate the indicator at time step `k`.
+ - `first`: use `x[k:k+width]` to estimate the indicator at time step `k`.
 
 Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
 """
-struct IndicatorsConfig{F<:Function, W<:NamedTuple}
+struct IndicatorsConfig{F<:Function}
+    t_indicator::AbstractVector
     indicators::Vector{F}
-    window_kwargs::W
+    width::Int
+    stride::Int
 end
-IndicatorsConfig(f::Vararg{Function}; kwargs...) = IndicatorsConfig(collect(f), NamedTuple(kwargs))
-IndicatorsConfig(f::Vector{<:Function}; kwargs...) = IndicatorsConfig(f, NamedTuple(kwargs))
+
+function IndicatorsConfig(
+    t::AbstractVector,
+    f_windowmaptime::Function,
+    indicators::Vector;
+    width = default_window_width(t),
+    stride = DEFAULT_WINDOW_STRIDE,
+)
+    indicators = precompute_metrics(indicators, t[1:width])
+    t_indicator = windowmap(f_windowmaptime, t; width = width, stride = stride)
+    return IndicatorsConfig(t_indicator, indicators, width, stride)
+end
+
+function IndicatorsConfig(t::AbstractVector, f_windowmaptime::Function,
+    f::Vararg{Function}; kwargs...)
+    return IndicatorsConfig(t, f_windowmaptime, collect(f), kwargs...)
+end
 
 """
-    SignificanceConfig(change_metrics...; kwargs...)
+    SignificanceConfig(indconfig, f, change_metrics...; kwargs...)
 
-A configuration for estimating a significant change of indicators computed from timeseries.
-Along with [`IndicatorsConfig`](@ref) it is given to [`indicators_analysis`](@ref).
+A configuration for estimating a significant change of indicators based on a sliding
+window and and `indconfig::IndicatorsConfig`. The time vector resulting from the
+sliding window is obtained under the hood by:
+```julia
+t_change = windowmap(f, indconfig.t_indicator, kwargs...)
+```
+
+Common choices for `f` are:
+ - `last`: use `x[k-width:k]` to estimate the indicator change at time step `k`.
+ - `midpoint`: use `x[k-width÷2:k+width÷2]` to estimate the indicator change
+at time step `k`.
+ - `first`: use `x[k:k+width]` to estimate the indicator change at time step `k`.
+
+Along with [`IndicatorsConfig`](@ref), `SignificanceConfig` is given to
+[`indicators_analysis`](@ref).
 
 `change_metrics` can be a single Julia function, in which case
 the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
@@ -37,50 +75,71 @@ the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).
   ) is valid.
 - `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
   See the [Julia manual](https://docs.julialang.org/en/v1/stdlib/Random/#Random-Numbers) for more.
-- `wv_indicator_width::Int = 100`,
-- `wv_indicator_stride::Int = 5`,
-- `width, stride = 20, 1`: width and stride given to the [`WindowViewer`](@ref) of the
-  indicator timeseries. Notice that here the default values are different.
+- `width::Int`: width given to the [`WindowViewer`](@ref) of the indicator timeseries
+  to estimate transient changes of the indicator.
+- `stride::Int`: stride given to the [`WindowViewer`](@ref) of the indicator timeseries
+  to estimate transient changes of the indicator.
+- `tail::Symbol`: kind of tail test to do (one of `:left, :right, :both`).
 """
-Base.@kwdef struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
-    change_metrics::M = [spearman]
-    n_surrogates::Int = 10_000
-    surrogate_method::S = RandomFourier()
-    rng::R = Random.default_rng()
-    width::Int = 20
-    stride::Int = 1
+struct SignificanceConfig{M<:Vector{<:Function}, S<:Surrogate, R<:AbstractRNG}
+    t_change::AbstractVector
+    change_metrics::M
+    n_surrogates::Int
+    surrogate_method::S
+    rng::R
+    width::Int
+    stride::Int
+    tail::Symbol
 end
 
-SignificanceConfig(change_metrics::Vararg{Function}; kwargs...) =
-SignificanceConfig(collect(change_metrics); kwargs...)
+function SignificanceConfig(
+    indconfig::IndicatorsConfig,
+    f_windowmaptime::Function,
+    change_metrics::Vector;
+    n_surrogates::Int = DEFAULT_N_SURROGATES,
+    surrogate_method::S = DEFAULT_SURROGATE_METHOD,
+    rng::R = Random.default_rng(),
+    width::Int = default_window_width(indconfig.t_indicator),
+    stride::Int = DEFAULT_WINDOW_STRIDE,
+    tail::Symbol = :both,
+) where {S<:Surrogate, R<:AbstractRNG}
 
-SignificanceConfig(change_metrics::Vector{<:Function}; kwargs...) =
-SignificanceConfig(; kwargs..., change_metrics)
+    change_metrics = precompute_metrics(change_metrics, indconfig.t_indicator[1:width])
+    t_change = windowmap(f_windowmaptime, indconfig.t_indicator;
+        width = width, stride = stride)
+
+    return SignificanceConfig(t_change, change_metrics, n_surrogates, surrogate_method,
+        rng, width, stride, tail)
+end
+
+function SignificanceConfig(indconfig::IndicatorsConfig, f_windowmaptime::Function,
+    change_metrics::Vararg{Function}; kwargs...)
+    return SignificanceConfig(indconfig, f_windowmaptime,
+        collect(change_metrics); kwargs...)
+end
 
 """
     IndicatorsResults
 
 A struct containing the output of [`indicators_analysis`](@ref), which is
 the main computational part of TransitionIndicators.jl.
-It can be given to the [`indicators_significance`](@ref) function
-or used for visualizations.
+It can be used for analysis and visualization purposes.
 
 It has the following fields:
 
-- `x`: the input timeseries
-- `t`: the time vector of the input timeseries
+- `x`: the input timeseries.
+- `t`: the time vector of the input timeseries.
 
-- `indicators::Vector{Function}`: indicators used in the processing
-- `x_indicator`, the indicator timeseries (matrix with each column one indicator)
-- `t_indicator`, the indicator timeseries time vector
+- `indicators::Vector{Function}`: indicators used in the processing.
+- `x_indicator`, the indicator timeseries (matrix with each column one indicator).
+- `t_indicator`, the time vector of the indicator timeseries.
 
-- `change_metrics::Vector{Function}`: change metrics used in the processing
-- `x_change`, the change metric timeseries (matrix with each column one change metric)
-- `t_change`, the change metric timeseries time vector
-- `s_change`, the result of computing the change metrics for the surrogates.
-  It is a 3-dimensional array, where first dimension = time, second dimension = change
-  metric, and third dimension = surrogate number. I.e.,
-  `S_change[:, j, k]` will give the `k`-th surrogate timeseries of the `j`-th change metric.
+- `change_metrics::Vector{Function}`: change metrics used in the processing.
+- `x_change`, the change metric timeseries (matrix with each column one change metric).
+- `t_change`, the time vector of the change metric timeseries.
+- `pval`, the p-value of the change metrics w.r.t. the surrogates.
+  It is a 2-dimensional array, where first dimension = time, second dimension = change
+  metric. I.e. `pval[:, k]` will give the time series of p-value of the `k`-th change metric.
 """
 struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
         F<:Function, Z<:Function, S<:Surrogate}
@@ -94,7 +153,7 @@ struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     change_metrics::Vector{Z}
     t_change::Vector{T}
     x_change::Matrix{X}
-    s_change::Array{X, 3}
+    pval::Matrix{X}
     surrogate_method::S
 end
 
@@ -106,7 +165,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::IndicatorsResults)
         "indicator length" => length(res.t_indicator),
         "change metrics" => res.change_metrics,
         "surrogate" => res.surrogate_method,
-        "surrogate #" => size(res.s_change, 3),
+        "p-value" => summary(res.pval),
     ]
     padlen = maximum(length(d[1]) for d in descriptors) + 3
     for (desc, val) in descriptors

@@ -1,79 +1,66 @@
 #####################################################
 # Trend metrics
 #####################################################
-struct RidgeRegression{T} <: Function
-    equispaced::Bool
-    regression_matrix::Matrix{T}
-end
-
-# TODO: This is clunky and inconvenient and doesn't allow a simple way to
-# just pick ridge regression as a change metric. It needs to be changed,
-# or it needs to offer a "slow" version where I can jsut pick ridge regression
-# without having to think about windows or whatever, and it "just works"
-"""
-
-    RidgeRegression(t, width; lambda = 0.0) → rr
-
-Initialize a ridge regression for a time vector `t`, a sliding-window `width` and
-an optional regularizeation term `lambda`. The output `rr` can then be used as a
-function to perform the regression and extract the slope!
-If `lambda = 0`, linear regression is recovered (default case).
-For more information, visit: https://en.wikipedia.org/wiki/Ridge_regression.
-
-# Examples
-```jldoctest
-julia> t = 0.0:1.0:100;
-julia> x = 2.3 .* t .+ 1.2;
-julia> rr = RidgeRegression(t);
-julia> rr(x)
-2.299999999999999
-```
-"""
-function RidgeRegression(t::AbstractVector, width::Int; lambda = 0.0)
-    equispaced = isequispaced(t)
-    mean_dt = equispaced_step(t)
-    t_regression = range(0.0, step = mean_dt, length = width+1)
-    regression_matrix = precompute_ridge(t_regression, lambda = lambda)
-    return RidgeRegression(equispaced, regression_matrix)
-end
-RidgeRegression(t) = RidgeRegression(isequispaced(t)[1], precompute_ridge(t))
-
-function (rr::RidgeRegression)(x::AbstractVector{T}) where{T<:Real}
-    M = rr.regression_matrix
-    if !(rr.equispaced)
-        error("Time vector is not evenly spaced. So far, the API is only designed for evenly spaced time series!")
-        # For future something like: M .= precompute_ridge(window_view(t))
-    end
-    return view(M, 1, :)' * x     # we are only interested in the slope.
-end
+using StatsBase: corkendall, corspearman
 
 """
-
-    precompute_ridge(t, lambda = 0)
-
-Precompute the matrix arising in the ridge regression. Particularly suited
-if ridge regression is to be computed many times on evenly spaced time.
-"""
-function precompute_ridge(
-    t::AbstractVector{T};
-    lambda::T = T(0),
-) where {T<:Real}
-    TT = hcat(t, ones(T, length(t)))'
-    return inv(TT * TT' + lambda .* LinearAlgebra.I(2) ) * TT
-end
-
-"""
-
-    kendalltau(x)
+    kendalltau(x::AbstractVector)
 
 Compute the kendall-τ correlation coefficient of the time series `x`.
 """
 kendalltau(x) = corkendall(1:length(x), x)
 
 """
-
-    spearman(x)
+    spearman(x::AbstractVector)
 
 Compute the spearman correlation coefficient of the time series `x`.
 """
 spearman(x) = corspearman(1:length(x), x)
+
+"""
+    RidgeRegressionSlope(; lambda = 0.0)
+
+Return a [`PrecomputableFunction`](@ref) containing all the necessary fields to
+generate a [`PrecomputedRidgeRegressionSlope`](@ref). The latter can be
+initialized by [`precompute`](@ref):
+
+```julia
+rr = precompute( RidgeRegressionSlope() )
+```
+
+Keyword arguments:
+ - `lambda`: a regularization constant, usually between `0` and `1`.
+"""
+Base.@kwdef struct RidgeRegressionSlope <: PrecomputableFunction
+    lambda::Real = 0.0
+end
+
+struct PrecomputedRidgeRegressionSlope{T} <: Function
+    equispaced::Bool
+    regression_matrix::Matrix{T}
+end
+
+function precompute(rr::RidgeRegressionSlope, t::AbstractVector{T}) where {T<:Real}
+    regression_matrix = precompute_ridgematrix(t, rr.lambda)
+    return PrecomputedRidgeRegressionSlope(isequispaced(t), regression_matrix)
+end
+
+"""
+    PrecomputedRidgeRegressionSlope(x::AbstractVector)
+
+Return the slope of the [ridge regression](https://en.wikipedia.org/wiki/Ridge_regression) of `x`.
+"""
+function (rr::PrecomputedRidgeRegressionSlope)(x::AbstractVector{<:Real})
+    if !(rr.equispaced)
+        error("Time vector is not evenly spaced." * 
+            "So far, the API is only designed for evenly spaced time series!")
+        # For future something like: M .= precompute_ridgematrix(window_view(t))
+    end
+    return view(rr.regression_matrix, 1, :)' * x    # only return slope.
+    # view(rr.regression_matrix, 2, :)' * x --> would return the bias.
+end
+
+function precompute_ridgematrix(t::AbstractVector{T}, lambda::Real) where {T<:Real}
+    TT = hcat(t, ones(T, length(t)))'
+    return inv(TT * TT' + lambda .* LinearAlgebra.I(2) ) * TT
+end

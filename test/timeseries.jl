@@ -1,6 +1,6 @@
 using TransitionIndicators, Test
 
-@testset "Spacing" begin
+@testset "spacing" begin
     dt = rand()
     x_equispaced = range( 0.0, step = dt, stop = 100)
     x_nonequispaced = cumsum( rand(1000) )

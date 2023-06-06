@@ -13,28 +13,25 @@ window with a given `width`, incrementing the window views with the given
 `stride`. You can use this directly with `map`, such as `map(std, WindowViewer(x, ...))`
 would give you the moving-window-timeseries of the `std` of `x`.
 
-If not given, the keywords `width, stride` as taken as `length(x)÷100` and `1`.
+If not given, the keywords `width, stride` are taken as
+[`default_window_width(x)`](@ref) and `1`.
 """
 function WindowViewer(
         x::AbstractVector;
-        width::Int = default_window_width(x), stride::Int = default_window_stride(x),
+        width::Int = default_window_width(x), stride::Int = DEFAULT_WINDOW_STRIDE,
     )
     n = length(x)
-    si = width+1:stride:n
+    si = width:stride:n
     return WindowViewer{eltype(x),typeof(x)}(x, width, stride, si)
 end
-
-default_window_width(x) = length(x)÷100
-default_window_stride(x) = 1
 
 # Define iterator for WindowViewer.
 function Base.iterate(wv::WindowViewer, state::Int = 1)
     if state > length(wv.strided_indices) # Stop condition: end of vector containing strided indices.
         return nothing
     else # return a view of time series.
-        # TODO: Generalize for
         k = wv.strided_indices[state]
-        i1, i2 = (k-wv.width, k)
+        i1, i2 = (k-wv.width+1, k)
         return (view(wv.timeseries, i1:i2), state + 1)
     end
 end
@@ -66,6 +63,7 @@ Same as [`windowmap`](@ref), but writes the output in-place in `out`.
 function windowmap!(f::Function, out::AbstractVector, x::AbstractVector; kwargs...)
     wv = WindowViewer(x; kwargs...)
     if length(out) != length(wv)
+        println(length(out), "  ", length(wv))
         error("Allocated output doesn't match size of window viewer.")
     end
     @inbounds for (i, v) in enumerate(wv)
