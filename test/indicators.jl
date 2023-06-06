@@ -15,7 +15,7 @@ end
     nt = length(t)
     y_lofreq = fill(10 * rand(), nt)
     y_hifreq = sin.(t .* 100)
-    indconfig = IndicatorsConfig(t, [LowfreqPowerSpectrum()], width = nt)
+    indconfig = IndicatorsConfig(t, last, [LowfreqPowerSpectrum()], width = nt)
 
     @test indconfig.indicators[1](y_lofreq[1:indconfig.width]) > 0.95
     @test indconfig.indicators[1](y_hifreq[1:indconfig.width]) < 0.05
@@ -29,8 +29,9 @@ end
     x = vec(DelimitedFiles.readdlm(file))
     t = collect(eachindex(x))
 
-    indconfig = IndicatorsConfig(t, [PermutationEntropy()], width = 50)
-    sigconfig = SignificanceConfig(indconfig, [RidgeRegressionSlope()], width = 50, stride = 1, n_surrogates = 2)
+    indconfig = IndicatorsConfig(t, last, [PermutationEntropy()], width = 50)
+    sigconfig = SignificanceConfig(indconfig, last, [RidgeRegressionSlope()],
+        width = 50, stride = 1, n_surrogates = 2)
     res = indicators_analysis(t, x, indconfig, sigconfig)
     @test mean(res.x_indicator[7000:7500]) < mean(res.x_indicator[5500:6000])
 end

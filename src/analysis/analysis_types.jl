@@ -30,8 +30,9 @@ function IndicatorsConfig(
     return IndicatorsConfig(t_indicator, indicators, width, stride)
 end
 
-function IndicatorsConfig(t::AbstractVector, f::Vararg{Function}; kwargs...)
-    return IndicatorsConfig(t, collect(f), kwargs...)
+function IndicatorsConfig(t::AbstractVector, f_windowmaptime::Function,
+    f::Vararg{Function}; kwargs...)
+    return IndicatorsConfig(t, f_windowmaptime, collect(f), kwargs...)
 end
 
 """
@@ -90,11 +91,10 @@ function SignificanceConfig(
         rng, width, stride, tail)
 end
 
-function SignificanceConfig(
-    indconfig::IndicatorsConfig,
-    change_metrics::Vararg{Function};
-    kwargs...)
-    return SignificanceConfig(indconfig, collect(change_metrics); kwargs...)
+function SignificanceConfig(indconfig::IndicatorsConfig, f_windowmaptime::Function,
+    change_metrics::Vararg{Function}; kwargs...)
+    return SignificanceConfig(indconfig, f_windowmaptime,
+        collect(change_metrics); kwargs...)
 end
 
 """

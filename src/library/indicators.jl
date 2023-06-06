@@ -33,12 +33,6 @@ Keyword arguments:
  frequency spectrum is considered to be low. For instance, `q_lofreq = 0.1` implies
  that the lowest 10% of frequencies are considered to be the low ones.
 """
-function LowfreqPowerSpectrum(t::AbstractVector, q_lofreq=0.1)
-    p = plan_fft(t)
-    i_pos = Int(ceil(length(t) / 2))                # c.f. struct LowfreqPowerSpectrum
-    i_lofreq = Int(round(i_pos * lfps.q_lofreq))    # c.f. struct LowfreqPowerSpectrum
-    return PrecomputedLowfreqPowerSpectrum(p, i_pos, i_lofreq)
-end
 Base.@kwdef struct LowfreqPowerSpectrum <: PrecomputableFunction
     q_lofreq::Real = 0.1
 end

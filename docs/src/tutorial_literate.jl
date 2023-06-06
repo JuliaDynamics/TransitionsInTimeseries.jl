@@ -113,12 +113,13 @@ fig
 
 # These indicators are suitable for Critical Slowing Down
 indicators = [var, ar1_whitenoise]
-indconfig = IndicatorsConfig(tfluct, indicators; width = 400)
+indconfig = IndicatorsConfig(tfluct, last, indicators; width = 400)
 
 
 # use the ridge regression slope for both indicators
 change_metrics = [RidgeRegressionSlope()]
-sigconfig = SignificanceConfig(indconfig, change_metrics; width = 30, n_surrogates = 1000)
+sigconfig = SignificanceConfig(indconfig, last, change_metrics;
+    width = 30, n_surrogates = 1000)
 
 # perform the full analysis
 results = indicators_analysis(tfluct, x_nl_fluct, indconfig, sigconfig)
@@ -133,9 +134,7 @@ axislegend(axpval)
 fig
 
 
-threshold = 0.05
-signif_idxs = vec(count(results.pval .< threshold, dims = 2) .>= 2)
-tflags = results.t_change[signif_idxs]
-vlines!(ax, tflags; label = "flags", color = Cycled(3), linestyle = :dash)
+flags_indicators, flags_andicators = transition_flags(results, 0.05)
+vlines!(ax, flags_andicators; label = "flags", color = Cycled(3), linestyle = :dash)
 axislegend(ax)
 fig

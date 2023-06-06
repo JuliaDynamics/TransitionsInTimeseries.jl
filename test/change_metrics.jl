@@ -7,8 +7,8 @@ using TransitionIndicators, Test, Random, Distributions
     x = m .* t .+ p             # define affine function
     x_noisy = x + 0.1 .* rand(d, length(x))
 
-    indconfig = IndicatorsConfig(t, [var], width = 20, stride = 1)
-    sigconfig = SignificanceConfig(indconfig, [RidgeRegressionSlope()],
+    indconfig = IndicatorsConfig(t, last, [var], width = 20, stride = 1)
+    sigconfig = SignificanceConfig(indconfig, last, [RidgeRegressionSlope()],
         width = 100, stride = 1)
 
     x_test = x[indconfig.width:indconfig.stride:end]
@@ -25,8 +25,9 @@ end
     t = collect(1.0:n)
     x = copy(t)
 
-    indconfig = IndicatorsConfig(t, [mean, var], width = 100, stride = 1)
-    sigconfig = SignificanceConfig(indconfig, [RidgeRegressionSlope()], width = 100, stride = 1)
+    indconfig = IndicatorsConfig(t, last, [mean, var], width = 100, stride = 1)
+    sigconfig = SignificanceConfig(indconfig, last, 
+        [RidgeRegressionSlope()], width = 100, stride = 1)
     res = indicators_analysis(t, x, indconfig, sigconfig)
 
     # The trend of mean(windowview) is the stride for x=t

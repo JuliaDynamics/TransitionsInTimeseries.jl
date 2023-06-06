@@ -87,3 +87,24 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
         sigconfig.surrogate_method,
     )
 end
+
+"""
+
+    transition_flags(results::IndicatorsResults, p_threshold::Real)
+
+Return `tflags_indicators::Vector{Vector}` and `tflags_andicators::Vector`.
+The former contains the time steps at which the p-value of an indicator change is
+below `p_threshold` (further called flags). The flags of the `i`-th indicator can
+be obtained by calling tflags_indicators[i]. The latter contains the time steps
+when all p-values of all computed indicator changes are synchronously below `p_threshold`.
+"""
+function transition_flags(results::IndicatorsResults, p_threshold::Real)
+    if p_threshold >= 1 || p_threshold <= 0
+        error("Threshold must be a value between 0 and 1.")
+    end
+
+    thresholded_p = results.pval .< threshold
+    tflags_indicators = [t[thresholded_p[:, j]] for j in axes(thresholded_p, 2)]
+    tflags_andicators = results.t_change[reduce(&, thresholded_p, dims=2)]
+    return tflags_indicators, tflags_andicators
+end
