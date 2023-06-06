@@ -1,11 +1,11 @@
-module TransitionIndicators
+module TransitionsInTimeseries
 
 # Use the README as the module docs
 @doc let
     path = joinpath(dirname(@__DIR__), "README.md")
     include_dependency(path)
     read(path, String)
-end TransitionIndicators
+end TransitionsInTimeseries
 
 using LinearAlgebra
 using Random
@@ -53,4 +53,4 @@ export isequispaced, equispaced_step
 # load_data.jl
 export load_linear_vs_doublewell
 
-end # module TransitionIndicators
+end # module TransitionsInTimeseries

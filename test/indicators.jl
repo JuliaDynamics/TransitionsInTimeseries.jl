@@ -1,5 +1,5 @@
 using Downloads, DelimitedFiles
-using TransitionIndicators, Test, Random, TimeseriesSurrogates
+using TransitionsInTimeseries, Test, Random, TimeseriesSurrogates
 
 # Check if AR1 regression parameter from a known AR1 process with white noise
 # is successfully estimated.
@@ -24,7 +24,7 @@ end
 # TODO: improve this test. For now, simply based on what is observed in:
 # https://github.com/JuliaDynamics/NonlinearDynamicsComplexSystemsCourse/blob/main/notebooks/nonlinear_causal_timeseries_analysis.ipynb
 @testset "perment" begin
-    file = Downloads.download("https://raw.githubusercontent.com/JuliaDynamics/" * 
+    file = Downloads.download("https://raw.githubusercontent.com/JuliaDynamics/" *
         "NonlinearDynamicsTextbook/master/exercise_data/7.csv")
     x = vec(DelimitedFiles.readdlm(file))
     t = collect(eachindex(x))

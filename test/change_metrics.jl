@@ -1,4 +1,4 @@
-using TransitionIndicators, Test, Random, Distributions
+using TransitionsInTimeseries, Test, Random, Distributions
 
 @testset "ridge regression" begin
     d = Normal()                # define normal distribution
@@ -26,7 +26,7 @@ end
     x = copy(t)
 
     indconfig = IndicatorsConfig(t, last, [mean, var], width = 100, stride = 1)
-    sigconfig = SignificanceConfig(indconfig, last, 
+    sigconfig = SignificanceConfig(indconfig, last,
         [RidgeRegressionSlope()], width = 100, stride = 1)
     res = indicators_analysis(t, x, indconfig, sigconfig)
 

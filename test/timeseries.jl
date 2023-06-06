@@ -1,4 +1,4 @@
-using TransitionIndicators, Test
+using TransitionsInTimeseries, Test
 
 @testset "spacing" begin
     dt = rand()

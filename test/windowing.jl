@@ -1,4 +1,4 @@
-using TransitionIndicators, Test, Statistics
+using TransitionsInTimeseries, Test, Statistics
 
 @testset "sliding variance over vector" begin
     n = 1_000

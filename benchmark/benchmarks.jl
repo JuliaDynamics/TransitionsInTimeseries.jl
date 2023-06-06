@@ -1,4 +1,4 @@
-using TransitionIndicators
+using TransitionsInTimeseries
 using Statistics, BenchmarkTools
 
 #################################################

@@ -122,7 +122,7 @@ end
     IndicatorsResults
 
 A struct containing the output of [`indicators_analysis`](@ref), which is
-the main computational part of TransitionIndicators.jl.
+the main computational part of TransitionsInTimeseries.jl.
 It can be used for analysis and visualization purposes.
 
 It has the following fields:

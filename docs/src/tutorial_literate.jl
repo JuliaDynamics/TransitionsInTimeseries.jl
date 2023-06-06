@@ -1,4 +1,4 @@
-using TransitionIndicators, CairoMakie
+using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
 fig, ax = lines(t, x_nlinear)
@@ -100,7 +100,7 @@ fig
 # %%
 # Tutorial short
 
-using TransitionIndicators, CairoMakie
+using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
 
