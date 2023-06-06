@@ -40,6 +40,10 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
     x_indicator = zeros(X, len_ind, n_ind)
     x_change = zeros(X, len_change, n_ind)
     pval = zeros(X, len_change, n_ind)
+    if sigconfig.tail == :both
+        pval_right = zeros(X, len_change, n_ind)
+        pval_left = zeros(X, len_change, n_ind)
+    end
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
     sgen = surrogenerator(x, sigconfig.surrogate_method, sigconfig.rng)
@@ -69,14 +73,15 @@ function indicators_analysis(t::AbstractVector, x, indconfig::IndicatorsConfig, 
                 pval[:, i] += c .< change_dummy
             elseif sigconfig.tail == :left
                 pval[:, i] += c .> change_dummy
-            else
-                pr = c .< change_dummy
-                pl = c .> change_dummy
-                pval[:, i] += 2min.(pr, pl)
+            elseif sigconfig.tail == :both
+                pval_right[:, i] += c .< change_dummy
+                pval_left[:, i] += c .> change_dummy
             end
         end
+        if sigconfig.tail == :both
+            pval[:, i] .= 2min.(pval_right[:, i], pval_left[:, i])
+        end
     end
-    # pvalue = count / n_surrogates.
     pval ./= sigconfig.n_surrogates
 
     # put everything together in the output type
