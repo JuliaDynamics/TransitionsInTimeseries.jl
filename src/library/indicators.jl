@@ -3,29 +3,29 @@ using Statistics: mean, var
 using StatsBase: skewness, kurtosis
 
 """
-    ar1_whitenoise(x) → ̂θ
+    ar1_whitenoise(x::AbstractVector)
 
-Estimate the AR1 regression coefficient `θ` of a vector time series `x`.
+Return the AR1 regression coefficient `θ` of a time series `x`.
 Computation based on the analytic solution of the least-square parameter estimation:
 
 ```math
     \\hat{\\theta} = \\dfrac{\\sum_{i=2}^{n} x_i \\, x_{i-1}}{\\sum_{i=2}^{n} x_{i-1}^2}
 ```
 """
-function ar1_whitenoise(x::AbstractVector{T}) where {T<:Real}
+function ar1_whitenoise(x::AbstractVector{<:Real})
     n = length(x)
     return (view(x, 2:n)' * view(x, 1:n-1)) / (view(x, 1:n-1)' * view(x, 1:n-1))
 end
 
 """
-    LowfreqPowerSpectrum()
+    LowfreqPowerSpectrum(; q_lofreq = 0.1)
 
 Return a [`PrecomputableFunction`](@ref) containing all the necessary fields to
 generate a [`PrecomputedLowfreqPowerSpectrum`](@ref). The latter can be
 initialized by [`precompute`](@ref):
 
 ```julia
-lfps = precompute( LowfreqPowerSpectrum(q_lofreq = 0.1) )
+lfps = precompute( LowfreqPowerSpectrum() )
 ```
 
 Keyword arguments:
@@ -35,6 +35,19 @@ Keyword arguments:
 """
 Base.@kwdef struct LowfreqPowerSpectrum <: PrecomputableFunction
     q_lofreq::Real = 0.1
+end
+
+struct PrecomputedLowfreqPowerSpectrum <: Function
+    plan::FFTW.cFFTWPlan{ComplexF64, -1, false, 1, UnitRange{Int64}}
+    i_pos::Int              # fftfreq(N)[1:i_pos] only includes positive freqs.
+    i_lofreq::Int           # fftfreq(N)[1:i_lofreq] only includes low freqs (>0).
+end
+
+function precompute(lfps::LowfreqPowerSpectrum, t::AbstractVector)
+    p = plan_fft(t)
+    i_pos = Int(ceil(length(t) / 2))                # c.f. struct LowfreqPowerSpectrum
+    i_lofreq = Int(round(i_pos * lfps.q_lofreq))    # c.f. struct LowfreqPowerSpectrum
+    return PrecomputedLowfreqPowerSpectrum(p, i_pos, i_lofreq)
 end
 
 """
@@ -50,35 +63,27 @@ it can be used as a function to obtain the LFPS of `x::AbstractVector` by:
 lfps(x)
 ```
 """
-struct PrecomputedLowfreqPowerSpectrum <: Function
-    plan::FFTW.cFFTWPlan{ComplexF64, -1, false, 1, UnitRange{Int64}}
-    i_pos::Int              # fftfreq(N)[1:i_pos] only includes positive freqs.
-    i_lofreq::Int           # fftfreq(N)[1:i_lofreq] only includes low freqs (>0).
-end
-
-function precompute(lfps::LowfreqPowerSpectrum, t::AbstractVector)
-    p = plan_fft(t)
-    i_pos = Int(ceil(length(t) / 2))                # c.f. struct LowfreqPowerSpectrum
-    i_lofreq = Int(round(i_pos * lfps.q_lofreq))    # c.f. struct LowfreqPowerSpectrum
-    return PrecomputedLowfreqPowerSpectrum(p, i_pos, i_lofreq)
-end
-
 function (lfps::PrecomputedLowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
     return sum(view(ps, 1:lfps.i_lofreq)) / sum(view(ps, 1:lfps.i_pos))
 end
 
 """
-    PermutationEntropy(x::AbstractVector)
+    PermutationEntropy(; probest = SymbolicPermutation(m = 3))
 
-Returns the permutation entropy of `x`. This computation breaks down in computing
-the [`entropy_normalized`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/entropies/#ComplexityMeasures.entropy_normalized) of a [`SymbolicPermutation`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/probabilities/#ComplexityMeasures.SymbolicPermutation).
+Initialize a the computation of permutation entropy with a `SymbolicPermutation`.
 """
 Base.@kwdef struct PermutationEntropy{S<:SymbolicPermutation} <: Function
     probest::S = SymbolicPermutation(m = 3)
 end
 PermutationEntropy(m::Int) = PermutationEntropy( SymbolicPermutation(m = m) )
 
+"""
+    PermutationEntropy(x::AbstractVector)
+
+Return the permutation entropy of `x`. This computation breaks down in computing
+the [`entropy_normalized`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/entropies/#ComplexityMeasures.entropy_normalized) of a [`SymbolicPermutation`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/probabilities/#ComplexityMeasures.SymbolicPermutation).
+"""
 function (perment::PermutationEntropy)(x::AbstractVector)
     return entropy_normalized(perment.probest, x)
 end

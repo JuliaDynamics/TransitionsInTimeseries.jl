@@ -30,7 +30,6 @@ function Base.iterate(wv::WindowViewer, state::Int = 1)
     if state > length(wv.strided_indices) # Stop condition: end of vector containing strided indices.
         return nothing
     else # return a view of time series.
-        # TODO: Generalize for
         k = wv.strided_indices[state]
         i1, i2 = (k-wv.width+1, k)
         return (view(wv.timeseries, i1:i2), state + 1)

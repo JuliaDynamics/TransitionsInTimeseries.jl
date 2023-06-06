@@ -1,13 +1,22 @@
 """
-    IndicatorsConfig(t, indicators...; kwargs...)
+    IndicatorsConfig(t::AbstractVector, f::Function, indicators...; kwargs...)
 
-A configuration for computing indicators from timeseries with time vector `t`.
-Indicators are standard Julia functions that input an `AbstractVector` and output
-a real number. Any number of indicators can be given. Indicators typically used in
+A configuration for computing indicators from timeseries with time `t`.
+Indicators are standard Julia functions that input an `::AbstractVector` and output
+a `::Real`. Any number of indicators can be given. Indicators typically used in
 the literature are listed in the documentation section [Indicators](@ref).
 
-Keywords are propagated into [`WindowViewer`](@ref)
-to create a sliding window for estimating the indicators.
+Keywords are propagated into [`WindowViewer`](@ref) to create a sliding window
+for estimating the indicators. The time vector resulting from the sliding window
+is obtained under the hood by:
+```julia
+t_indicator = windowmap(f, t, kwargs...)
+```
+
+Common choices for `f` are:
+ - `last`: use `x[k-width:k]` to estimate the indicator at time step `k`.
+ - `midpoint`: use `x[k-width÷2:k+width÷2]` to estimate the indicator at time step `k`.
+ - `first`: use `x[k:k+width]` to estimate the indicator at time step `k`.
 
 Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
 """
@@ -36,11 +45,23 @@ function IndicatorsConfig(t::AbstractVector, f_windowmaptime::Function,
 end
 
 """
-    SignificanceConfig(indconfig, change_metrics...; kwargs...)
+    SignificanceConfig(indconfig, f, change_metrics...; kwargs...)
 
-A configuration for estimating a significant change of indicators computed from timeseries
-based on `indconfig::IndicatorsConfig`.
-Along with [`IndicatorsConfig`](@ref) it is given to [`indicators_analysis`](@ref).
+A configuration for estimating a significant change of indicators based on a sliding
+window and and `indconfig::IndicatorsConfig`. The time vector resulting from the
+sliding window is obtained under the hood by:
+```julia
+t_change = windowmap(f, indconfig.t_indicator, kwargs...)
+```
+
+Common choices for `f` are:
+ - `last`: use `x[k-width:k]` to estimate the indicator change at time step `k`.
+ - `midpoint`: use `x[k-width÷2:k+width÷2]` to estimate the indicator change
+at time step `k`.
+ - `first`: use `x[k:k+width]` to estimate the indicator change at time step `k`.
+
+Along with [`IndicatorsConfig`](@ref), `SignificanceConfig` is given to
+[`indicators_analysis`](@ref).
 
 `change_metrics` can be a single Julia function, in which case
 the same metric is applied over all indicators in [`IndicatorsConfig`](@ref).

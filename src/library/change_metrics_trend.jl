@@ -4,25 +4,32 @@
 using StatsBase: corkendall, corspearman
 
 """
-    kendalltau(x)
+    kendalltau(x::AbstractVector)
 
 Compute the kendall-τ correlation coefficient of the time series `x`.
 """
 kendalltau(x) = corkendall(1:length(x), x)
 
 """
-    spearman(x)
+    spearman(x::AbstractVector)
 
 Compute the spearman correlation coefficient of the time series `x`.
 """
 spearman(x) = corspearman(1:length(x), x)
 
 """
-    RidgeRegressionSlope(x::AbstractVector)
+    RidgeRegressionSlope(; lambda = 0.0)
 
-Returns the slope of the [ridge regression](https://en.wikipedia.org/wiki/Ridge_regression) of `x`.
+Return a [`PrecomputableFunction`](@ref) containing all the necessary fields to
+generate a [`PrecomputedRidgeRegressionSlope`](@ref). The latter can be
+initialized by [`precompute`](@ref):
 
-The computation is based on `lambda_ridge::Real`, a regularizing constant.
+```julia
+rr = precompute( RidgeRegressionSlope() )
+```
+
+Keyword arguments:
+ - `lambda`: a regularization constant, usually between `0` and `1`.
 """
 Base.@kwdef struct RidgeRegressionSlope <: PrecomputableFunction
     lambda::Real = 0.0
@@ -38,7 +45,12 @@ function precompute(rr::RidgeRegressionSlope, t::AbstractVector{T}) where {T<:Re
     return PrecomputedRidgeRegressionSlope(isequispaced(t), regression_matrix)
 end
 
-function (rr::PrecomputedRidgeRegressionSlope)(x::AbstractVector{T}) where {T<:Real}
+"""
+    PrecomputedRidgeRegressionSlope(x::AbstractVector)
+
+Return the slope of the [ridge regression](https://en.wikipedia.org/wiki/Ridge_regression) of `x`.
+"""
+function (rr::PrecomputedRidgeRegressionSlope)(x::AbstractVector{<:Real})
     if !(rr.equispaced)
         error("Time vector is not evenly spaced." * 
             "So far, the API is only designed for evenly spaced time series!")

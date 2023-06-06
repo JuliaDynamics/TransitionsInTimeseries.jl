@@ -8,6 +8,7 @@ load_linear_vs_doublewell()
 
 ## Indicators analysis
 ```@docs
+PrecomputableFunction
 precompute_metrics
 IndicatorsConfig
 SignificanceConfig
@@ -23,7 +24,9 @@ StatsBase.skewness
 StatsBase.kurtosis
 ar1_whitenoise
 LowfreqPowerSpectrum
-PermutationEntropy
+PrecomputedLowfreqPowerSpectrum
+PermutationEntropy()
+PermutationEntropy(::AbstractVector)
 ```
 
 ## Change metrics
@@ -31,6 +34,7 @@ PermutationEntropy
 kendalltau
 spearman
 RidgeRegressionSlope
+PrecomputedRidgeRegressionSlope
 ```
 
 ## Surrogates
