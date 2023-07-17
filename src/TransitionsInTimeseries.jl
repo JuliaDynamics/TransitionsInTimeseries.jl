@@ -38,8 +38,7 @@ export PrecomputableFunction, precompute_metrics, precompute
 export ar1_whitenoise
 export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis       # from StatsBase
-export PermutationEntropy
-export SymbolicPermutation, entropy_normalized  # from ComplexityMeasures
+export entropy, PermutationEntropy
 export kendalltau, spearman
 export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 

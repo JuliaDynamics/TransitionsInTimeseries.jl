@@ -2,6 +2,12 @@
 using Statistics: mean, var
 using StatsBase: skewness, kurtosis
 
+function PermutationEntropy(; m = 3, τ = 1)
+    est = SymbolicPermutation(; m, τ)
+    return x -> entropy_normalized(est, x)
+end
+
+
 """
     ar1_whitenoise(x::AbstractVector)
 
