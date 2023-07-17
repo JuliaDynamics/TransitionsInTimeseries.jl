@@ -1,18 +1,23 @@
+# TODO: Probably it makes sense to separate surrogate significance
+# from computing the change metric? In this way alternative ways for significance
+# can be created, such as exceeding a fixed value?
+
 """
     TransitionsSurrogatesConfig(t, indicators, change_metrics [, surrogate]; kwargs...)
 
 A configuration struct for TransitionsInTimeseries.jl that can be given to
-[`detect_transitions`](@ref). It contains all information necessary to perform the
+[`estimate_transitions`](@ref). It contains all information necessary to perform the
 basic [Workflow](@ref) of the package to detect significant transitions in the input
-timeseries, using the method of surrogate testing to quantify significance.
+timeseries, using the method of surrogate testing to quantify significance:
 
 2. Estimate the timeseries of an indicator by sliding a window over the input timeseries.
 3. Estimate changes for an indicator by sliding a window over its timeseries.
 4. Generate many surrogates that preserve important statistical properties of the original
    input timeseries.
 5. Perform steps 1 and 2 for the surrogate timeseries (and for all provided indicators).
-6. Detect when an indicators timeseries shows significant change (trend, jump or anything else)
+6. Estimate when an indicators timeseries shows significant change (trend, jump or anything else)
    when compared to the surrogate timeseries when compared to the surrogate data.
+   Significance is estimated from the p-values of the real data vs surrogate data.
 
 ## Arguments
 
@@ -42,13 +47,66 @@ for more information.
   to compute the indicator from the input timeseries.
 - `width_cha::Int, stride_cha::Int`: width and stride given to the [`WindowViewer`](@ref)
   to compute the change metric timeseries from the indicator timeseries.
+- `whichtime = midpoint`: The time vector corresponding to the indicators / change metric
+  timeseriesm is obtained from `t` using the keyword `whichtime`. Options include:
+    - `last`: use the last timepoint of each window
+    - `midpoint`: use the mid timepoint of each time window
+    - `first`: use first timepoint of each window
+  In fact, the indicators time vector is computed simply via
+  ```julia
+  t_indicator = windowmap(whichtime, t; width_ind, stride_ind)
+  t_change = windowmap(whichtime, t_indicator; width_cha, stride_cha)
+  ```
+  so any other function of the time window may be given to extract the time point itself,
+  such as `mean` or `median`.
 
 - `n_surrogates::Int = 10_000`: how many surrogates to create.
 - `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
-
 - `tail::Symbol = :both`: kind of tail test to do (one of `:left, :right, :both`) when
   estimating the p-value from the distribution of surrogate data.
+
 """
+struct TransitionsSurrogatesConfig{T<:AbstractVector{<:Real}, F<:Function, G<:Function, S<:Surrogate, W<:Function}
+    t::T
+    indicators::Vector{F}
+    change_metrics::Vector{G}
+    surrogate::S
+    width_ind::Int
+    stride_ind::Int
+    width_cha::Int
+    stride_cha::Int
+    whichtime::W
+    n_surrogates::Int
+    tail::Symbol
+end
+
+function TransitionsSurrogatesConfig(
+        t, indicators, change_metrics, surrogate = RandomFourier();
+        width_ind = default_window_width(t),
+        stride_ind = DEFAULT_WINDOW_STRIDE,
+        width_cha = default_window_width(view(t, 1:width_ind)),
+        stride_cha = DEFAULT_WINDOW_STRIDE,
+        whichtime =  midpoint,
+        tail = :both,
+    )
+    # Sanity checks
+    if !(indicators <: AbstractVector)
+        indicators = [indicators]
+    end
+    if !(change_metrics <: AbstractVector)
+        change_metrics = [change_metrics]
+    end
+    L = length(indicators)
+    if length(change_metrics) ∉ (1, L)
+        throw(ArgumentError("The amount of change metrics must be as many as the indicators, or only 1."))
+    end
+
+    return TransitionsSurrogatesConfig(
+        t, indicators, change_metrics, surrogate,
+        width_ind, stride_ind, width_cha, stride_cha, whichtime, n_surrogates, tail
+    )
+end
+
 
 
 
