@@ -13,18 +13,13 @@ function estimate_transitions(x, config::TransitionsSurrogatesConfig)
 end
 
 function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogatesConfig)
-    X = eltype(x)
-    if length(config.change_metrics) == n_ind
-        one2one = true
-    elseif length(config.change_metrics) == 1
-        one2one = false
-    end
     # initialize time vectors
-    t_indicator = windowmap(config.whichtime, t; config.width_ind, config.stride_ind)
-    t_change = windowmap(config.whichtime, t_indicator; config.width_cha, config.stride_cha)
+    t_indicator = windowmap(config.whichtime, t; width = config.width_ind, stride = config.stride_ind)
+    t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha, stride = config.stride_cha)
     len_ind = length(t_indicator)
     len_change = length(t_change)
     # initialize array containers
+    X = eltype(x)
     n_ind = length(config.indicators)
     x_indicator = zeros(X, len_ind, n_ind)
     x_change = zeros(X, len_change, n_ind) # same size, no matter how many change metrics
@@ -36,7 +31,7 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     end
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
-    sgen = surrogenerator(x, config.surrogate_method, config.rng)
+    sgen = surrogenerator(x, config.surrogate, config.rng)
 
     # TODO: Impose function barrier here!
     # TODO: the way we obtain the change metric is type unstable!
@@ -45,6 +40,11 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     # This also helps with doing optimizations for GPU!
 
     # Actual computations
+    if length(config.change_metrics) == n_ind
+        one2one = true
+    elseif length(config.change_metrics) == 1
+        one2one = false
+    end
     @inbounds for i in 1:n_ind # loop over indicators / change metrics
         indicator::Function = config.indicators[i]
         i_metric = one2one ? i : 1
@@ -88,9 +88,9 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     # put everything together in the output type
     return IndicatorsResults(
         t, x,
-        indconfig.indicators, t_indicator, x_indicator,
+        config.indicators, t_indicator, x_indicator,
         config.change_metrics, t_change, x_change, pval,
-        config.surrogate_method,
+        config.surrogate,
     )
 end
 

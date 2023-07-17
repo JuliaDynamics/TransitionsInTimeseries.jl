@@ -92,14 +92,15 @@ function TransitionsSurrogatesConfig(
         stride_cha = 1,
         whichtime =  midpoint,
         tail = :both,
+        n_surrogates = 10_000,
         rng = Random.default_rng(),
         T = Float64,
     )
     # Sanity checks
-    if !(indicators <: AbstractVector)
+    if !(indicators isa AbstractVector)
         indicators = [indicators]
     end
-    if !(change_metrics <: AbstractVector)
+    if !(change_metrics isa AbstractVector)
         change_metrics = [change_metrics]
     end
     L = length(indicators)
@@ -107,12 +108,12 @@ function TransitionsSurrogatesConfig(
         throw(ArgumentError("The amount of change metrics must be as many as the indicators, or only 1."))
     end
     # Last step: precomputable functions
-    indicators = precompute_metrics(indicators, ones(T, width_ind))
-    change_metrics = precompute_metrics(change_metrics, ones(T, width_cha))
+    indicators = precompute_metrics(indicators, 1:T(width_ind))
+    change_metrics = precompute_metrics(change_metrics, 1:T(width_cha))
 
     return TransitionsSurrogatesConfig(
         indicators, change_metrics, surrogate,
-        width_ind, stride_ind, width_cha, stride_cha, whichtime, n_surrogates, tail, rng
+        width_ind, stride_ind, width_cha, stride_cha, whichtime, n_surrogates, rng, tail,
     )
 end
 
