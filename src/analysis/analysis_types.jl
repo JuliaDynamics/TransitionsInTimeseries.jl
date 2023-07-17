@@ -1,26 +1,33 @@
 """
-    IndicatorsConfig(t::AbstractVector, f::Function, indicators...; kwargs...)
+    IndicatorsConfig(t::AbstractVector, indicators::Vector{<:Function}; kwargs...)
+    IndicatorsConfig(t::AbstractVector, indicators...; kwargs...)
 
-A configuration for computing indicators from timeseries with time `t`.
+A configuration for computing indicators from a timeseries with time `t`.
 Indicators are standard Julia functions that input an `::AbstractVector` and output
-a `::Real`. Any number of indicators can be given. Indicators typically used in
+a `::Real`. Any number of indicators can be given, either as a vector or as
+variable arguments. Some indicators typically used in
 the literature are listed in the documentation section [Indicators](@ref).
 
-Keywords are propagated into [`WindowViewer`](@ref) to create a sliding window
-for estimating the indicators. The time vector resulting from the sliding window
-is obtained under the hood by:
+this configuration with [`SignificanceConfig`](@ref) this configuration is given to
+[`indicators_analysis`](@ref) for the main processing of TransitionsInTimeseries.jl.
+
+The keywords `width, stride` are propagated into [`WindowViewer`](@ref) to create a
+sliding window for estimating the indicators.
+The time vector corresponding to the indicators timeseries
+is obtained from `t` using the keyword `whichtime`. Options include:
+
+- `last`: use the last timepoint of each window
+- `midpoint`: use the mid timepoint of each time window
+- `first`: use first timepoint of each window
+
+In fact, the indicators time vector is computed simply via
 ```julia
-t_indicator = windowmap(f, t, kwargs...)
+t_indicator = windowmap(whichtime, t; width, stride)
 ```
-
-Common choices for `f` are:
- - `last`: use `x[k-width:k]` to estimate the indicator at time step `k`.
- - `midpoint`: use `x[k-width÷2:k+width÷2]` to estimate the indicator at time step `k`.
- - `first`: use `x[k:k+width]` to estimate the indicator at time step `k`.
-
-Along with [`SignificanceConfig`](@ref) it is given to [`indicators_analysis`](@ref).
+so any other function of the timewindow may be given to extract the time point itself,
+such as `mean`.
 """
-struct IndicatorsConfig{F<:Function}
+struct IndicatorsConfig{F}
     t_indicator::AbstractVector
     indicators::Vector{F}
     width::Int
@@ -28,19 +35,18 @@ struct IndicatorsConfig{F<:Function}
 end
 
 function IndicatorsConfig(
-    t::AbstractVector,
-    f_windowmaptime::Function,
-    indicators::Vector;
-    width = default_window_width(t),
-    stride = DEFAULT_WINDOW_STRIDE,
-)
+        t::AbstractVector,
+        indicators::Vector;
+        width = default_window_width(t),
+        stride = DEFAULT_WINDOW_STRIDE,
+        whichtime =  midpoint,
+    )
     indicators = precompute_metrics(indicators, t[1:width])
-    t_indicator = windowmap(f_windowmaptime, t; width = width, stride = stride)
+    t_indicator = windowmap(whichtime, t; width = width, stride = stride)
     return IndicatorsConfig(t_indicator, indicators, width, stride)
 end
 
-function IndicatorsConfig(t::AbstractVector, f_windowmaptime::Function,
-    f::Vararg{Function}; kwargs...)
+function IndicatorsConfig(t::AbstractVector, f::Vararg; kwargs...)
     return IndicatorsConfig(t, f_windowmaptime, collect(f), kwargs...)
 end
 
