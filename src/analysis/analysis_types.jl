@@ -67,6 +67,8 @@ for more information.
 - `tail::Symbol = :both`: kind of tail test to do (one of `:left, :right, :both`) when
   estimating the p-value from the distribution of surrogate data.
 
+- `T = Float64`: Element type of input timeseries to initialize some computations.
+
 """
 struct TransitionsSurrogatesConfig{F<:Function, G<:Function, S<:Surrogate, W<:Function, R<:AbstractRNG}
     indicators::Vector{F}
@@ -83,14 +85,15 @@ struct TransitionsSurrogatesConfig{F<:Function, G<:Function, S<:Surrogate, W<:Fu
 end
 
 function TransitionsSurrogatesConfig(
-        t, indicators, change_metrics, surrogate = RandomFourier();
+        indicators, change_metrics, surrogate = RandomFourier();
         width_ind = 100,
         stride_ind = 1,
         width_cha = 50,
         stride_cha = 1,
         whichtime =  midpoint,
         tail = :both,
-        rng = Random.default_rng()
+        rng = Random.default_rng(),
+        T = Float64,
     )
     # Sanity checks
     if !(indicators <: AbstractVector)
@@ -103,6 +106,9 @@ function TransitionsSurrogatesConfig(
     if length(change_metrics) ∉ (1, L)
         throw(ArgumentError("The amount of change metrics must be as many as the indicators, or only 1."))
     end
+    # Last step: precomputable functions
+    indicators = precompute_metrics(indicators, ones(T, width_ind))
+    change_metrics = precompute_metrics(change_metrics, ones(T, width_cha))
 
     return TransitionsSurrogatesConfig(
         indicators, change_metrics, surrogate,
