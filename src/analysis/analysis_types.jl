@@ -1,4 +1,58 @@
 """
+    TransitionsSurrogatesConfig(t, indicators, change_metrics [, surrogate]; kwargs...)
+
+A configuration struct for TransitionsInTimeseries.jl that can be given to
+[`detect_transitions`](@ref). It contains all information necessary to perform the
+basic [Workflow](@ref) of the package to detect significant transitions in the input
+timeseries, using the method of surrogate testing to quantify significance.
+
+2. Estimate the timeseries of an indicator by sliding a window over the input timeseries.
+3. Estimate changes for an indicator by sliding a window over its timeseries.
+4. Generate many surrogates that preserve important statistical properties of the original
+   input timeseries.
+5. Perform steps 1 and 2 for the surrogate timeseries (and for all provided indicators).
+6. Detect when an indicators timeseries shows significant change (trend, jump or anything else)
+   when compared to the surrogate timeseries when compared to the surrogate data.
+
+## Arguments
+
+- `t::AbstractVector{<:Real}` the time vector associated with the input timeseries.
+- `indicators::AbstractVector{<:Function}` a vector of indicators.
+  Some indicators typically used in
+  the literature are listed in the documentation section on [indicators](@ref indicators).
+  The analysis is performed efficiently for all indicators given.
+- `change_metrics` change metrics corresponding to the given indicators. If given
+  a function, the same function is used for all indicators. Otherwise, it should be
+  a vetor of functions of the same size as `indicators`.
+  Special input for `change_metrics` is `identity` TODO:.
+  Some change metrics typically used in
+  the literature are listed in the documentation section on [change metrics](@ref change_metrics).
+- `surrogate::Surrogate` the method to use to generate surrogates of the input timeseries.
+  This is an optional argument that defaults to `RandomFourier()`, see [Surrogates](@ref)
+  for alternative options.
+
+Both indicators and change metrics are generic Julia functions that input an
+`x::AbstractVector` and output an `s::Real`. Any appropriate function may be given and
+see [making custom indicators/change metrics](@ref own_indicator) in the documentation
+for more information.
+
+## Keyword arguments
+
+- `width_ind::Int, stride_ind::Int`: width and stride given to the [`WindowViewer`](@ref)
+  to compute the indicator from the input timeseries.
+- `width_cha::Int, stride_cha::Int`: width and stride given to the [`WindowViewer`](@ref)
+  to compute the change metric timeseries from the indicator timeseries.
+
+- `n_surrogates::Int = 10_000`: how many surrogates to create.
+- `rng::AbstractRNG = Random`.default_rng()`: a random number generator for the surrogates.
+
+- `tail::Symbol = :both`: kind of tail test to do (one of `:left, :right, :both`) when
+  estimating the p-value from the distribution of surrogate data.
+"""
+
+
+
+"""
     IndicatorsConfig(t::AbstractVector, indicators::Vector{<:Function}; kwargs...)
     IndicatorsConfig(t::AbstractVector, indicators...; kwargs...)
 
@@ -25,9 +79,9 @@ In fact, the indicators time vector is computed simply via
 t_indicator = windowmap(whichtime, t; width, stride)
 ```
 so any other function of the timewindow may be given to extract the time point itself,
-such as `mean`.
+such as `mean` or `median`.
 """
-struct IndicatorsConfig{F}
+struct IndicatorsConfig{F<:Function}
     t_indicator::AbstractVector
     indicators::Vector{F}
     width::Int

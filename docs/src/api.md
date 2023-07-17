@@ -11,7 +11,7 @@ PrecomputableFunction
 precompute_metrics
 ```
 
-## [Indicators](@id Indicators)
+## [Indicators](@id indicators)
 
 ### Value distribution
 
@@ -51,7 +51,7 @@ PermutationEntropy
 entropy
 ```
 
-## Change metrics
+## [Change metrics](@id change_metrics)
 
 ### Slope
 
@@ -67,7 +67,7 @@ PrecomputedRidgeRegressionSlope
 ```@docs
 ```
 
-## Make your own indicator/metric!
+## [Make your own indicator/metric!](@id own_indicator)
 
 The only difference between what is an "indicator" and what is a "change metric" is purely conceptual. As far as the code base of TransitionsInTimeseries.jl is concerned, they are both functions `f: x::AbstractVector{Real} -> f(x)::Real`. As a user you may give any such function for an indicator or change metric.
 
