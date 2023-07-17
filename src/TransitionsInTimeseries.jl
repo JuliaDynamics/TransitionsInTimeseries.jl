@@ -52,6 +52,8 @@ export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 
 # analysis
 export TransitionsSurrogatesConfig, estimate_transitions
+export transition_flags
+
 export IndicatorsConfig, SignificanceConfig, IndicatorsResults
 export indicators_analysis, indicators_significance
 

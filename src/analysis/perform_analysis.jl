@@ -100,22 +100,21 @@ function indicator_metric_surrogates_loop!()
 end
 
 """
+    transition_flags(results::IndicatorsResults, p_threshold::Real) → flags
 
-    transition_flags(results::IndicatorsResults, p_threshold::Real)
-
-Return `tflags_indicators::Vector{Vector}` and `tflags_andicators::Vector`.
-The former contains the time steps at which the p-value of an indicator change is
-below `p_threshold` (further called flags). The flags of the `i`-th indicator can
-be obtained by calling tflags_indicators[i]. The latter contains the time steps
-when all p-values of all computed indicator changes are synchronously below `p_threshold`.
+Return `flags::Matrix{Bool}`, which is an `n × (c+1)` sized matrix.
+Each column `flags[:, c]` is the timeseries of boolean flags that correspond
+to a p-value below the threshold `p` for each change metric timeseries.
+There are `c` change metric timeseries in total, but the `c+1`-th column
+of `flags` is simply the Boolean addition of all previous columns
+(i.e., time points where _all_ indicators pass the significance).
 """
-function transition_flags(results::IndicatorsResults, p_threshold::Real)
-    if p_threshold >= 1 || p_threshold <= 0
+function transition_flags(results::IndicatorsResults, p::Real)
+    if p >= 1 || p <= 0
         error("Threshold must be a value between 0 and 1.")
     end
-
-    thresholded_p = results.pval .< threshold
-    tflags_indicators = [t[thresholded_p[:, j]] for j in axes(thresholded_p, 2)]
-    tflags_andicators = results.t_change[reduce(&, thresholded_p, dims=2)]
-    return tflags_indicators, tflags_andicators
+    thresholded_p = results.pvalues .< p
+    lastcol = reduce(&, thresholded_p; dims = 2)
+    flags = hcat(thresholded_p, lastcol)
+    return flags
 end
