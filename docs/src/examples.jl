@@ -47,6 +47,4 @@ lines(x)
 # end
 
 # Now, let's compute and plot various statistical indicators and
-
-#
-
+indicator = PermutationEntropy()

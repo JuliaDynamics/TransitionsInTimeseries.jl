@@ -1,27 +1,3 @@
-# Indicators already in other packages are re-exported
-using Statistics: mean, var
-using StatsBase: skewness, kurtosis
-
-function PermutationEntropy(; m = 3, τ = 1)
-    est = SymbolicPermutation(; m, τ)
-    return x -> entropy_normalized(est, x)
-end
-
-
-"""
-    ar1_whitenoise(x::AbstractVector)
-
-Return the AR1 regression coefficient `θ` of a time series `x`.
-Computation based on the analytic solution of the least-square parameter estimation:
-
-```math
-    \\hat{\\theta} = \\dfrac{\\sum_{i=2}^{n} x_i \\, x_{i-1}}{\\sum_{i=2}^{n} x_{i-1}^2}
-```
-"""
-function ar1_whitenoise(x::AbstractVector{<:Real})
-    n = length(x)
-    return (view(x, 2:n)' * view(x, 1:n-1)) / (view(x, 1:n-1)' * view(x, 1:n-1))
-end
 
 """
     LowfreqPowerSpectrum(; q_lofreq = 0.1)
@@ -72,24 +48,4 @@ lfps(x)
 function (lfps::PrecomputedLowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
     return sum(view(ps, 1:lfps.i_lofreq)) / sum(view(ps, 1:lfps.i_pos))
-end
-
-"""
-    PermutationEntropy(; probest = SymbolicPermutation(m = 3))
-
-Initialize a the computation of permutation entropy with a `SymbolicPermutation`.
-"""
-Base.@kwdef struct PermutationEntropy{S<:SymbolicPermutation} <: Function
-    probest::S = SymbolicPermutation(m = 3)
-end
-PermutationEntropy(m::Int) = PermutationEntropy( SymbolicPermutation(m = m) )
-
-"""
-    PermutationEntropy(x::AbstractVector)
-
-Return the permutation entropy of `x`. This computation breaks down in computing
-the [`entropy_normalized`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/entropies/#ComplexityMeasures.entropy_normalized) of a [`SymbolicPermutation`](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/probabilities/#ComplexityMeasures.SymbolicPermutation).
-"""
-function (perment::PermutationEntropy)(x::AbstractVector)
-    return entropy_normalized(perment.probest, x)
 end
