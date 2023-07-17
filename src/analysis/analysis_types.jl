@@ -2,8 +2,12 @@
 # from computing the change metric? In this way alternative ways for significance
 # can be created, such as exceeding a fixed value?
 
+# In this way, we have one step that "calculates change metrics",
+# and one step that "quantifies significance in change metrics".
+# Does this tie in well with ChangePoints.jl?
+
 """
-    TransitionsSurrogatesConfig(t, indicators, change_metrics [, surrogate]; kwargs...)
+    TransitionsSurrogatesConfig(indicators, change_metrics [, surrogate]; kwargs...)
 
 A configuration struct for TransitionsInTimeseries.jl that can be given to
 [`estimate_transitions`](@ref). It contains all information necessary to perform the
@@ -21,16 +25,14 @@ timeseries, using the method of surrogate testing to quantify significance:
 
 ## Arguments
 
-- `t::AbstractVector{<:Real}` the time vector associated with the input timeseries.
 - `indicators::AbstractVector{<:Function}` a vector of indicators.
   Some indicators typically used in
   the literature are listed in the documentation section on [indicators](@ref indicators).
   The analysis is performed efficiently for all indicators given.
 - `change_metrics` change metrics corresponding to the given indicators. If given
   a function, the same function is used for all indicators. Otherwise, it should be
-  a vetor of functions of the same size as `indicators`.
-  Special input for `change_metrics` is `identity` TODO:.
-  Some change metrics typically used in
+  a vetor of functions of the same size as `indicators`, using change metric for its
+  corresponding indicator. Some change metrics typically used in
   the literature are listed in the documentation section on [change metrics](@ref change_metrics).
 - `surrogate::Surrogate` the method to use to generate surrogates of the input timeseries.
   This is an optional argument that defaults to `RandomFourier()`, see [Surrogates](@ref)
@@ -43,9 +45,9 @@ for more information.
 
 ## Keyword arguments
 
-- `width_ind::Int, stride_ind::Int`: width and stride given to the [`WindowViewer`](@ref)
+- `width_ind::Int=100, stride_ind::Int=1`: width and stride given to the [`WindowViewer`](@ref)
   to compute the indicator from the input timeseries.
-- `width_cha::Int, stride_cha::Int`: width and stride given to the [`WindowViewer`](@ref)
+- `width_cha::Int=50, stride_cha::Int=1`: width and stride given to the [`WindowViewer`](@ref)
   to compute the change metric timeseries from the indicator timeseries.
 - `whichtime = midpoint`: The time vector corresponding to the indicators / change metric
   timeseriesm is obtained from `t` using the keyword `whichtime`. Options include:
@@ -66,8 +68,7 @@ for more information.
   estimating the p-value from the distribution of surrogate data.
 
 """
-struct TransitionsSurrogatesConfig{T<:AbstractVector{<:Real}, F<:Function, G<:Function, S<:Surrogate, W<:Function}
-    t::T
+struct TransitionsSurrogatesConfig{F<:Function, G<:Function, S<:Surrogate, W<:Function, R<:AbstractRNG}
     indicators::Vector{F}
     change_metrics::Vector{G}
     surrogate::S
@@ -77,17 +78,19 @@ struct TransitionsSurrogatesConfig{T<:AbstractVector{<:Real}, F<:Function, G<:Fu
     stride_cha::Int
     whichtime::W
     n_surrogates::Int
+    rng::R
     tail::Symbol
 end
 
 function TransitionsSurrogatesConfig(
         t, indicators, change_metrics, surrogate = RandomFourier();
-        width_ind = default_window_width(t),
-        stride_ind = DEFAULT_WINDOW_STRIDE,
-        width_cha = default_window_width(view(t, 1:width_ind)),
-        stride_cha = DEFAULT_WINDOW_STRIDE,
+        width_ind = 100,
+        stride_ind = 1,
+        width_cha = 50,
+        stride_cha = 1,
         whichtime =  midpoint,
         tail = :both,
+        rng = Random.default_rng()
     )
     # Sanity checks
     if !(indicators <: AbstractVector)
@@ -102,13 +105,13 @@ function TransitionsSurrogatesConfig(
     end
 
     return TransitionsSurrogatesConfig(
-        t, indicators, change_metrics, surrogate,
-        width_ind, stride_ind, width_cha, stride_cha, whichtime, n_surrogates, tail
+        indicators, change_metrics, surrogate,
+        width_ind, stride_ind, width_cha, stride_cha, whichtime, n_surrogates, tail, rng
     )
 end
 
 
-
+# %% OLD STUFF:
 
 """
     IndicatorsConfig(t::AbstractVector, indicators::Vector{<:Function}; kwargs...)

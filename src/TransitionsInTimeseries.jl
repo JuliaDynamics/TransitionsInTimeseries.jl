@@ -51,6 +51,7 @@ export kendalltau, spearman
 export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 
 # analysis
+export TransitionsSurrogatesConfig
 export IndicatorsConfig, SignificanceConfig, IndicatorsResults
 export indicators_analysis, indicators_significance
 
