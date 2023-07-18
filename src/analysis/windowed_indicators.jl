@@ -89,7 +89,7 @@ as described by `config`:
 
 If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
 
-Return the output as [`WindowedResults`](@ref) which can be given to
+Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
@@ -127,14 +127,14 @@ function estimate_transitions(config::TransitionsSurrogatesConfig, x, t = eachin
     end
 
     # put everything together in the output type
-    return WindowedResults(
+    return WindowedIndicatorResults(
         t, x, t_indicator, x_indicator, t_change, x_change, config
     )
 end
 
 
 """
-    WindowedResults
+    WindowedIndicatorResults
 
 A struct containing the output of [`estimate_transitions`](@ref) used with
 [`WindowedIndicatorMetrics`](@ref).
@@ -164,8 +164,8 @@ struct TransitionsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
     wim::W
 end
 
-function Base.show(io::IO, ::MIME"text/plain", res::WindowedResults)
-    println(io, "WindowedResults")
+function Base.show(io::IO, ::MIME"text/plain", res::WindowedIndicatorResults)
+    println(io, "WindowedIndicatorResults")
     descriptors = [
         "input timeseries" => summary(res.x),
         "indicators" => [nameof(i) for i in res.wim.indicators],
