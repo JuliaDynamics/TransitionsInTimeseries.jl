@@ -3,10 +3,16 @@
 ## Main analysis functions
 
 ```@docs
-TransitionsSurrogatesConfig
+WindowedIndicatorConfig
 estimate_transitions
-TransitionsResults
-transition_flags
+WindowedIndicatorResults
+```
+
+## Significance testing
+
+```@docs
+SurrogatesSignificance
+significant_transitions
 ```
 
 ## [Indicators](@id indicators)
@@ -30,7 +36,6 @@ ar1_whitenoise
 
 ```@docs
 LowfreqPowerSpectrum
-PrecomputedLowfreqPowerSpectrum
 ```
 
 ### Nonlinear dynamics
@@ -38,14 +43,14 @@ PrecomputedLowfreqPowerSpectrum
 Indicators that come from nonlinear timeseries analysis and quantify some entropy-based dynamic quantity in the timeseries. They are provided by the [ComplexityMeasures.jl](https://juliadynamics.github.io/ComplexityMeasures.jl/stable/) package, that lists 100s of possible such indicators. Here we only provide an indicator out of the box for the permutation entropy, but
 building something similar is trivial:
 ```julia
-function PermutationEntropy(; m = 3, τ = 1)
+function permutation_entropy(; m = 3, τ = 1)
     est = SymbolicPermutation(; m, τ)
     return x -> entropy_normalized(est, x)
 end
 ```
 
 ```@docs
-PermutationEntropy
+permutation_entropy
 entropy
 ```
 
@@ -57,12 +62,12 @@ entropy
 kendalltau
 spearman
 RidgeRegressionSlope
-PrecomputedRidgeRegressionSlope
 ```
 
-### Difference in value distribution
+### Value distribution differences
 
 ```@docs
+difference_of_means
 ```
 
 ## [Make your own indicator/metric!](@id own_indicator)

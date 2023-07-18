@@ -22,8 +22,7 @@ include("misc/params.jl")
 include("misc/windowing.jl")
 include("misc/timeseries.jl")
 include("misc/load_data.jl")
-
-include("library/precomputation.jl")
+include("misc/precomputation.jl")
 
 include("indicators/critical_slowing_down.jl")
 include("indicators/distribution_distance.jl")
@@ -31,28 +30,28 @@ include("indicators/nlts.jl")
 include("indicators/spectral.jl")
 include("indicators/statistics.jl")
 
+include("change_metrics/slope.jl")
+include("change_metrics/valuediff.jl")
 
-include("library/change_metrics_trend.jl")
-
-
-include("analysis/analysis_types.jl")
-include("analysis/perform_analysis.jl")
+include("analysis/windowed_indicators.jl")
+include("analysis/surrogates_significance.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 
 # library
-export PrecomputableFunction, precompute_metrics, precompute
+export PrecomputableFunction, precompute
 export ar1_whitenoise
 export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
-export mean, std, var, skewness, kurtosis       # from StatsBase
-export entropy, PermutationEntropy
+export mean, std, var, skewness, kurtosis # from StatsBase
+export permutation_entropy
 export kendalltau, spearman
 export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
+export difference_of_means
 
 # analysis
-export TransitionsSurrogatesConfig, estimate_transitions
-export transition_flags
+export WindowedIndicatorConfig, estimate_transitions, WindowedIndicatorResults
+export TransitionsSignificance, SurrogatesSignificance, significant_transitions
 
 # timeseries
 export isequispaced, equispaced_step

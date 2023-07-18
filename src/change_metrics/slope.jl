@@ -7,6 +7,7 @@ using StatsBase: corkendall, corspearman
     kendalltau(x::AbstractVector)
 
 Compute the kendall-τ correlation coefficient of the time series `x`.
+`kendalltau` can be used as a change metric focused on trend.
 """
 kendalltau(x) = corkendall(1:length(x), x)
 
@@ -14,22 +15,18 @@ kendalltau(x) = corkendall(1:length(x), x)
     spearman(x::AbstractVector)
 
 Compute the spearman correlation coefficient of the time series `x`.
+`spearman` can be used as a change metric focused on trend.
 """
 spearman(x) = corspearman(1:length(x), x)
 
 """
-    RidgeRegressionSlope(; lambda = 0.0)
+    RidgeRegressionSlope(; lambda = 0.0) → rr
 
 Return a [`PrecomputableFunction`](@ref) containing all the necessary fields to
-generate a [`PrecomputedRidgeRegressionSlope`](@ref). The latter can be
-initialized by [`precompute`](@ref):
+generate a [`PrecomputedRidgeRegressionSlope`](@ref).
+`rr` can be used as a change metric focused on trend.
 
-```julia
-rr = precompute(RidgeRegressionSlope(), x)
-```
-
-Keyword arguments:
- - `lambda`: a regularization constant, usually between `0` and `1`.
+`lambda` is a regularization constant, usually between `0` and `1`.
 """
 Base.@kwdef struct RidgeRegressionSlope <: PrecomputableFunction
     lambda::Real = 0.0

@@ -64,8 +64,10 @@ function windowmap!(f::F, out::AbstractVector, x::AbstractVector; kwargs...) whe
     wv = WindowViewer(x; kwargs...)
     X = eltype(out)
     if length(out) != length(wv)
-        println(length(out), "  ", length(wv))
-        error("Allocated output doesn't match size of window viewer.")
+        throw(ArgumentError(
+            "Allocated output doesn't match size of window viewer, "*
+            "got $(length(out)) instead of $(length(wv))."
+        ))
     end
     @inbounds for (i, v) in enumerate(wv)
         val::X = f(v)
