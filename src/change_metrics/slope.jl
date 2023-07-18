@@ -7,7 +7,7 @@ using StatsBase: corkendall, corspearman
     kendalltau(x::AbstractVector)
 
 Compute the kendall-τ correlation coefficient of the time series `x`.
-`kendalltau` can be used as a change metric focused on slope.
+`kendalltau` can be used as a change metric focused on trend.
 """
 kendalltau(x) = corkendall(1:length(x), x)
 
@@ -15,7 +15,7 @@ kendalltau(x) = corkendall(1:length(x), x)
     spearman(x::AbstractVector)
 
 Compute the spearman correlation coefficient of the time series `x`.
-`spearman` can be used as a change metric focused on slope.
+`spearman` can be used as a change metric focused on trend.
 """
 spearman(x) = corspearman(1:length(x), x)
 
@@ -24,7 +24,7 @@ spearman(x) = corspearman(1:length(x), x)
 
 Return a [`PrecomputableFunction`](@ref) containing all the necessary fields to
 generate a [`PrecomputedRidgeRegressionSlope`](@ref).
-`rr` can be used as a change metric focused on slope.
+`rr` can be used as a change metric focused on trend.
 
 `lambda` is a regularization constant, usually between `0` and `1`.
 """

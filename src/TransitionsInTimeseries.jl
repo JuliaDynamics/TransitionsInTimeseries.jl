@@ -40,13 +40,14 @@ include("analysis/perform_analysis.jl")
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 
 # library
-export PrecomputableFunction, precompute_metrics, precompute
+export PrecomputableFunction, precompute
 export ar1_whitenoise
 export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis       # from StatsBase
 export entropy, PermutationEntropy
 export kendalltau, spearman
 export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
+export difference_of_means
 
 # analysis
 export TransitionsSurrogatesConfig, estimate_transitions

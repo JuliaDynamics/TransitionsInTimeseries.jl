@@ -59,9 +59,10 @@ spearman
 RidgeRegressionSlope
 ```
 
-### Differences between value distributions
+### Value distribution differences
 
 ```@docs
+difference_of_means
 ```
 
 ## [Make your own indicator/metric!](@id own_indicator)
