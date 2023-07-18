@@ -89,7 +89,7 @@ as described by `config`:
 
 If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
 
-Return the output as [`TransitionsResults`](@ref) which can be given to
+Return the output as [`WindowedResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
@@ -110,7 +110,7 @@ function estimate_transitions(config::TransitionsSurrogatesConfig, x, t = eachin
     X = eltype(x)
     n_ind = length(indicators)
     x_indicator = zeros(X, len_ind, n_ind)
-    x_change = zeros(X, len_change, n_ind) # same size, no matter how many change metrics
+    x_change = zeros(X, len_change, n_ind)
     one2one = length(change_metrics) == length(indicators)
 
     # Loop over indicators
@@ -119,16 +119,16 @@ function estimate_transitions(config::TransitionsSurrogatesConfig, x, t = eachin
         chametric = one2one ? change_metrics[1] : change_metrics[i]
         z = view(x_indicator, :, i)
         windowmap!(indicator, z, x;
-        width = config.width_ind, stride = config.stride_ind)
+            width = config.width_ind, stride = config.stride_ind
+        )
         windowmap!(chametric, view(x_change, :, i), z;
-        width = config.width_cha, stride = config.stride_cha)
+            width = config.width_cha, stride = config.stride_cha
+        )
     end
 
     # put everything together in the output type
     return WindowedResults(
-        t, x,
-        config.indicators, t_indicator, x_indicator,
-        config.change_metrics, t_change, x_change
+        t, x, t_indicator, x_indicator, t_change, x_change, config
     )
 end
 
@@ -136,9 +136,10 @@ end
 """
     WindowedResults
 
-A struct containing the output of [`estimate_transitions`](@ref).
+A struct containing the output of [`estimate_transitions`](@ref) used with
+[`WindowedIndicatorMetrics`](@ref).
 It can be used for further analysis, visualization,
-or further given to [`significant_transitions`](@ref).
+or given to [`significant_transitions`](@ref).
 
 It has the following fields that the user may access
 
@@ -153,28 +154,26 @@ It has the following fields that the user may access
 - `x_change`, the change metric timeseries (matrix with each column one change metric).
 - `t_change`, the time vector of the change metric timeseries.
 """
-struct TransitionsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-        F<:Function, Z<:Function}
+struct TransitionsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
-
-    indicators::Vector{F}
     t_indicator::Vector{T}
     x_indicator::Matrix{X}
-
-    change_metrics::Vector{Z}
     t_change::Vector{T}
     x_change::Matrix{X}
+    wim::W
 end
 
 function Base.show(io::IO, ::MIME"text/plain", res::WindowedResults)
     println(io, "WindowedResults")
     descriptors = [
         "input timeseries" => summary(res.x),
-        "indicators" => [nameof(i) for i in res.indicators],
-        "change metrics" => [nameof(c) for c in res.change_metrics],
+        "indicators" => [nameof(i) for i in res.wim.indicators],
+        "indicator (window, stride)" => (res.wim.width_ind, res.wim.stride_ind),
+        "change metrics" => [nameof(c) for c in res.wim.change_metrics],
+        "change metric (window, stride)" => (res.wim.width_cha, res.wim.stride_cha),
     ]
-    padlen = maximum(length(d[1]) for d in descriptors) + 3
+    padlen = maximum(length(d[1]) for d in descriptors) + 2
     for (desc, val) in descriptors
         println(io, rpad(" $(desc): ", padlen), val)
     end
