@@ -3,12 +3,10 @@
 ## Main analysis functions
 
 ```@docs
-IndicatorsConfig
-SignificanceConfig
-indicators_analysis
-IndicatorsResults
-PrecomputableFunction
-precompute_metrics
+TransitionsSurrogatesConfig
+estimate_transitions
+TransitionsResults
+transition_flags
 ```
 
 ## [Indicators](@id indicators)
@@ -73,8 +71,13 @@ The only difference between what is an "indicator" and what is a "change metric"
 
 There are situations where you may optimize such a function based on knowledge of input `x` type and length.
 
-# TODO: Here explain how to use precomputable functions
+TODO: Here explain how to use precomputable functions
 
+
+```@docs
+PrecomputableFunction
+precompute
+```
 
 ## Surrogates
 

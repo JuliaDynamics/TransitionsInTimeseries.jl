@@ -120,7 +120,7 @@ end
 
 
 """
-    IndicatorsResults
+    TransitionsResults
 
 A struct containing the output of [`estimate_transitions`](@ref), which is
 the main computational part of TransitionsInTimeseries.jl.
@@ -142,7 +142,7 @@ It has the following fields that the user may access
   It is a 2-dimensional array, where first dimension = time, second dimension = change
   metric. I.e. `pval[:, k]` will give the timeseries of p-value of the `k`-th change metric.
 """
-struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+struct TransitionsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
         F<:Function, Z<:Function, S<:Surrogate}
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
@@ -158,8 +158,8 @@ struct IndicatorsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     surrogate_method::S
 end
 
-function Base.show(io::IO, ::MIME"text/plain", res::IndicatorsResults)
-    println(io, "IndicatorsResults")
+function Base.show(io::IO, ::MIME"text/plain", res::TransitionsResults)
+    println(io, "TransitionsResults")
     descriptors = [
         "input timeseries" => summary(res.x),
         "indicators" => [nameof(i) for i in res.indicators],

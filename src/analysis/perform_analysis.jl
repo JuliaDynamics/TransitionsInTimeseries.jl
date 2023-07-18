@@ -68,7 +68,7 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     pvalues ./= config.n_surrogates
 
     # put everything together in the output type
-    return IndicatorsResults(
+    return TransitionsResults(
         t, x,
         config.indicators, t_indicator, x_indicator,
         config.change_metrics, t_change, x_change, pvalues,
@@ -115,16 +115,22 @@ end
 
 
 """
-    transition_flags(results::IndicatorsResults, p_threshold::Real) → flags
+    transition_flags(results::TransitionsResults, p_threshold::Real) → flags
 
 Return `flags::Matrix{Bool}`, which is an `n × (c+1)` sized matrix.
-Each column `flags[:, c]` is the timeseries of boolean flags that correspond
+Each column `flags[:, c]` is the Boolean flags that correspond
 to a p-value below the threshold `p` for each change metric timeseries.
 There are `c` change metric timeseries in total, but the `c+1`-th column
 of `flags` is simply the Boolean addition of all previous columns
 (i.e., time points where _all_ indicators pass the significance).
+
+To obtain the time windows where the `c`-th change metric is significant,
+simply do:
+```julia
+timepoints = results.t_change[flags[:, c]]
+```
 """
-function transition_flags(results::IndicatorsResults, p::Real)
+function transition_flags(results::TransitionsResults, p::Real)
     if p >= 1 || p <= 0
         error("Threshold must be a value between 0 and 1.")
     end

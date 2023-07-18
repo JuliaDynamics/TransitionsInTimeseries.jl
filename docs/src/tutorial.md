@@ -202,8 +202,11 @@ change_metrics = [RidgeRegressionSlope()]
 config = TransitionsSurrogatesConfig(indicators, change_metrics;
     width_ind = 400, width_cha = 30, n_surrogates = 1000, whichtime = last
 )
+```
 
-# run the full analysis
+To perform all of the above analysis we simply plug in our timeseries and this special `config` type into [`estimate_transitions`](@ref).
+
+```@example MAIN
 results = estimate_transitions(tfluct, x_nl_fluct, config)
 ```
 
@@ -221,9 +224,7 @@ axislegend(axpval; position = :lt)
 fig
 ```
 
-Thresholding the p-value results in a loss of information and therefore should only happen as a last step. It is typically done to obtain Boolean "flags" of in which time windows a significant transition has been detected. This can be done using the [`transition_flags`](@ref) function, which gives Boolean timeseries of true/false given a confidence level for the p value.
-
-preferable to be avoided. For automation purposes it might however be unavoidable. Here we show an example where we consider that both the variance and the AR1-regression coefficient need to show a p-value below 0.05 for a transition to be indicated in a binary sense:
+Thresholding the p-value results in a loss of information and therefore should only happen as a last step. It is typically done to obtain Boolean "flags" for which time windows a significant transition has been detected. This can be done using the [`transition_flags`](@ref) function, which gives Boolean timeseries of true/false given a confidence level for the p value:
 
 ```@example MAIN
 threshold = 0.05
