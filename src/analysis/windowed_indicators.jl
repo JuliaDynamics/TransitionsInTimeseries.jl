@@ -1,5 +1,5 @@
 """
-    WindowedIndicatorMetrics(indicators, change_metrics; kwargs...) → config
+    WindowedIndicatorConfig(indicators, change_metrics; kwargs...) → config
 
 A configuration struct for TransitionsInTimeseries.jl that collects
 what indicators and corresponding metrics to use in the [`transitions_analysis`](@ref).
@@ -37,7 +37,7 @@ for more information.
 - `T = Float64`: Element type of input timeseries to initialize some computations.
 
 """
-struct WindowedIndicatorMetrics{F, G, W<:Function}
+struct WindowedIndicatorConfig{F, G, W<:Function}
     indicators::F
     change_metrics::G
     width_ind::Int
@@ -47,7 +47,7 @@ struct WindowedIndicatorMetrics{F, G, W<:Function}
     whichtime::W
 end
 
-function WindowedIndicatorMetrics(
+function WindowedIndicatorConfig(
         indicators, change_metrics;
         width_ind = 100,
         stride_ind = 1,
@@ -71,14 +71,14 @@ function WindowedIndicatorMetrics(
     indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
     change_metrics = map(f -> precompute(f, 1:T(width_cha)), change_metrics)
 
-    return WindowedIndicatorMetrics(
+    return WindowedIndicatorConfig(
         indicators, change_metrics,
         width_ind, stride_ind, width_cha, stride_cha, whichtime,
     )
 end
 
 """
-    estimate_transitions(config::WindowedIndicatorMetrics, x [,t]) → output
+    estimate_transitions(config::WindowedIndicatorConfig, x [,t]) → output
 
 Estimate possible transitions for input timeseries `x` using a sliding window approach
 as described by `config`:
@@ -137,7 +137,7 @@ end
     WindowedIndicatorResults
 
 A struct containing the output of [`estimate_transitions`](@ref) used with
-[`WindowedIndicatorMetrics`](@ref).
+[`WindowedIndicatorConfig`](@ref).
 It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 
