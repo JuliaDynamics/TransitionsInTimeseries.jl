@@ -22,8 +22,7 @@ include("misc/params.jl")
 include("misc/windowing.jl")
 include("misc/timeseries.jl")
 include("misc/load_data.jl")
-
-include("library/precomputation.jl")
+include("misc/precomputation.jl")
 
 include("indicators/critical_slowing_down.jl")
 include("indicators/distribution_distance.jl")
@@ -31,9 +30,8 @@ include("indicators/nlts.jl")
 include("indicators/spectral.jl")
 include("indicators/statistics.jl")
 
-
-include("library/change_metrics_trend.jl")
-
+include("change_metrics/slope.jl")
+include("change_metrics/valuediff.jl")
 
 include("analysis/analysis_types.jl")
 include("analysis/perform_analysis.jl")

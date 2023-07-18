@@ -57,10 +57,9 @@ entropy
 kendalltau
 spearman
 RidgeRegressionSlope
-PrecomputedRidgeRegressionSlope
 ```
 
-### Difference in value distribution
+### Differences between value distributions
 
 ```@docs
 ```

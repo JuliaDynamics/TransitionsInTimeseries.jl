@@ -16,8 +16,8 @@ using CairoMakie
 logistic_rule(u, p, t) = @inbounds SVector(p[1]*u[1]*(1 - u[1]))
 ds = DeterministicIteratedMap(logistic_rule, [0.5], [1.0])
 
-r1 = 3.6
-r2 = 3.9
+r1 = 3.84
+r2 = 3.85
 N = 1000
 rs = range(r1, r2; length = N)
 x = zeros(N)
@@ -35,7 +35,8 @@ end
 # tr2, t = trajectory(ds, N)
 # append!(tr, tr2)
 # x = tr[:, 1]
-lines(x)
+# fig, ax = lines(x)
+# display(fig)
 # rs = 3.60:0.0001:3.9
 
 # for r in rs
@@ -45,6 +46,8 @@ lines(x)
 #         push!(x, integ.u)
 #     end
 # end
+``
+# Now, let's compute and plot various indicators
 
-# Now, let's compute and plot various statistical indicators and
-indicator = PermutationEntropy()
+
+indicators = [mean, var, ar1_whitenoise, PermutationEntropy(m = 4)]
