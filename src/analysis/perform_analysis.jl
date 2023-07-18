@@ -31,7 +31,10 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     end
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
-    sgen = surrogenerator(x, config.surrogate, config.rng)
+    # Make threaded surrogate generators, TODO: GPU usage dispatch on Random Fourier
+    seeds = rand(config.rng, 1:typemax(Int), Threads.nthreads())
+    sgens = [surrogenerator(x, config.surrogate, Random.Xoshiro(seed)) for seed in seeds]
+    # sgen = surrogenerator(x, config.surrogate, config.rng)
 
     # TODO: Impose function barrier here!
     # TODO: the way we obtain the change metric is type unstable!
@@ -57,7 +60,7 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
         pval = view(pvalues, :, i)
 
         indicator_metric_surrogates_loop!(
-            indicator, chametric, z, c, pval, x, config, sgen,
+            indicator, chametric, z, c, pval, x, config, sgens,
             indicator_dummy, change_dummy, pval_right, pval_left
         )
 
@@ -75,7 +78,7 @@ end
 
 
 function indicator_metric_surrogates_loop!(
-        indicator, chametric, z, c, pval, x, config, sgen,
+        indicator, chametric, z, c, pval, x, config, sgens,
         indicator_dummy, change_dummy, pval_right, pval_left
     )
     windowmap!(indicator, z, x;
@@ -84,7 +87,8 @@ function indicator_metric_surrogates_loop!(
         width = config.width_cha, stride = config.stride_cha)
     # surrogates
     # TODO: parallelize over surrogates via threads here
-    for _ in 1:config.n_surrogates
+    Threads.@threads for j in 1:config.n_surrogates
+        sgen = sgens[Threads.threadid()]
         s = sgen()
         windowmap!(indicator, indicator_dummy, s;
             width = config.width_ind, stride = config.stride_ind)
