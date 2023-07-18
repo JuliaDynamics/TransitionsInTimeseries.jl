@@ -24,10 +24,10 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     x_indicator = zeros(X, len_ind, n_ind)
     x_change = zeros(X, len_change, n_ind) # same size, no matter how many change metrics
 
-    pval = zeros(X, len_change, n_ind)
+    pvalues = zeros(X, len_change, n_ind)
     if config.tail == :both
-        pval_right = zeros(X, len_change, n_ind)
-        pval_left = zeros(X, len_change, n_ind)
+        pval_right = zeros(X, len_change)
+        pval_left = zeros(X, len_change)
     end
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
@@ -45,59 +45,69 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     elseif length(config.change_metrics) == 1
         one2one = false
     end
-    @inbounds for i in 1:n_ind # loop over indicators / change metrics
+    for i in 1:n_ind # loop over indicators / change metrics
         indicator::Function = config.indicators[i]
         i_metric = one2one ? i : 1
         chametric::Function = config.change_metrics[i_metric]
         # indicator timeseries
         z = view(x_indicator, :, i)
-        windowmap!(indicator, z, x;
-            width = config.width_ind, stride = config.stride_ind)
         # change metric timeseries
         c = view(x_change, :, i)
-        windowmap!(chametric, c, z;
-            width = config.width_cha, stride = config.stride_cha)
+        # p values for current i
+        pval = view(pvalues, :, i)
 
-        # surrogates
-        # TODO: parallelize over surrogates via threads here
-        @inbounds for k in 1:config.n_surrogates
-            s = sgen()
-            windowmap!(indicator, indicator_dummy, s;
-                width = config.width_ind, stride = config.stride_ind)
-            windowmap!(chametric, change_dummy, indicator_dummy;
-                width = config.width_cha, stride = config.stride_cha
-            )
-            # This should be replaced by a simple call of pvalue() in future.
-            # However, the use of pvalue() is less trivial for an incremental
-            # computation over the surrogates.
-            if config.tail == :right
-                pval[:, i] += c .< change_dummy
-            elseif config.tail == :left
-                pval[:, i] += c .> change_dummy
-            elseif config.tail == :both
-                pval_right[:, i] += c .< change_dummy
-                pval_left[:, i] += c .> change_dummy
-            end
-        end
-        if config.tail == :both
-            pval[:, i] .= 2min.(pval_right[:, i], pval_left[:, i])
-        end
+        indicator_metric_surrogates_loop!(
+            indicator, chametric, z, c, pval, x, config, sgen,
+            indicator_dummy, change_dummy, pval_right, pval_left
+        )
+
     end
-    pval ./= config.n_surrogates
+    pvalues ./= config.n_surrogates
 
     # put everything together in the output type
     return IndicatorsResults(
         t, x,
         config.indicators, t_indicator, x_indicator,
-        config.change_metrics, t_change, x_change, pval,
+        config.change_metrics, t_change, x_change, pvalues,
         config.surrogate,
     )
 end
 
-function indicator_metric_surrogates_loop!()
 
+function indicator_metric_surrogates_loop!(
+        indicator, chametric, z, c, pval, x, config, sgen,
+        indicator_dummy, change_dummy, pval_right, pval_left
+    )
+    windowmap!(indicator, z, x;
+        width = config.width_ind, stride = config.stride_ind)
+    windowmap!(chametric, c, z;
+        width = config.width_cha, stride = config.stride_cha)
+    # surrogates
+    # TODO: parallelize over surrogates via threads here
+    for _ in 1:config.n_surrogates
+        s = sgen()
+        windowmap!(indicator, indicator_dummy, s;
+            width = config.width_ind, stride = config.stride_ind)
+        windowmap!(chametric, change_dummy, indicator_dummy;
+            width = config.width_cha, stride = config.stride_cha
+        )
+        # This should be replaced by a simple call of pvalue() in future.
+        # However, the use of pvalue() is less trivial for an incremental
+        # computation over the surrogates.
+        if config.tail == :right
+            pval .+= c .< change_dummy
+        elseif config.tail == :left
+            pval .+= c .> change_dummy
+        elseif config.tail == :both
+            pval_right .+= c .< change_dummy
+            pval_left .+= c .> change_dummy
+        end
+    end
+    if config.tail == :both
+        pval .= 2min.(pval_right, pval_left)
+        pval_left .= pval_right .= 0
+    end
 end
-
 
 
 """
