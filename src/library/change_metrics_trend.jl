@@ -25,7 +25,7 @@ generate a [`PrecomputedRidgeRegressionSlope`](@ref). The latter can be
 initialized by [`precompute`](@ref):
 
 ```julia
-rr = precompute( RidgeRegressionSlope() )
+rr = precompute(RidgeRegressionSlope(), x)
 ```
 
 Keyword arguments:
@@ -52,7 +52,7 @@ Return the slope of the [ridge regression](https://en.wikipedia.org/wiki/Ridge_r
 """
 function (rr::PrecomputedRidgeRegressionSlope)(x::AbstractVector{<:Real})
     if !(rr.equispaced)
-        error("Time vector is not evenly spaced." * 
+        error("Time vector is not evenly spaced." *
             "So far, the API is only designed for evenly spaced time series!")
         # For future something like: M .= precompute_ridgematrix(window_view(t))
     end

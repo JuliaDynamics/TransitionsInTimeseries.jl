@@ -15,23 +15,17 @@ end
     nt = length(t)
     y_lofreq = fill(10 * rand(), nt)
     y_hifreq = sin.(t .* 100)
-    indconfig = IndicatorsConfig(t, last, [LowfreqPowerSpectrum()], width = nt)
+    metric = LowfreqPowerSpectrum()
+    metricc = first(precompute_metrics([metric], ones(nt)))
 
-    @test indconfig.indicators[1](y_lofreq[1:indconfig.width]) > 0.95
-    @test indconfig.indicators[1](y_hifreq[1:indconfig.width]) < 0.05
+    @test metricc(y_lofreq[1:nt]) > 0.95
+    @test metricc(y_hifreq[1:nt]) < 0.05
 end
 
-# TODO: improve this test. For now, simply based on what is observed in:
-# https://github.com/JuliaDynamics/NonlinearDynamicsComplexSystemsCourse/blob/main/notebooks/nonlinear_causal_timeseries_analysis.ipynb
-@testset "perment" begin
-    file = Downloads.download("https://raw.githubusercontent.com/JuliaDynamics/" *
-        "NonlinearDynamicsTextbook/master/exercise_data/7.csv")
-    x = vec(DelimitedFiles.readdlm(file))
-    t = collect(eachindex(x))
-
-    indconfig = IndicatorsConfig(t, last, [PermutationEntropy()], width = 50)
-    sigconfig = SignificanceConfig(indconfig, last, [RidgeRegressionSlope()],
-        width = 50, stride = 1, n_surrogates = 2)
-    res = indicators_analysis(t, x, indconfig, sigconfig)
-    @test mean(res.x_indicator[7000:7500]) < mean(res.x_indicator[5500:6000])
+ @testset "perment" begin
+    x = 1:1000
+    pe = PermutationEntropy()
+    # Sliding window over this x gives the same entropy values, all of which are zero
+    res = windowmap(pe, x; width = 10)
+    @test res == zeros(length(res))
 end

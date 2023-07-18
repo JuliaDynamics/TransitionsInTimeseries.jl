@@ -174,21 +174,16 @@ Performing the step-by-step analysis of transition indicators is possible and mi
 
 TransitionsInTimeseries.jl wraps this typical workflow into a simple, extendable, and modular API that researchers can use with little effort. In addition, it allows performing the same analysis for several indicators / change metrics in one go.
 
-The interface is simple, and directly parallelizes the [Workflow](@ref) as follows:
+The interface is simple, and directly parallelizes the [Workflow](@ref). It is based on the creation of a [`TransitionsSurrogatesConfig`](@ref), which contains a list of indicators, and corresponding metrics, to use for doing the above analysis. It also specifies what kind of surrogates to generate.
 
-1. Create an instance of [`IndicatorsConfig`](@ref), that dictates which indicators will be used, and over what sliding window.
-2. Create an instance of [`SignificanceConfig`](@ref), that dictates what change metrics, surrogate types, and sliding window will be used to quantify a significant change of the indicators.
-3. Along with the input timeseries `x` these three are plugged into [`indicators_analysis`](@ref).
-4. The output, which is an [`IndicatorsResults`](@ref), can be used to visualize the results.
-
-The following blocks apply this process, and visualize it, for the examples we used in the educational part of the tutorial. First we load, and do the necessary pre-processing, to get input data:
+The following blocks illustrate how the above extensive example is re-created in TransitionsInTimeseries.jl
 
 ```@example MAIN
 using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
 
-x_nl_fluct = diff(x_nlinear)
+input = x_nl_fluct = diff(x_nlinear)
 tfluct = t[2:end]
 
 fig, ax = lines(tfluct, x_nl_fluct)
@@ -196,42 +191,46 @@ ax.title = "input timeseries"
 fig
 ```
 
-Then we decide what indicators and change metrics to use and run the analysis.
+We decide what indicators and change metrics to use and run the analysis, and leave the surrogate generation method to its default (random Fourier surrogates).
 
 ```@example MAIN
 # These indicators are suitable for Critical Slowing Down
 indicators = [var, ar1_whitenoise]
-indconfig = IndicatorsConfig(tfluct, last, indicators; width = 400)
-
 
 # use the ridge regression slope for both indicators
 change_metrics = [RidgeRegressionSlope()]
-sigconfig = SignificanceConfig(indconfig, last, change_metrics;
-    width = 30, n_surrogates = 1000)
-
-# perform the full analysis
-results = indicators_analysis(tfluct, x_nl_fluct, indconfig, sigconfig)
+config = TransitionsSurrogatesConfig(indicators, change_metrics;
+    width_ind = 400, width_cha = 30, n_surrogates = 1000, whichtime = last
+)
 ```
 
-That's it, just a couple of lines! To get insight on the results, we plot the obtained p-values vs. the original time series:
+To perform all of the above analysis we simply plug in our timeseries and this special `config` type into [`estimate_transitions`](@ref).
+
+```@example MAIN
+results = estimate_transitions(tfluct, x_nl_fluct, config)
+```
+
+That's it, just a couple of lines!
+
+To get insight on the results, we can plot the obtained p-values and the original timeseries:
 
 ```@example MAIN
 fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2), label = "input")
-axpval, = lines(fig[2,1], sigconfig.t_change, results.pval[:, 1]; color = Cycled(3), label = "p-value of var")
-lines!(axpval, sigconfig.t_change, results.pval[:, 2]; color = Cycled(4), label = "p-value of ar1")
+axpval, = scatter(fig[2,1], results.t_change, results.pvalues[:, 1]; color = Cycled(3), label = "p-value of var")
+scatter!(axpval, results.t_change, results.pvalues[:, 2]; color = Cycled(4), label = "p-value of ar1")
 xlims!(ax, (0, 50))
 xlims!(axpval, (0, 50))
-axislegend(axpval)
+axislegend(axpval; position = :lt)
 fig
 ```
 
-Thresholding the p-value results in a loss of information and it is therefore preferable to be avoided. For automation purposes it might however be unavoidable. Here we show an example where we consider that both the variance and the AR1-regression coefficient need to show a p-value below 0.05 for a transition to be indicated in a binary sense:
+Thresholding the p-value results in a loss of information and therefore should only happen as a last step. It is typically done to obtain Boolean "flags" for which time windows a significant transition has been detected. This can be done using the [`transition_flags`](@ref) function, which gives Boolean timeseries of true/false given a confidence level for the p value:
 
 ```@example MAIN
 threshold = 0.05
-signif_idxs = vec(count(results.pval .< threshold, dims = 2) .>= 2)
-tflags = results.t_change[signif_idxs]
-vlines!(ax, tflags; label = "flags", color = Cycled(3), linestyle = :dash)
-axislegend(ax)
+flags = transition_flags(results, 0.05)
+
+vlines!(axpval, results.t_change[flags[:, end]]; label = "both flags")
+axislegend(axpval; position = :lt)
 fig
 ```
