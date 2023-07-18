@@ -183,54 +183,69 @@ using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
 
+# input timeseries and time
 input = x_nl_fluct = diff(x_nlinear)
-tfluct = t[2:end]
+t = t[2:end]
 
-fig, ax = lines(tfluct, x_nl_fluct)
+fig, ax = lines(t, input)
 ax.title = "input timeseries"
 fig
 ```
 
-We decide what indicators and change metrics to use and run the analysis, and leave the surrogate generation method to its default (random Fourier surrogates).
+To perform all of the above analysis we follow a 2-step process.
+
+Step 1, we decide what indicators and change metrics to use in [`WindowedIndicatorConfig`](@ref) and apply those via
+a sliding window to the input timeseries using [`estimate_transitions`](@ref).
 
 ```@example MAIN
 # These indicators are suitable for Critical Slowing Down
-indicators = [var, ar1_whitenoise]
+indicators = (var, ar1_whitenoise)
 
 # use the ridge regression slope for both indicators
-change_metrics = [RidgeRegressionSlope()]
-config = TransitionsSurrogatesConfig(indicators, change_metrics;
-    width_ind = 400, width_cha = 30, n_surrogates = 1000, whichtime = last
+change_metrics = RidgeRegressionSlope()
+
+# choices go into a configuration struct
+config = WindowedIndicatorConfig(indicators, change_metrics;
+    width_ind = 400, width_cha = 30, whichtime = last
 )
+
+# choices are processed
+results = estimate_transitions(config, input, t)
 ```
 
-To perform all of the above analysis we simply plug in our timeseries and this special `config` type into [`estimate_transitions`](@ref).
-
+From `result` we can plot the change metric timeseries
 ```@example MAIN
-results = estimate_transitions(tfluct, x_nl_fluct, config)
+fig, ax = lines(t, input; color = Cycled(2), label = "input")
+axpval, = scatter(fig[2,1], results.t_change, results.x_change[:, 1]; color = Cycled(3), label = "var slopes")
+axpval, = scatter(fig[3,1], results.t_change, results.x_change[:, 2]; color = Cycled(4), label = "ar1 slopes")
 ```
 
-That's it, just a couple of lines!
-
-To get insight on the results, we can plot the obtained p-values and the original timeseries:
+Step 2 is to estimate significance using [`SurrogatesSignificance`](@ref)
+and the function [`significant_transitions`](@ref).
 
 ```@example MAIN
-fig, ax = lines(tfluct, x_nl_fluct; color = Cycled(2), label = "input")
-axpval, = scatter(fig[2,1], results.t_change, results.pvalues[:, 1]; color = Cycled(3), label = "p-value of var")
-scatter!(axpval, results.t_change, results.pvalues[:, 2]; color = Cycled(4), label = "p-value of ar1")
-xlims!(ax, (0, 50))
-xlims!(axpval, (0, 50))
-axislegend(axpval; position = :lt)
-fig
+signif = SurrogatesSignificance(n = 1000, tail = :both)
+pvalues = significant_transitions(results, signif)
 ```
 
-Thresholding the p-value results in a loss of information and therefore should only happen as a last step. It is typically done to obtain Boolean "flags" for which time windows a significant transition has been detected. This can be done using the [`transition_flags`](@ref) function, which gives Boolean timeseries of true/false given a confidence level for the p value:
+So now we can plot the p-values corresponding to each timeseries change metric
 
 ```@example MAIN
-threshold = 0.05
-flags = transition_flags(results, 0.05)
+fig, ax = lines(t, input; color = Cycled(2), label = "input")
+axpval, = scatter(fig[2,1], results.t_change, pvalues[:, 1]; color = Cycled(3), label = "var p-values")
+scatter!(axpval, results.t_change, pvalues[:, 2]; color = Cycled(4), label = "ar1 p-values")
+axislegend(axpval)
+xlims!(ax, 0, 50)
+xlims!(axpval, 0, 50)
+```
 
-vlines!(axpval, results.t_change[flags[:, end]]; label = "both flags")
-axislegend(axpval; position = :lt)
+We can convert the p-values into flags by thresholding. Here we want the time points where _both_ p-values are simultaneously below `0.05`.
+
+```@example MAIN
+pthres = pvalues .< 0.05
+flags = vec(reduce(&, pthres; dims = 2))
+
+vlines!(ax, results.t_change[flags]; label = "flags", color = ("black", 0.1))
+axislegend(ax)
 fig
 ```
