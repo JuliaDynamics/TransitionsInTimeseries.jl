@@ -54,9 +54,6 @@ export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export TransitionsSurrogatesConfig, estimate_transitions
 export transition_flags
 
-export IndicatorsConfig, SignificanceConfig, IndicatorsResults
-export indicators_analysis, indicators_significance
-
 # timeseries
 export isequispaced, equispaced_step
 

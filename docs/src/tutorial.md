@@ -183,7 +183,7 @@ using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
 
-x_nl_fluct = diff(x_nlinear)
+input = x_nl_fluct = diff(x_nlinear)
 tfluct = t[2:end]
 
 fig, ax = lines(tfluct, x_nl_fluct)
@@ -229,7 +229,7 @@ preferable to be avoided. For automation purposes it might however be unavoidabl
 threshold = 0.05
 flags = transition_flags(results, 0.05)
 
-vlines!(axpval, results.t_change[flags[:, 3]]; label = "both flags")
+vlines!(axpval, results.t_change[flags[:, end]]; label = "both flags")
 axislegend(axpval; position = :lt)
 fig
 ```
