@@ -64,7 +64,7 @@ function WindowedIndicatorConfig(
         change_metrics = (change_metrics,)
     end
     L = length(indicators)
-    if length(change_metrics) ∉ ≠ (1, L)
+    if length(change_metrics) ∉ (1, L)
         throw(ArgumentError("The amount of change metrics must be as many as the indicators, or only 1."))
     end
     # Last step: precomputable functions, if any
@@ -93,12 +93,12 @@ Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
-function estimate_transitions(x, config::TransitionsSurrogatesConfig)
+function estimate_transitions(x, config::WindowedIndicatorConfig)
     t = eachindex(x)
     return estimate_transitions(t, x, config)
 end
 
-function estimate_transitions(config::TransitionsSurrogatesConfig, x, t = eachindex(x))
+function estimate_transitions(config::WindowedIndicatorConfig, x, t = eachindex(x))
     # initialize time vectors
     t_indicator = windowmap(config.whichtime, t; width = config.width_ind, stride = config.stride_ind)
     t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha, stride = config.stride_cha)
@@ -116,7 +116,7 @@ function estimate_transitions(config::TransitionsSurrogatesConfig, x, t = eachin
     # Loop over indicators
     for i in 1:n_ind
         indicator = config.indicators[i]
-        chametric = one2one ? change_metrics[1] : change_metrics[i]
+        chametric = one2one ? change_metrics[i] : change_metrics[1]
         z = view(x_indicator, :, i)
         windowmap!(indicator, z, x;
             width = config.width_ind, stride = config.stride_ind
@@ -154,7 +154,7 @@ It has the following fields that the user may access
 - `x_change`, the change metric timeseries (matrix with each column one change metric).
 - `t_change`, the time vector of the change metric timeseries.
 """
-struct TransitionsResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
+struct WindowedIndicatorResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{T}

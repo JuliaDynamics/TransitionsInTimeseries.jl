@@ -58,41 +58,43 @@ Return `pvalues`, a matrix with identical size as `res.x_change`.
 It contains the associated p-value timeseries for each change metric (each column).
 """
 function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
-    (; indicators, change_metrics) = config
+    (; indicators, change_metrics) = res.wim
     pvalues = similar(res.x_change)
-    if signif.tail == :both
-        pval_right = zeros(X, size(pvalues, 1))
-        pval_left = copy(pval_right)
-    end
     # Multi-threaded surrogate realization
     seeds = rand(signif.rng, 1:typemax(Int), Threads.nthreads())
     sgens = [surrogenerator(res.x, signif.surrogate, Random.Xoshiro(seed)) for seed in seeds]
     # Dummy vals for surrogate parallelization
-    indicator_dummys = [config.x_indicator[:, 1] for _ in 1:Threads.nthreads()]
-    change_dummys = [fig.x_change[:, 1] for _ in 1:Threads.nthreads()]
+    indicator_dummys = [res.x_indicator[:, 1] for _ in 1:Threads.nthreads()]
+    change_dummys = [res.x_change[:, 1] for _ in 1:Threads.nthreads()]
 
     for i in 1:size(pvalues, 2) # loop over change metrics
         indicator = indicators[i]
         i_metric = length(change_metrics) == length(indicators) ? i : 1
         chametric = change_metrics[i_metric]
         tail = signif.tail isa Symbol ? signif.tail : signif.tail[i]
-
+        c = view(res.x_change, :, i) # change metric timeseries
         # p values for current i
         pval = view(pvalues, :, i)
         indicator_metric_surrogates_loop!(
-            indicator, chametric, c, pval, n_surrogates, sgens,
-            indicator_dummys, change_dummys, pval_right, pval_left,
-            width_ind, stride_ind, width_cha, stride_cha, tail
+            indicator, chametric, c, pval, signif.n, sgens,
+            indicator_dummys, change_dummys,
+            res.wim.width_ind, res.wim.stride_ind, res.wim.width_cha, res.wim.stride_cha, tail
         )
     end
-
+    pvalues ./= signif.n
+    return pvalues
 end
 
 function indicator_metric_surrogates_loop!(
         indicator, chametric, c, pval, n_surrogates, sgens,
-        indicator_dummys, change_dummys, pval_right, pval_left,
+        indicator_dummys, change_dummys,
         width_ind, stride_ind, width_cha, stride_cha, tail
     )
+
+    if tail == :both
+        pval_right = zeros(length(pval))
+        pval_left = copy(pval_right)
+    end
 
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
@@ -116,6 +118,5 @@ function indicator_metric_surrogates_loop!(
     end
     if tail == :both
         pval .= 2min.(pval_right, pval_left)
-        pval_left .= pval_right .= 0
     end
 end

@@ -33,8 +33,8 @@ include("indicators/statistics.jl")
 include("change_metrics/slope.jl")
 include("change_metrics/valuediff.jl")
 
-include("analysis/analysis_types.jl")
-include("analysis/perform_analysis.jl")
+include("analysis/windowed_indicators.jl")
+include("analysis/surrogates_significance.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
@@ -50,8 +50,8 @@ export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export difference_of_means
 
 # analysis
-export TransitionsSurrogatesConfig, estimate_transitions
-export transition_flags
+export WindowedIndicatorConfig, estimate_transitions, WindowedIndicatorResults
+export TransitionsSignificance, SurrogatesSignificance, significant_transitions
 
 # timeseries
 export isequispaced, equispaced_step
