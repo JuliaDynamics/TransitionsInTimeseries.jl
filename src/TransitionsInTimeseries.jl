@@ -43,7 +43,7 @@ export WindowViewer, windowmap, windowmap!, midpoint, midvalue
 export PrecomputableFunction, precompute
 export ar1_whitenoise
 export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
-export mean, std, var, skewness, kurtosis       # from StatsBase
+export mean, std, var, skewness, kurtosis # from StatsBase
 export entropy, PermutationEntropy
 export kendalltau, spearman
 export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope

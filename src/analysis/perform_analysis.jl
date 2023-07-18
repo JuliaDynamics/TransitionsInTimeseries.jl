@@ -31,7 +31,7 @@ function estimate_transitions(t::AbstractVector, x, config::TransitionsSurrogate
     end
     indicator_dummy = zeros(X, len_ind)
     change_dummy = zeros(X, len_change)
-    # Make threaded surrogate generators, TODO: GPU usage dispatch on Random Fourier
+    # TODO: GPU usage dispatch on Random Fourier
     seeds = rand(config.rng, 1:typemax(Int), Threads.nthreads())
     sgens = [surrogenerator(x, config.surrogate, Random.Xoshiro(seed)) for seed in seeds]
     # sgen = surrogenerator(x, config.surrogate, config.rng)
