@@ -28,10 +28,10 @@ The values of the surrogate change metrics form a distribution of values (one at
 The value of the original change metric is compared to that of the surrogate distribution
 and a p-value is extracted according to the specified `tail`.
 
-the p-value is simply the proportion of surrogate values
-that exceed (for `tail = :right`) or subseed (`tail = :left`) the discriminatory
-statistic computed from the input data. Use `tail = :right` if
-the surrogate data are expected to have higher
+the p-value is simply the proportion of surrogate change metric values
+that exceed (for `tail = :right`) or subseed (`tail = :left`) the original change metric
+at each given time point. Use `tail = :right` if
+the surrogate data are expected to have higher change metric,
 discriminatory statistic values. This is the case for statistics that quantify entropy.
 For statistics that quantify autocorrelation, use `tail = :right` instead.
 For anything else, use the default `tail = :both`.
@@ -59,6 +59,12 @@ It contains the associated p-value timeseries for each change metric (each colum
 """
 function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
     (; indicators, change_metrics) = res.wim
+    tail = signif.tail
+    if !(tail isa Symbol) && length(tail) ≠ length(indicators)
+        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
+        "as the input indicators. Got length $(length(tail)) instead of $(length(indicators))."
+        ))
+    end
     pvalues = similar(res.x_change)
     # Multi-threaded surrogate realization
     seeds = rand(signif.rng, 1:typemax(Int), Threads.nthreads())
@@ -71,14 +77,14 @@ function significant_transitions(res::WindowedIndicatorResults, signif::Surrogat
         indicator = indicators[i]
         i_metric = length(change_metrics) == length(indicators) ? i : 1
         chametric = change_metrics[i_metric]
-        tail = signif.tail isa Symbol ? signif.tail : signif.tail[i]
+        tai = tail isa Symbol ? tail : tail[i]
         c = view(res.x_change, :, i) # change metric timeseries
         # p values for current i
         pval = view(pvalues, :, i)
         indicator_metric_surrogates_loop!(
             indicator, chametric, c, pval, signif.n, sgens,
             indicator_dummys, change_dummys,
-            res.wim.width_ind, res.wim.stride_ind, res.wim.width_cha, res.wim.stride_cha, tail
+            res.wim.width_ind, res.wim.stride_ind, res.wim.width_cha, res.wim.stride_cha, tai
         )
     end
     pvalues ./= signif.n
