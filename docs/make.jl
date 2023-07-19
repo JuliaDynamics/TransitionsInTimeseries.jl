@@ -2,10 +2,15 @@ cd(@__DIR__)
 
 using TransitionsInTimeseries, Statistics, StatsBase
 
+using Literate
+
+Literate.markdown("src/examples.jl", "src"; credit = false)
+
 pages = [
     "index.md",
     "tutorial.md",
     "api.md",
+    "examples.md",
 ]
 
 import Downloads
