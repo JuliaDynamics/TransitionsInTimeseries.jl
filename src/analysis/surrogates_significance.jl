@@ -13,55 +13,75 @@ abstract type TransitionsSignificance end
     SurrogatesSignificance <: TransitionsSignificance
     SurrogatesSignificance(; surrogate = RandomFourier(), n = 10_000, tail = :both, rng)
 
-A configuration struct containing instructions on how to test for significance in
-the function [`significant_transitions`](@ref) when combined with the output
-of [`estimate_transitions`](@ref).
+A configuration struct for significance testing [`significant_transitions`](@ref)
+using timeseries surrogates.
+
+## Keyword arguments
+
+- `surromethod = RandomFourier()`: method to generate surrogates
+- `n = 1000`: how many surrogates to generate
+- `rng = Random.default_rng()`: random number generator for the surrogates
+- `p = 0.05`: threshold for significance of the p-value
+- `tail = :both`: tail type used, see below
 
 ## Description
 
 When used with [`WindowedIndicatorResults`](@ref), significance is estimated as follows:
-`n` surrogates from the input timeseries are generated using `surrogate`, which is
+`n` surrogates from the input timeseries are generated using `surromethod`, which is
 any `Surrogate` subtype provided by
 [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/dev/api/).
 For each surrogate, the indicator and then change metric timeseries is extracted.
-The values of the surrogate change metrics form a distribution of values (one at each
-time point). The value of the original change metric is compared to that of the surrogate
-distribution and a p-value is extracted according to the specified `tail`.
+The values of the surrogate change metrics form a distribution of values (one at each time point).
+The value of the original change metric is compared to that of the surrogate distribution
+and a p-value is extracted according to the specified `tail`.
+The p-value is compared with `p` to claim significance.
+After using `SurrogatesSignificance`, you may access the full p-values before thresholding
+in the field `.pvalues` (to e.g., threshold with different `p`).
 
-the p-value is simply the proportion of surrogate values
-that exceed (for `tail = :right`) or subseed (`tail = :left`) the discriminatory
-statistic computed from the input data. Use `tail = :left` if
-the surrogate data are expected to have higher
+The p-value is simply the proportion of surrogate change metric values
+that exceed (for `tail = :right`) or subseed (`tail = :left`) the original change metric
+at each given time point. Use `tail = :left` if
+the surrogate data are expected to have higher change metric,
 discriminatory statistic values. This is the case for statistics that quantify entropy.
 For statistics that quantify autocorrelation, use `tail = :right` instead.
 For anything else, use the default `tail = :both`.
-
 An iterable of `tail` values can also be given, in which case a specific `tail`
 is used for each change metric in [`WindowedIndicatorResults`](@ref).
-
-Keyword `rng = Random.default_rng()` may specify a random number generator for the
-surrogates.
 """
-Base.@kwdef struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignificance
-    surrogate::S = RandomFourier()
-    n::Int = 10_000
-    tail::T = :both
-    rng::R = Random.default_rng()
+mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignificance
+    surrogate::S
+    n::Int
+    tail::T
+    rng::R
+    p::Float64
+    pvalues::Matrix{Float64}
+end
+
+function SurrogatesSignificance(;
+    surromethod = RandomFourier(),
+    n::Int = 10_000,
+    tail = :both,
+    rng = Random.default_rng(), p = 0.05)
+    return SurrogatesSignificance(surromethod, n, tail, rng, p, zeros(1,1))
 end
 
 
 """
-    significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
+    significant_transitions(res::WindowedIndicatorResults, signif::TransitionsSignificance)
 
-Estimate significant transtions in `res` using the method described by
-[`SurrogatesSignificance`](@ref).
-Return `pvalues`, a matrix with identical size as `res.x_change`.
-It contains the associated p-value timeseries for each change metric (each column).
+Estimate significant transtions in `res` using the method described by `signif`.
+Return `flags`, a Boolean matrix with identical size as `res.x_change`.
+It contains trues wherever a change metric of `res` is deemed significant.
 """
-function significant_transitions(res::WindowedIndicatorResults,
-    signif::SurrogatesSignificance)
+function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
     (; indicators, change_metrics) = res.wim
-    pvalues = similar(res.x_change)
+    tail = signif.tail
+    if !(tail isa Symbol) && length(tail) ≠ length(indicators)
+        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
+        "as the input indicators. Got length $(length(tail)) instead of $(length(indicators))."
+        ))
+    end
+    pvalues = signif.pvalues = similar(res.x_change)
     # Multi-threaded surrogate realization
     seeds = rand(signif.rng, 1:typemax(Int), Threads.nthreads())
     sgens = [surrogenerator(res.x, signif.surrogate, Random.Xoshiro(seed)) for seed in seeds]
@@ -73,18 +93,18 @@ function significant_transitions(res::WindowedIndicatorResults,
         indicator = indicators[i]
         i_metric = length(change_metrics) == length(indicators) ? i : 1
         chametric = change_metrics[i_metric]
-        tail = signif.tail isa Symbol ? signif.tail : signif.tail[i]
+        tai = tail isa Symbol ? tail : tail[i]
         c = view(res.x_change, :, i) # change metric timeseries
         # p values for current i
         pval = view(pvalues, :, i)
         indicator_metric_surrogates_loop!(
             indicator, chametric, c, pval, signif.n, sgens,
             indicator_dummys, change_dummys,
-            res.wim.width_ind, res.wim.stride_ind, res.wim.width_cha, res.wim.stride_cha, tail
+            res.wim.width_ind, res.wim.stride_ind, res.wim.width_cha, res.wim.stride_cha, tai
         )
     end
     pvalues ./= signif.n
-    return pvalues
+    return pvalues .< signif.p
 end
 
 function indicator_metric_surrogates_loop!(
