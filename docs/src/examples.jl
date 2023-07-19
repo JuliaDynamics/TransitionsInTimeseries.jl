@@ -24,7 +24,7 @@ logistic_rule(u, p, t) = @inbounds SVector(p[1]*u[1]*(1 - u[1]))
 ds = DeterministicIteratedMap(logistic_rule, [0.5], [1.0])
 
 r1 = 3.83
-r2 = 3.86[]
+r2 = 3.86
 N = 2000
 rs = range(r1, r2; length = N)
 x = zeros(N)
@@ -178,7 +178,7 @@ fig
 # whenever a change metric exceeds some pre-defined quantile of its timeseries.
 
 fig = plot_change_metrics()
-flags = significant_transitions(results, QuantileSignificance() )
+flags = significant_transitions(results, QuantileSignificance())
 
 ## Plot the flags
 for (i, indicator) in enumerate(indicators)

@@ -40,11 +40,10 @@ in the field `.pvalues` (to e.g., threshold with different `p`).
 
 The p-value is simply the proportion of surrogate change metric values
 that exceed (for `tail = :right`) or subseed (`tail = :left`) the original change metric
-at each given time point. Use `tail = :right` if
-the surrogate data are expected to have higher change metric,
-discriminatory statistic values. This is the case for statistics that quantify entropy.
-For statistics that quantify autocorrelation, use `tail = :right` instead.
-For anything else, use the default `tail = :both`.
+at each given time point. Use `tail = :left` if the surrogate data are expected to have 
+higher change metric, discriminatory statistic values. This is the case for statistics 
+that quantify entropy. For statistics that quantify autocorrelation, use `tail = :right`
+instead. For anything else, use the default `tail = :both`.
 An iterable of `tail` values can also be given, in which case a specific `tail`
 is used for each change metric in [`WindowedIndicatorResults`](@ref).
 """
