@@ -65,7 +65,8 @@ function WindowedIndicatorConfig(
     end
     L = length(indicators)
     if length(change_metrics) ∉ (1, L)
-        throw(ArgumentError("The amount of change metrics must be as many as the indicators, or only 1."))
+        throw(ArgumentError("The amount of change metrics must be as many as the"*
+            "indicators, or only 1."))
     end
     # Last step: precomputable functions, if any
     indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
@@ -100,8 +101,10 @@ end
 
 function estimate_transitions(config::WindowedIndicatorConfig, x, t = eachindex(x))
     # initialize time vectors
-    t_indicator = windowmap(config.whichtime, t; width = config.width_ind, stride = config.stride_ind)
-    t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha, stride = config.stride_cha)
+    t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
+        stride = config.stride_ind)
+    t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha,
+        stride = config.stride_cha)
     len_ind = length(t_indicator)
     len_change = length(t_change)
 
@@ -146,13 +149,13 @@ It has the following fields that the user may access
 - `x`: the input timeseries.
 - `t`: the time vector of the input timeseries.
 
-- `indicators::Vector{Function}`: indicators used in the processing.
 - `x_indicator`, the indicator timeseries (matrix with each column one indicator).
 - `t_indicator`, the time vector of the indicator timeseries.
 
-- `change_metrics::Vector{Function}`: change metrics used in the processing.
 - `x_change`, the change metric timeseries (matrix with each column one change metric).
 - `t_change`, the time vector of the change metric timeseries.
+
+- [`wim::WindowedIndicatorConfig`](@ref), used for the analysis.
 """
 struct WindowedIndicatorResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
     t::TT # original time vector; most often it is `Base.OneTo`.
