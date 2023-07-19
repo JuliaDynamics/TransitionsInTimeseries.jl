@@ -149,13 +149,13 @@ It has the following fields that the user may access
 - `x`: the input timeseries.
 - `t`: the time vector of the input timeseries.
 
-- `indicators::Vector{Function}`: indicators used in the processing.
 - `x_indicator`, the indicator timeseries (matrix with each column one indicator).
 - `t_indicator`, the time vector of the indicator timeseries.
 
-- `change_metrics::Vector{Function}`: change metrics used in the processing.
 - `x_change`, the change metric timeseries (matrix with each column one change metric).
 - `t_change`, the time vector of the change metric timeseries.
+
+- [`wim::WindowedIndicatorConfig`](@ref), used for the analysis.
 """
 struct WindowedIndicatorResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
     t::TT # original time vector; most often it is `Base.OneTo`.
