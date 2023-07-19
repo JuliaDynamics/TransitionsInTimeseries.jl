@@ -23,9 +23,9 @@ using TransitionsInTimeseries, Test
     @test isapprox(res.x_change[:, 2], vartrend_ground_truth, atol = 1e-9)
 
     # Virtually all results should have 0 significance versus the surrogates
-    signif = SurrogatesSignificance(n = 100, tail = :both)
-    pvalues = significant_transitions(res, signif)
+    signif = SurrogatesSignificance(n = 100, tail = :both, p = 0.1)
+    flags = significant_transitions(res, signif)
 
-    @test all(>(0.1), pvalues)
+    @test all(.!flags)
 
 end

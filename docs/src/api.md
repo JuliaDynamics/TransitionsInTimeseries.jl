@@ -11,8 +11,10 @@ WindowedIndicatorResults
 ## Significance testing
 
 ```@docs
-SurrogatesSignificance
 significant_transitions
+TransitionsSignificance
+SurrogatesSignificance
+QuantileSignificance
 ```
 
 ## [Indicators](@id indicators)

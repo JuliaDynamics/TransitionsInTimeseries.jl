@@ -104,7 +104,7 @@ function significant_transitions(res::WindowedIndicatorResults, signif::Surrogat
         )
     end
     pvalues ./= signif.n
-    return pvalues .< p
+    return pvalues .< signif.p
 end
 
 function indicator_metric_surrogates_loop!(
