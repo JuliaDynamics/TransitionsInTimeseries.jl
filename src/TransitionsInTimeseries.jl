@@ -35,6 +35,7 @@ include("change_metrics/valuediff.jl")
 
 include("analysis/windowed_indicators.jl")
 include("analysis/surrogates_significance.jl")
+include("analysis/quantile_significance.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
@@ -51,7 +52,8 @@ export difference_of_means
 
 # analysis
 export WindowedIndicatorConfig, estimate_transitions, WindowedIndicatorResults
-export TransitionsSignificance, SurrogatesSignificance, significant_transitions
+export TransitionsSignificance, significant_transitions
+export QuantileSignificance, SurrogatesSignificance
 
 # timeseries
 export isequispaced, equispaced_step
