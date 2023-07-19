@@ -225,27 +225,26 @@ and the function [`significant_transitions`](@ref).
 
 ```@example MAIN
 signif = SurrogatesSignificance(n = 1000, tail = :both)
-pvalues = significant_transitions(results, signif)
+flags = significant_transitions(results, signif)
 ```
 
-So now we can plot the p-values corresponding to each timeseries change metric
+If we want, we can also plot the p-values corresponding to each timeseries change metric
 
 ```@example MAIN
 fig, ax = lines(t, input; color = Cycled(2), label = "input")
-axpval, = scatter(fig[2,1], results.t_change, pvalues[:, 1]; color = Cycled(3), label = "var p-values")
-scatter!(axpval, results.t_change, pvalues[:, 2]; color = Cycled(4), label = "ar1 p-values")
+axpval, = scatter(fig[2,1], results.t_change, signif.pvalues[:, 1]; color = Cycled(3), label = "var p-values")
+scatter!(axpval, results.t_change, signif.pvalues[:, 2]; color = Cycled(4), label = "ar1 p-values")
 axislegend(axpval)
 xlims!(ax, 0, 50)
 xlims!(axpval, 0, 50)
 ```
 
-We can convert the p-values into flags by thresholding. Here we want the time points where _both_ p-values are simultaneously below `0.05`.
+From the `flags` we can obtain the time points where _both_ indicators show significance, via a simple reduction
 
 ```@example MAIN
-pthres = pvalues .< 0.05
-flags = vec(reduce(&, pthres; dims = 2))
+flagsboth = vec(reduce(&, flags; dims = 2))
 
-vlines!(ax, results.t_change[flags]; label = "flags", color = ("black", 0.1))
+vlines!(ax, results.t_change[flagsboth]; label = "flags", color = ("black", 0.1))
 axislegend(ax)
 fig
 ```

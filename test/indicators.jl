@@ -1,4 +1,3 @@
-using Downloads, DelimitedFiles
 using TransitionsInTimeseries, Test, Random, TimeseriesSurrogates
 
 # Check if AR1 regression parameter from a known AR1 process with white noise
@@ -16,7 +15,7 @@ end
     y_lofreq = fill(10 * rand(), nt)
     y_hifreq = sin.(t .* 100)
     metric = LowfreqPowerSpectrum()
-    metricc = first(precompute_metrics([metric], ones(nt)))
+    metricc = precompute(metric, ones(nt))
 
     @test metricc(y_lofreq[1:nt]) > 0.95
     @test metricc(y_hifreq[1:nt]) < 0.05
@@ -24,7 +23,7 @@ end
 
  @testset "perment" begin
     x = 1:1000
-    pe = PermutationEntropy()
+    pe = permutation_entropy()
     # Sliding window over this x gives the same entropy values, all of which are zero
     res = windowmap(pe, x; width = 10)
     @test res == zeros(length(res))
