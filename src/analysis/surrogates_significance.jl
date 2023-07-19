@@ -24,9 +24,9 @@ When used with [`WindowedIndicatorResults`](@ref), significance is estimated as 
 any `Surrogate` subtype provided by
 [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/dev/api/).
 For each surrogate, the indicator and then change metric timeseries is extracted.
-The values of the surrogate change metrics form a distribution of values (one at each time point).
-The value of the original change metric is compared to that of the surrogate distribution
-and a p-value is extracted according to the specified `tail`.
+The values of the surrogate change metrics form a distribution of values (one at each
+time point). The value of the original change metric is compared to that of the surrogate
+distribution and a p-value is extracted according to the specified `tail`.
 
 the p-value is simply the proportion of surrogate values
 that exceed (for `tail = :right`) or subseed (`tail = :left`) the discriminatory
@@ -39,7 +39,8 @@ For anything else, use the default `tail = :both`.
 An iterable of `tail` values can also be given, in which case a specific `tail`
 is used for each change metric in [`WindowedIndicatorResults`](@ref).
 
-Keyword `rng = Random.default_rng()` may specify a random number generator for the surrogates.
+Keyword `rng = Random.default_rng()` may specify a random number generator for the
+surrogates.
 """
 Base.@kwdef struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignificance
     surrogate::S = RandomFourier()
@@ -57,7 +58,8 @@ Estimate significant transtions in `res` using the method described by
 Return `pvalues`, a matrix with identical size as `res.x_change`.
 It contains the associated p-value timeseries for each change metric (each column).
 """
-function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
+function significant_transitions(res::WindowedIndicatorResults,
+    signif::SurrogatesSignificance)
     (; indicators, change_metrics) = res.wim
     pvalues = similar(res.x_change)
     # Multi-threaded surrogate realization

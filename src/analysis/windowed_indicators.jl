@@ -65,7 +65,8 @@ function WindowedIndicatorConfig(
     end
     L = length(indicators)
     if length(change_metrics) ∉ (1, L)
-        throw(ArgumentError("The amount of change metrics must be as many as the indicators, or only 1."))
+        throw(ArgumentError("The amount of change metrics must be as many as the"*
+            "indicators, or only 1."))
     end
     # Last step: precomputable functions, if any
     indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
@@ -100,8 +101,10 @@ end
 
 function estimate_transitions(config::WindowedIndicatorConfig, x, t = eachindex(x))
     # initialize time vectors
-    t_indicator = windowmap(config.whichtime, t; width = config.width_ind, stride = config.stride_ind)
-    t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha, stride = config.stride_cha)
+    t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
+        stride = config.stride_ind)
+    t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha,
+        stride = config.stride_cha)
     len_ind = length(t_indicator)
     len_change = length(t_change)
 
