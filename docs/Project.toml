@@ -1,7 +1,6 @@
 [deps]
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
-Changepoints = "98700a41-f20d-59c7-9e81-44d0470ae598"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
