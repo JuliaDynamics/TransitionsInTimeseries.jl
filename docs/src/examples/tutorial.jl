@@ -1,6 +1,4 @@
-```@meta
-EditURL = "examples/tutorial.jl"
-```
+#=
 
 # Tutorial
 
@@ -29,8 +27,8 @@ Let us load data from a bistable nonlinear model subject to noise and to a gradu
 ```
 
 with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable model, $f$ the forcing and $n$ the noise. For $f=0$ they both display an equilibrium point at $x=-1$. However, the bistable model also displays a further equilibrium point at $x=1$. Loading (and visualizing with [Makie](https://docs.makie.org/stable/)) such prototypical data to test some indicators can be done by simply running:
+=#
 
-````@example tutorial
 using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
@@ -38,8 +36,8 @@ fig, ax = lines(t, x_linear)
 lines!(ax, t, x_nlinear)
 ax.title = "raw data"
 fig
-````
 
+#=
 ### Preprocessing
 
 !!! note "Not part of TransitionsInTimeseries.jl"
@@ -48,8 +46,8 @@ fig
 
 
 The nonlinear system clearly displays a transition between two stability regimes. To forecast such transition, we analyze the fluctuations of the timeseries around the attractor, assumed to be tracked. Therefore, a detrending step is needed - here simply obtained by building the difference of the timeseries with lag 1.
+=#
 
-````@example tutorial
 x_l_fluct = diff(x_linear)
 x_nl_fluct = diff(x_nlinear)
 tfluct = t[2:end]
@@ -58,8 +56,8 @@ fig, ax = lines(tfluct, x_l_fluct)
 lines!(ax, tfluct, x_nl_fluct .+ 0.05)
 ax.title = "input timeseries"
 fig
-````
 
+#=
 At this point, `x_l_fluct` and `x_nl_fluct` are considered the **input timeseries**.
 
 !!! info "Detrending in Julia"
@@ -68,15 +66,15 @@ At this point, `x_l_fluct` and `x_nl_fluct` are considered the **input timeserie
 ### Indicator timeseries
 
 We can then compute the values of some "indicator" (a Julia function that inputs a timeseries and outputs a number). An indicator should be a quantity that is likely to change if a transition occurs, or is about to occur in the timeseries. We compute indicators by applying a sliding window over the **input timeseries**, determined by the width and the stride with which it is applied. Here we demonstrate this computation with the AR1-regression coefficient (under white-noise assumption), implemented as [`ar1_whitenoise`](@ref):
+=#
 
-````@example tutorial
 indicator = ar1_whitenoise
 indicator_window = (width = 400, stride = 1)
 
-# By mapping `last::Function` over a windowviewer of the time vector,
-# we obtain the last time step of each window.
-# This therefore only uses information from `k-width+1` to `k` at time step `k`.
-# Alternatives: `first::Function`, `midpoint:::Function`.
+## By mapping `last::Function` over a windowviewer of the time vector,
+## we obtain the last time step of each window.
+## This therefore only uses information from `k-width+1` to `k` at time step `k`.
+## Alternatives: `first::Function`, `midpoint:::Function`.
 t_indicator = windowmap(last, tfluct; indicator_window...)
 indicator_l = windowmap(indicator, x_l_fluct; indicator_window...)
 indicator_nl = windowmap(indicator, x_nl_fluct; indicator_window...)
@@ -85,15 +83,15 @@ fig, ax = lines(t_indicator, indicator_l)
 lines!(ax, t_indicator, indicator_nl)
 ax.title = "indicator timeseries"
 fig
-````
 
+#=
 The lines plotted above are the **indicator timeseries**.
 
 ### Change metric timeseries
 
 From here, we process the **indicator timeseries** to quantify changes in it. This step is in essence the same as before: we apply some function over a sliding window of the indicator timeseries. We call this new timeseries the **change metric timeseries**. In the example here, the change metric we will employ will be the slope (over a sliding window), calculated via means of a [`RidgeRegressionSlope`](@ref):
+=#
 
-````@example tutorial
 change_window = (width = 30, stride = 1)
 ridgereg = RidgeRegressionSlope(lambda = 0.0)
 precompridgereg = precompute(ridgereg, t[1:change_window.width])
@@ -106,8 +104,8 @@ fig, ax = lines(t_change, change_l)
 lines!(ax, t_change, change_nl)
 ax.title = "change metric timeseries"
 fig
-````
 
+#=
 ### Timeseries surrogates
 
 As expected from [Critical Slowing Down](@ref approaches), an increase of the AR1-regression coefficient can be observed. Although eyeballing the timeseries might already be suggestive, we want a rigorous framework for testing for significance.
@@ -115,9 +113,9 @@ As expected from [Critical Slowing Down](@ref approaches), an increase of the AR
 In TransitionsIdentifiers.jl we perform significance testing using the method of timeseries surrogates and the [TimeseriesSurrogates.jl](https://github.com/JuliaDynamics/TimeseriesSurrogates.jl) Julia package. This has the added benefits of reproducibility, automation and flexibility in choosing the surrogate generation method. Note that `TimeseriesSurrogates` is re-exported by `TransitionsInTimeseries`, so that you don't have to `using` both of them.
 
 To illustrate the surrogate, we compare the change metric computed from the bistable timeseries what that computed from a surrogate of the same timeseries.
+=#
 
-````@example tutorial
-# Generate Fourier random-phase surrogates
+## Generate Fourier random-phase surrogates
 using Random: Xoshiro
 s = surrogate(x_nl_fluct, RandomFourier(), Xoshiro(123))
 
@@ -133,7 +131,7 @@ lines!(axs[1], tfluct, x_nl_fluct, color = Cycled(2))
 lines!(axs[1], tfluct, s .- 0.05, color = Cycled(3))
 axs[1].title = "real signal vs. surrogate(s)"
 
-# compute and plot indicator and change metric
+## compute and plot indicator and change metric
 indicator_s = windowmap(indicator, s; indicator_window...)
 change_s = windowmap(precompridgereg, indicator_s; change_window...)
 
@@ -144,13 +142,13 @@ axs[2].title = "change metric"
 
 [xlims!(ax, 0, 50) for ax in axs]
 fig
-````
 
+#=
 ### Quantifying significance
 
 To quantify the significance of the values of the **change metric timeseries** we perform a standard surrogate test by computing the [p-value](https://en.wikipedia.org/wiki/P-value) w.r.t. the change metrics of thousands of surrogates of the input timeseries. A low p-value (typically `p<0.05`) is commonly considered as significant. To visualize significant trends, we plot the p-value vs. time:
+=#
 
-````@example tutorial
 n_surrogates = 1_000
 fig, axs = gridfig(2, 2)
 axs[1].title = "linear"
@@ -162,7 +160,7 @@ for (j, ax, axsig, x) in zip(1:2, axs[1:2], axs[3:4], (x_l_fluct, x_nl_fluct))
     sgen = surrogenerator(x, RandomFourier(), Xoshiro(123))
     pval = zeros(length(change_s))
 
-    # Collect all surrogate change metrics
+    ## Collect all surrogate change metrics
     for i in 1:n_surrogates
         s = sgen()
         indicator_s = windowmap(indicator, s; indicator_window...)
@@ -177,8 +175,8 @@ end
 
 [xlims!(ax, 0, 50) for ax in axs]
 fig
-````
 
+#=
 As expected, the data generated by the nonlinear model displays a significant increase of the AR1-regression coefficient before the transition, which is manifested by a low p-value. In contrast, the data generated by the linear model does not show anything similar.
 
 Performing the step-by-step analysis of transition indicators is possible and might be preferred for users wanting high flexibility. However, this results in a substantial amount of code. We therefore provide convenience functions that wrap this analysis, as shown in the next section.
@@ -190,44 +188,44 @@ TransitionsInTimeseries.jl wraps this typical workflow into a simple, extendable
 The interface is simple, and directly parallelizes the [Workflow](@ref). It is based on the creation of a [`TransitionsSurrogatesConfig`](@ref), which contains a list of indicators, and corresponding metrics, to use for doing the above analysis. It also specifies what kind of surrogates to generate.
 
 The following blocks illustrate how the above extensive example is re-created in TransitionsInTimeseries.jl
+=#
 
-````@example tutorial
 using TransitionsInTimeseries, CairoMakie
 
 t, x_linear, x_nlinear = load_linear_vs_doublewell()
 
-# input timeseries and time
+## input timeseries and time
 input = x_nl_fluct = diff(x_nlinear)
 t = t[2:end]
 
 fig, ax = lines(t, input)
 ax.title = "input timeseries"
 fig
-````
 
+#=
 To perform all of the above analysis we follow a 2-step process.
 
 Step 1, we decide what indicators and change metrics to use in [`WindowedIndicatorConfig`](@ref) and apply those via
 a sliding window to the input timeseries using [`transition_metrics`](@ref).
+=#
 
-````@example tutorial
-# These indicators are suitable for Critical Slowing Down
+## These indicators are suitable for Critical Slowing Down
 indicators = (var, ar1_whitenoise)
 
-# use the ridge regression slope for both indicators
+## use the ridge regression slope for both indicators
 change_metrics = RidgeRegressionSlope()
 
-# choices go into a configuration struct
+## choices go into a configuration struct
 config = WindowedIndicatorConfig(indicators, change_metrics;
     width_ind = 400, width_cha = 30, whichtime = last)
 
-# choices are processed
+## choices are processed
 results = transition_metrics(config, input, t)
-````
 
+#=
 From `result` we can plot the change metric timeseries:
+=#
 
-````@example tutorial
 fig, axs = gridfig(3, 1)
 lines!(axs[1], t, input; label = "input", color = Cycled(2))
 scatter!(axs[2], results.t_change, results.x_change[:, 1];
@@ -236,19 +234,19 @@ scatter!(axs[3], results.t_change, results.x_change[:, 2];
     label = "ar1 slopes", color = Cycled(4))
 [xlims!(ax, 0, 50) for ax in axs]
 fig
-````
 
+#=
 Step 2 is to estimate significance using [`SurrogatesSignificance`](@ref)
 and the function [`estimate_significance!`](@ref).
+=#
 
-````@example tutorial
 signif = SurrogatesSignificance(n = 1000, tail = :right)
 estimate_significance!(signif, results)
-````
 
+#=
 We can now plot the p-values corresponding to each time series of the change metrics. From the `flags` we can additionally obtain the time points where _both_ indicators show significance, via a simple reduction:
+=#
 
-````@example tutorial
 fig, axs = gridfig(2, 1)
 lines!(axs[1], vcat(0.0, t), x_nlinear; label = "raw", color = Cycled(1))
 lines!(axs[1], t, input; label = "input", color = Cycled(2))
@@ -263,5 +261,3 @@ vlines!(axs[1], results.t_change[flagsboth]; label = "flags", color = ("black", 
 [axislegend(ax) for ax in axs]
 [xlims!(ax, 0, 50) for ax in axs]
 fig
-````
-
