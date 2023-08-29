@@ -13,7 +13,7 @@ using TransitionsInTimeseries, Test
         width_cha = 100, stride_cha = 1, whichtime = last,
     )
 
-    res = estimate_transitions(config, x, t)
+    res = transition_metrics(config, x, t)
 
     # The trend of mean(windowview) is the stride for x=t
     meantrend_ground_truth = fill(1, length(res.t_change))
@@ -24,8 +24,8 @@ using TransitionsInTimeseries, Test
 
     # Virtually all results should have 0 significance versus the surrogates
     signif = SurrogatesSignificance(n = 100, tail = :both, p = 0.1)
-    flags = significant_transitions(res, signif)
+    estimate_significance!(signif, res)
 
-    @test all(.!flags)
+    @test all(.!signif.flags)
 
 end

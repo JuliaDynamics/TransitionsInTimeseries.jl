@@ -4,14 +4,14 @@
 
 ```@docs
 WindowedIndicatorConfig
-estimate_transitions
+transition_metrics
 WindowedIndicatorResults
 ```
 
 ## Significance testing
 
 ```@docs
-significant_transitions
+estimate_significance!
 TransitionsSignificance
 SurrogatesSignificance
 QuantileSignificance

@@ -79,7 +79,7 @@ function WindowedIndicatorConfig(
 end
 
 """
-    estimate_transitions(config::WindowedIndicatorConfig, x [,t]) → output
+    transition_metrics(config::WindowedIndicatorConfig, x [,t]) → output
 
 Estimate possible transitions for input timeseries `x` using a sliding window approach
 as described by `config`:
@@ -91,15 +91,15 @@ as described by `config`:
 If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
 
 Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
-[`significant_transitions`](@ref) to deduce which possible transitions are statistically
+[`estimate_significance!`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
-function estimate_transitions(x, config::WindowedIndicatorConfig)
+function transition_metrics(x, config::WindowedIndicatorConfig)
     t = eachindex(x)
-    return estimate_transitions(t, x, config)
+    return transition_metrics(t, x, config)
 end
 
-function estimate_transitions(config::WindowedIndicatorConfig, x, t = eachindex(x))
+function transition_metrics(config::WindowedIndicatorConfig, x, t = eachindex(x))
     # initialize time vectors
     t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
         stride = config.stride_ind)
@@ -139,10 +139,10 @@ end
 """
     WindowedIndicatorResults
 
-A struct containing the output of [`estimate_transitions`](@ref) used with
+A struct containing the output of [`transition_metrics`](@ref) used with
 [`WindowedIndicatorConfig`](@ref).
 It can be used for further analysis, visualization,
-or given to [`significant_transitions`](@ref).
+or given to [`estimate_significance!`](@ref).
 
 It has the following fields that the user may access
 

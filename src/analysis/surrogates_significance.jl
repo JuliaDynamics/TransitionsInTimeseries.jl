@@ -1,7 +1,7 @@
 """
     TransitionsSignificance
 
-Supertype used to test for significance in [`significant_transitions`](@ref).
+Supertype used to test for significance in [`estimate_significance!`](@ref).
 Valid subtypes are:
 
 - [`SurrogatesSignificance`](@ref).
@@ -13,7 +13,7 @@ abstract type TransitionsSignificance end
     SurrogatesSignificance <: TransitionsSignificance
     SurrogatesSignificance(; surrogate = RandomFourier(), n = 10_000, tail = :both, rng)
 
-A configuration struct for significance testing [`significant_transitions`](@ref)
+A configuration struct for significance testing [`estimate_significance!`](@ref)
 using timeseries surrogates.
 
 ## Keyword arguments
@@ -23,6 +23,9 @@ using timeseries surrogates.
 - `rng = Random.default_rng()`: random number generator for the surrogates
 - `p = 0.05`: threshold for significance of the p-value
 - `tail = :both`: tail type used, see below
+- `detrend_surro = false`: in the literature, surrogates are sometimes detrended.
+ choose `detrend_surro = true` to do so. Note that this tends to not significantly
+ change the results since surrogates of residuals should already be largely free of trend.
 
 ## Description
 
@@ -34,9 +37,9 @@ For each surrogate, the indicator and then change metric timeseries is extracted
 The values of the surrogate change metrics form a distribution of values (one at each time point).
 The value of the original change metric is compared to that of the surrogate distribution
 and a p-value is extracted according to the specified `tail`.
-The p-value is compared with `p` to claim significance.
-After using `SurrogatesSignificance`, you may access the full p-values before thresholding
-in the field `.pvalues` (to e.g., threshold with different `p`).
+The p-value is compared with `p` to claim significance, which results in flags.
+After using `SurrogatesSignificance`, you may access the p-values and the corresponding flags
+in the fields `.pvalues` and `.flags`.
 
 The p-value is simply the proportion of surrogate change metric values
 that exceed (for `tail = :right`) or subseed (`tail = :left`) the original change metric
@@ -53,26 +56,33 @@ mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignific
     tail::T
     rng::R
     p::Float64
+    detrend_surro::Bool
     pvalues::Matrix{Float64}
+    flags::BitMatrix
 end
 
 function SurrogatesSignificance(;
     surromethod = RandomFourier(),
     n::Int = 10_000,
     tail = :both,
-    rng = Random.default_rng(), p = 0.05)
-    return SurrogatesSignificance(surromethod, n, tail, rng, p, zeros(1,1))
+    rng = Random.default_rng(),
+    p = 0.05,
+    detrend_surro = false)
+    return SurrogatesSignificance(surromethod, n, tail, rng, p, detrend_surro,
+        zeros(1,1), zeros(1,1) .> 1)
 end
 
 
 """
-    significant_transitions(res::WindowedIndicatorResults, signif::TransitionsSignificance)
+    estimate_significance!(signif::TransitionsSignificance, res::WindowedIndicatorResults)
 
-Estimate significant transtions in `res` using the method described by `signif`.
-Return `flags`, a Boolean matrix with identical size as `res.x_change`.
-It contains trues wherever a change metric of `res` is deemed significant.
+Estimate the significance of the transition metrics stored in `res` by using the method
+described by `signif` and storing the results in `signif.p_values` and `signif.flags`.
+The former gives a continuous value between 0 and 1, whereas the latter is a Boolean matrix
+which contains trues wherever `signif.p_values` is below the threshold `signif.p`. Both
+`signif.p_values` and `signif.flags` have the same size as `res.x_change`.
 """
-function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
+function estimate_significance!(signif::SurrogatesSignificance, res::WindowedIndicatorResults)
     (; indicators, change_metrics) = res.wim
     tail = signif.tail
     if !(tail isa Symbol) && length(tail) ≠ length(indicators)
@@ -97,18 +107,19 @@ function significant_transitions(res::WindowedIndicatorResults, signif::Surrogat
         # p values for current i
         pval = view(pvalues, :, i)
         indicator_metric_surrogates_loop!(
-            indicator, chametric, c, pval, signif.n, sgens,
-            indicator_dummys, change_dummys,
+            indicator, chametric, c, pval, signif.n, sgens, res.t,
+            indicator_dummys, change_dummys, signif.detrend_surro,
             res.wim.width_ind, res.wim.stride_ind, res.wim.width_cha, res.wim.stride_cha, tai
         )
     end
     pvalues ./= signif.n
-    return pvalues .< signif.p
+    signif.flags = pvalues .< signif.p
+    return signif
 end
 
 function indicator_metric_surrogates_loop!(
-        indicator, chametric, c, pval, n_surrogates, sgens,
-        indicator_dummys, change_dummys,
+        indicator, chametric, c, pval, n_surrogates, sgens, t,
+        indicator_dummys, change_dummys, detrend_surro,
         width_ind, stride_ind, width_cha, stride_cha, tail
     )
 
@@ -121,6 +132,12 @@ function indicator_metric_surrogates_loop!(
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()
         s = sgens[id]()
+
+        if detrend_surro
+            m, p = ridgematrix(t, 0.0) * s
+            s .-= (m .* t  .+ p)
+        end
+
         change_dummy = change_dummys[id]
         windowmap!(indicator, indicator_dummys[id], s;
             width = width_ind, stride = stride_ind)
