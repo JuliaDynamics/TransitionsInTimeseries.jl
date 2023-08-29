@@ -251,7 +251,7 @@ t_transitions = [[1850, 2970, 3970, 5070, 5810, 7050, 8050], [3500, 4400, 5790, 
 figvec = Figure[]
 for i in 1:2
     ## Download the data and perform loess filtering on it
-    tmp = Base.download("https://raw.githubusercontent.com/JanJereczek/JuliaDynamics/" *
+    tmp = Base.download("https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/" *
         "master/timeseries/climberx-do$(i)-omaxa.csv")
     data = readdlm(tmp)
     tcx, xcx = data[1, :], data[2, :]
