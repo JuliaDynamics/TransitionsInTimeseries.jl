@@ -94,11 +94,6 @@ Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
 [`estimate_significance!`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
-function transition_metrics(x, config::WindowedIndicatorConfig)
-    t = eachindex(x)
-    return transition_metrics(t, x, config)
-end
-
 function transition_metrics(config::WindowedIndicatorConfig, x, t = eachindex(x))
     # initialize time vectors
     t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
