@@ -236,12 +236,12 @@ scatter!(axs[3], results.t_change, results.x_change[:, 2];
 fig
 
 #=
-Step 2 is to estimate significance using [`SurrogatesSignificance`](@ref)
+Step 2 is to estimate significance using [`SurrogatesConfig`](@ref)
 and the function [`estimate_significance!`](@ref).
 =#
 
-signif = SurrogatesSignificance(n = 1000, tail = :right)
-estimate_significance!(signif, results)
+sigconfig = SurrogatesConfig(n = 1000, tail = :right)
+signif = estimate_significance(sigconfig, results)
 
 #=
 We can now plot the p-values corresponding to each time series of the change metrics. From the `flags` we can additionally obtain the time points where _both_ indicators show significance, via a simple reduction:

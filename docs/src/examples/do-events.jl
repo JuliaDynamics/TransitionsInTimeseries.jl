@@ -122,7 +122,7 @@ As one can see, there is not much to see so far. Residuals are impossible to sim
 =#
 
 using TransitionsInTimeseries, StatsBase
-using Random: MersenneTwister
+using Random: Xoshiro
 
 ac1(x) = sum(autocor(x, [1]))                   # AC1 from StatsBase
 indicators = (var, ac1)
@@ -147,15 +147,15 @@ function perform_segment_analysis(t, r, indicators, change_metrics, itime,
         t_end = t_transitions[i] - margins[2]
         i_start, i_end = argmin(abs.(t .- t_start)), argmin(abs.(t .- t_end))
         tseg, rseg = t[i_start:i_end], r[i_start:i_end]
+        sigconfig = SurrogatesConfig(n = n, tail = :right, rng = Xoshiro(27))
 
-        if last(tseg) - first(tseg) > itime + 300.0     # only analyze if segment long enough
+        if last(tseg) - first(tseg) > itime + 20.0     # only analyze if segment long enough
             ## Compute the significance of the transition metrics for the chosen segment
             t_indicator = windowmap(last, tseg; width = Int(itime ÷ dt))
             segconfig = WindowedIndicatorConfig(indicators, change_metrics; whichtime = last,
                 width_ind = Int(itime ÷ dt), width_cha = length(t_indicator))
             segresults = transition_metrics(segconfig, rseg, tseg)
-            segsignif = SurrogatesSignificance(n = n, tail = :right, rng = MersenneTwister(15))
-            estimate_significance!(segsignif, segresults)
+            segsignif = estimate_significance(sigconfig, segresults)
 
             ## Populate the pre-allocated arrays with the results
             pvalues[i, :] .= segsignif.pvalues[1, :]
@@ -165,7 +165,7 @@ function perform_segment_analysis(t, r, indicators, change_metrics, itime,
     return pvalues, indicator_results
 end
 
-function plot_segment_analysis!(axs, pvalues, t_transitions, indicator_results)
+function plot_segment_analysis!(axs, pvalues, t_transitions, indicator_results, margins)
     for i in eachindex(indicator_results)   # loop over the segments
         ## Unpack indicator results
         tind = indicator_results[i][:, 1]
@@ -193,31 +193,31 @@ end
 margins = [200, 200]        # avoid the inclusion of transition data points in the segments
 pvalues, indicator_results = perform_segment_analysis(t, r,
     indicators, change_metrics, 200.0, dt, 1_000, t_transitions, margins)
-plot_segment_analysis!(axs, pvalues, t_transitions, indicator_results)
+plot_segment_analysis!(axs, pvalues, t_transitions, indicator_results, margins)
 fig
 
 #=
-In [^Boers2018], 13/16 and 7/16 true positives are respectively found for the variance and AC1, with 16 referring to the total number of transitions. Here we respectively find 11/16 true positives for the variance and 6/16 for AC1, all of them overlapping variance indicators. The mismatch between [^Boers2018] and the results shown above clearly points out that packages like TransitionsInTimeseries are wishful for research to be reproducible.
+In [^Boers2018], 13/16 and 7/16 true positives are respectively found for the variance and AC1, with 16 referring to the total number of transitions. Here we respectively find 10/16 true positives for the variance and 4/16 for AC1. The mismatch between [^Boers2018] and the results shown above clearly points out that packages like TransitionsInTimeseries are wishful for research to be reproducible.
 
-Given that the NGRIP data is sparse, noisy, and presents 16 transitions in total, it appears that the method generates a reasonable rate of true positives.
+Given that the NGRIP data is sparse, noisy, and presents 16 transitions in total, it appears that the method generates a reasonable rate of true positives, but...
 
 ## Limitations of hindcast
 
 Finding transition indicators by defining segments, as done above, is arguably misleading when it comes to an operational prediction task. In fact, one does not check for false positives since the analysis is always performed upto time steps shortly before the transition. To make a brief, albeit incomplete check, one can stop the analysis much before the transition and thus check whether CSD indicators would forecast a transition although there is none ahead.
 =#
 
-margins = [200, 700]        # take "too early" end margin to check for false positives
+early_margins = [200, 700]      # take "too early" end margin to check for false positives
 fig, axs = plot_do(t3, x3, tloess, xloess, t, r, t_transitions, xlims, xticks)
 pvalues, indicator_results = perform_segment_analysis(t, r,
-    indicators, change_metrics, 200.0, dt, 1_000, t_transitions, margins)
-plot_segment_analysis!(axs, pvalues, t_transitions, indicator_results)
+    indicators, change_metrics, 200.0, dt, 1_000, t_transitions, early_margins)
+plot_segment_analysis!(axs, pvalues, t_transitions, indicator_results, early_margins)
 fig
 
 #=
-From 16 predictions which should all be negative, 8 of them are positive for the variance and 3 are positive for AC1. This clearly points out, that generating a reasonable amount of true positives comes at the expense of generating many false positives. We draw attention upon the fact that **checking for false positives is too seldomly performed in literature!** This does not mean that the method are incorrect but rather that the NGRIP data might be too much of a challenge for a CSD analysis. This does not come surprising since the $\delta^{18}O$ time series is noisy and sparsly re-sampled. Furthermore, interpolating over time introduces a potential bias in the statistics, even if performed on a coarse grid. Meh. Is the situation hopeless? Not completely, as we will see in the next section.
+From 16 predictions which should all be negative, 10 of them are positive for the variance and 3 are positive for AC1. This clearly points out that generating a reasonable amount of true positives comes here at the expense of generating many false positives. We draw attention upon the fact that **checking for false positives is too seldomly performed in literature!** This does not mean that the method are incorrect but rather that the NGRIP data might be too much of a challenge for a CSD analysis. This is not surprising since the $\delta^{18}O$ time series is noisy and sparsely re-sampled. Furthermore, interpolating over time introduces a potential bias in the statistics, even if performed on a coarse grid. Meh. Is the situation hopeless? Not completely, as we will see in the next section.
 
 !!! info "Future improvement"
-    Supporting the computations for uneven time series is a planned improvement of TransitionsInTimeseries.
+    Supporting the computations for uneven time series is a planned improvement of TransitionsInTimeseries. This will avoid the need of regridding data on coarse grids and will prevent from introducing any bias.
 
 ## Hindcasting simulated DO-events
 
@@ -233,8 +233,8 @@ function perform_sliding_analysis(t, r, indicators, change_metrics, itime, ctime
         width_ind = Int(itime ÷ dt), stride_ind = istride,
         width_cha = Int(ctime ÷ dt), stride_cha = cstride)
     results = transition_metrics(config, r, t)
-    signif = SurrogatesSignificance(n = n, tail = :right)
-    estimate_significance!(signif, results)
+    sigconfig = SurrogatesConfig(n = n, tail = :right)
+    signif = estimate_significance(sigconfig, results)
     return signif.pvalues, results
 end
 

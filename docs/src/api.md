@@ -11,7 +11,9 @@ WindowedIndicatorResults
 ## Significance testing
 
 ```@docs
-estimate_significance!
+estimate_significance
+SignificanceConfig
+SurrogatesConfig
 TransitionsSignificance
 SurrogatesSignificance
 QuantileSignificance

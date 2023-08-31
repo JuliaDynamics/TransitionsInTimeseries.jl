@@ -23,8 +23,8 @@ using TransitionsInTimeseries, Test
     @test isapprox(res.x_change[:, 2], vartrend_ground_truth, atol = 1e-9)
 
     # Virtually all results should have 0 significance versus the surrogates
-    signif = SurrogatesSignificance(n = 100, tail = :both, p = 0.1)
-    estimate_significance!(signif, res)
+    sigconfig = SurrogatesConfig(n = 100, tail = :both, p = 0.1)
+    signif = estimate_significance(sigconfig, res)
 
     @test all(.!signif.flags)
 

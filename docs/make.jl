@@ -2,15 +2,15 @@ cd(@__DIR__)
 
 using TransitionsInTimeseries, Statistics, StatsBase, Literate
 
-Literate.markdown("src/examples/tutorial.jl", "src"; credit = false)
+Literate.markdown("src/examples/tutorial.jl", "src/examples"; credit = false)
 # Literate.markdown("src/examples/permutation_entropy.jl", "src"; credit = false)
-Literate.markdown("src/examples/do-events.jl", "src"; credit = false)
+Literate.markdown("src/examples/do-events.jl", "src/examples"; credit = false)
 
 pages = [
     "index.md",
-    "tutorial.md",
-    # "permutation_entropy.md",
-    "do-events.md",
+    "examples/tutorial.md",
+    # "examples/permutation_entropy.md",
+    "examples/do-events.md",
     "api.md",
 ]
 
