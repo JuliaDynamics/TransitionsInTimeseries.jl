@@ -34,6 +34,7 @@ include("change_metrics/slope.jl")
 include("change_metrics/valuediff.jl")
 
 include("analysis/windowed_indicators.jl")
+include("analysis/api_significance.jl")
 include("analysis/surrogates_significance.jl")
 include("analysis/quantile_significance.jl")
 

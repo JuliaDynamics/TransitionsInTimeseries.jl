@@ -4,7 +4,7 @@ using Statistics: var
 """
     ar1_whitenoise(x::AbstractVector)
 
-Return the AR1 regression coefficient $$θ$$ of a time series $$x$$ by computing
+Return the AR1 regression coefficient of a time series `x` by computing
 the analytic solution of the least-square parameter estimation under white-noise
 assumption for the data-generating process:
 
