@@ -2,7 +2,7 @@
     WindowedIndicatorConfig(indicators, change_metrics; kwargs...) → config
 
 A configuration struct for TransitionsInTimeseries.jl that collects
-what indicators and corresponding metrics to use in the [`transitions_analysis`](@ref).
+what indicators and corresponding metrics to use in the [`estimate_transitions`](@ref).
 
 `indicators` is a tuple of indicators (or a single indicator).
 `change_metrics` is also a tuple or a single function. If a single function,
@@ -21,7 +21,7 @@ for more information.
 - `width_cha::Int=50, stride_cha::Int=1`: width and stride given to [`WindowViewer`](@ref)
   to compute the change metric timeseries from the indicator timeseries.
 - `whichtime = midpoint`: The time vector corresponding to the indicators / change metric
-  timeseries is obtained from `t` in [`transitions_analysis`](@ref) using the keyword
+  timeseries is obtained from `t` in [`estimate_transitions`](@ref) using the keyword
   `whichtime`. Options include:
     - `last`: use the last timepoint of each window
     - `midpoint`: use the mid timepoint of each time window
