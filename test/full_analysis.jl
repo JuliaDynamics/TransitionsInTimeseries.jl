@@ -13,7 +13,7 @@ using TransitionsInTimeseries, Test
         width_cha = 100, stride_cha = 1, whichtime = last,
     )
 
-    res = estimate_transitions(config, x, t)
+    res = estimate_indicator_changes(config, x, t)
 
     # The trend of mean(windowview) is the stride for x=t
     meantrend_ground_truth = fill(1, length(res.t_change))

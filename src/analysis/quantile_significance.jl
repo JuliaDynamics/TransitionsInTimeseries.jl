@@ -1,5 +1,5 @@
 """
-QuantileSignificance(; p = 0.95, tail = :right) <: TransitionsSignificance
+    QuantileSignificance(; p = 0.95, tail = :right) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
 When used with [`WindowedIndicatorResults`](@ref), significance is estimated as

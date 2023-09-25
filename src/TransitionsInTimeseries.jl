@@ -34,6 +34,7 @@ include("change_metrics/slope.jl")
 include("change_metrics/valuediff.jl")
 
 include("analysis/windowed_indicators.jl")
+include("analysis/api_significance.jl")
 include("analysis/surrogates_significance.jl")
 include("analysis/quantile_significance.jl")
 
@@ -51,7 +52,7 @@ export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export difference_of_means
 
 # analysis
-export WindowedIndicatorConfig, estimate_transitions, WindowedIndicatorResults
+export WindowedIndicatorConfig, estimate_indicator_changes, WindowedIndicatorResults
 export TransitionsSignificance, significant_transitions
 export QuantileSignificance, SurrogatesSignificance
 

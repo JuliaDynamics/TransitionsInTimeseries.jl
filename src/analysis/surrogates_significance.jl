@@ -1,15 +1,4 @@
 """
-    TransitionsSignificance
-
-Supertype used to test for significance in [`significant_transitions`](@ref).
-Valid subtypes are:
-
-- [`SurrogatesSignificance`](@ref).
-"""
-abstract type TransitionsSignificance end
-
-
-"""
     SurrogatesSignificance <: TransitionsSignificance
     SurrogatesSignificance(; surrogate = RandomFourier(), n = 10_000, tail = :both, rng)
 
@@ -40,12 +29,16 @@ in the field `.pvalues` (to e.g., threshold with different `p`).
 
 The p-value is simply the proportion of surrogate change metric values
 that exceed (for `tail = :right`) or subseed (`tail = :left`) the original change metric
-at each given time point. Use `tail = :left` if the surrogate data are expected to have 
-higher change metric, discriminatory statistic values. This is the case for statistics 
+at each given time point. Use `tail = :left` if the surrogate data are expected to have
+higher change metric, discriminatory statistic values. This is the case for statistics
 that quantify entropy. For statistics that quantify autocorrelation, use `tail = :right`
 instead. For anything else, use the default `tail = :both`.
 An iterable of `tail` values can also be given, in which case a specific `tail`
 is used for each change metric in [`WindowedIndicatorResults`](@ref).
+
+Note that the raw p-values can be accessed in the field `.pvalues`, after calling the
+[`significant_transitions`](@ref) function with `SurrogatesSignificance`, in case you wish
+to obtain a different threshold of the p-values.
 """
 mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignificance
     surrogate::S
@@ -64,14 +57,6 @@ function SurrogatesSignificance(;
     return SurrogatesSignificance(surromethod, n, tail, rng, p, zeros(1,1))
 end
 
-
-"""
-    significant_transitions(res::WindowedIndicatorResults, signif::TransitionsSignificance)
-
-Estimate significant transtions in `res` using the method described by `signif`.
-Return `flags`, a Boolean matrix with identical size as `res.x_change`.
-It contains trues wherever a change metric of `res` is deemed significant.
-"""
 function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
     (; indicators, change_metrics) = res.wim
     tail = signif.tail

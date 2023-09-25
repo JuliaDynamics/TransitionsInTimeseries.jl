@@ -4,7 +4,7 @@
 
 ```@docs
 WindowedIndicatorConfig
-estimate_transitions
+estimate_indicator_changes
 WindowedIndicatorResults
 ```
 
