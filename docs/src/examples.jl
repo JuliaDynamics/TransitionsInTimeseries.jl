@@ -60,7 +60,7 @@ indistrings = ("var", "ar1", "pe")
 # instead, there is a sharp transition between periodic and chaotic motion.
 # Hence, we shouldn't be using any trend-based change metrics.
 # Instead, we will use the most basic change metric, [`difference_of_means`](@ref).
-# With this metric it also makes most sense to use as `stride_cha` half the `width_cha`.
+# With this metric it also makes most sense to use as stride half the window width
 metric = difference_of_means
 
 width_ind = N÷100
@@ -76,14 +76,18 @@ results = estimate_transitions(config, x, rs)
 # Let's now plot the change metrics of the indicators
 
 function plot_change_metrics()
-    fig, ax = lines(rs, x; axis = (ylabel = "input",))
+    fig, ax = lines(rs, x; axis = (ylabel = "input",), figure = (resolution = (600, 600),))
     hidexdecorations!(ax; grid = false)
     ## plot all change metrics
     for (i, c) in enumerate(eachcol(results.x_change))
         ax, = scatterlines(fig[i+1, 1], results.t_change, c;
             axis = (ylabel = indistrings[i],), label = "input"
         )
-        i < 4 && hidexdecorations!(ax; grid = false)
+        if i < 3
+            hidexdecorations!(ax; grid = false)
+        else
+            ax.xlabel = "r (time)"
+        end
     end
     return fig
 end
@@ -99,11 +103,9 @@ fig = plot_change_metrics()
 # start of the timeseries, so we can safely ignore the spike at r ≈ 3.83.
 
 # ### Significance via random Fourier surrogates
-# %% #src
 
 # One way to test for significance would be via the standard way as in the [Tutorial](@ref),
 # utilizing surrogate timeseries and [`SurrogatesSignificance`](@ref).
-# There are
 
 # Let's do it here for an example, but, we have to be **careful**.
 # It is crucial that for permutation entropy we use `:right` as the `tail`,
@@ -118,33 +120,32 @@ surromethod = RandomFourier()
 function overplot_surrogate_significance!(fig, surromethod, color = "black")
 
     signif = SurrogatesSignificance(;
-        n = 1000, tail = [:both, :both, :right], surrogate = surromethod
+        n = 1000, tail = [:both, :both, :right], surromethod
     )
-    pvalues = significant_transitions(results, signif)
-    flags = pvalues .< 0.05
+    flags = significant_transitions(results, signif)
 
-    # To make things visually clear, we will plot an example surrogate for each indicator
-    # and also plot the flags with same color
-
+    ## and also plot the flags with same color
     for (i, indicator) in enumerate(indicators)
-        ## generate surrogate change metric timeseries
+        ## To make things visually clear, we will also plot some example surrogate
+        # timeseries for each indicator and change metric pair
         for _ in 1:10
-            s = TimeseriesSurrogates.surrogate(x, surrogate)
+            s = TimeseriesSurrogates.surrogate(x, surromethod)
             p = windowmap(indicator, s; width = width_ind)
             q = windowmap(metric, p; width = width_cha, stride = stride_cha)
-            lines!(fig[i+1, 1], results.t_change, q;  color = (color, 0.2))
+            lines!(fig[i+1, 1], results.t_change, q;  color = (color, 0.2), linewidth = 1)
         end
-        ## Plot the flags with flags
+        ## Plot the flags as vertical dashed lines
         vlines!(fig[i+1, 1], results.t_change[flags[:, i]];
             label = string(nameof(typeof(surromethod))), color = color, linestyle = :dash, linewidth = 3
         )
-        axislegend(content(fig[i+1, 1]); unique = true, position = :lt)
+        # axislegend(content(fig[i+1, 1]); unique = true, position = :lt)
     end
-
-end # function
+    # add a title to the figure
+    content(fig[1, 1]).title = "surrogates: "*string(nameof(typeof(surromethod)))
+end
 
 surromethod = RandomFourier()
-overplot_significance!(fig, surromethod)
+overplot_surrogate_significance!(fig, surromethod)
 
 fig
 
@@ -163,8 +164,10 @@ fig = plot_change_metrics()
 overplot_surrogate_significance!(fig, surromethod, "red")
 fig
 
-# Here the results do not change because the permutation entropy is an exceptionally well
-# suited indicator for this application scenario; But in other cases where things
+# The results are better for the variance and AR1 indicators.
+# For the permutation entropy the results do not change because it already is an
+# exceptionally well
+# suited indicator for this application scenario. But in other cases where things
 # are not as clear, or data are contaminated with noise, or we have shorter data,
 # choosing a more suitable
 # surrogate generator may make the difference between a false positive or not.
@@ -183,8 +186,8 @@ flags = significant_transitions(results, QuantileSignificance())
 ## Plot the flags
 for (i, indicator) in enumerate(indicators)
     vlines!(fig[i+1, 1], results.t_change[flags[:, i]];
-        label = "quantile flags", color = Cycled(3), linestyle = :dash, linewidth = 3
+        color = Cycled(3), linestyle = :dash, linewidth = 3
     )
-    axislegend(content(fig[i+1, 1]); unique = true, position = :lt)
 end
+content(fig[1, 1]).title = "significance from quantile"
 fig
