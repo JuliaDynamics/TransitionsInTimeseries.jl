@@ -71,7 +71,7 @@ config = WindowedIndicatorConfig(indicators, metric;
     width_ind, width_cha, stride_cha,
 )
 
-results = estimate_transitions(config, x, rs)
+results = estimate_indicator_changes(config, x, rs)
 
 # Let's now plot the change metrics of the indicators
 

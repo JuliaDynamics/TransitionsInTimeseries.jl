@@ -195,7 +195,7 @@ fig
 To perform all of the above analysis we follow a 2-step process.
 
 Step 1, we decide what indicators and change metrics to use in [`WindowedIndicatorConfig`](@ref) and apply those via
-a sliding window to the input timeseries using [`estimate_transitions`](@ref).
+a sliding window to the input timeseries using [`estimate_indicator_changes`](@ref).
 
 ```@example MAIN
 # These indicators are suitable for Critical Slowing Down
@@ -210,7 +210,7 @@ config = WindowedIndicatorConfig(indicators, change_metrics;
 )
 
 # choices are processed
-results = estimate_transitions(config, input, t)
+results = estimate_indicator_changes(config, input, t)
 ```
 
 From `result` we can plot the change metric timeseries

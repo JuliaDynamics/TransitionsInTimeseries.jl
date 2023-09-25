@@ -2,7 +2,7 @@
     WindowedIndicatorConfig(indicators, change_metrics; kwargs...) → config
 
 A configuration struct for TransitionsInTimeseries.jl that collects
-what indicators and corresponding metrics to use in the [`estimate_transitions`](@ref).
+what indicators and corresponding metrics to use in the [`estimate_indicator_changes`](@ref).
 
 `indicators` is a tuple of indicators (or a single indicator).
 `change_metrics` is also a tuple or a single function. If a single function,
@@ -21,7 +21,7 @@ for more information.
 - `width_cha::Int=50, stride_cha::Int=1`: width and stride given to [`WindowViewer`](@ref)
   to compute the change metric timeseries from the indicator timeseries.
 - `whichtime = midpoint`: The time vector corresponding to the indicators / change metric
-  timeseries is obtained from `t` in [`estimate_transitions`](@ref) using the keyword
+  timeseries is obtained from `t` in [`estimate_indicator_changes`](@ref) using the keyword
   `whichtime`. Options include:
     - `last`: use the last timepoint of each window
     - `midpoint`: use the mid timepoint of each time window
@@ -79,7 +79,7 @@ function WindowedIndicatorConfig(
 end
 
 """
-    estimate_transitions(config::WindowedIndicatorConfig, x [,t]) → output
+    estimate_indicator_changes(config::WindowedIndicatorConfig, x [,t]) → output
 
 Estimate possible transitions for input timeseries `x` using a sliding window approach
 as described by `config`:
@@ -94,12 +94,12 @@ Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
-function estimate_transitions(x, config::WindowedIndicatorConfig)
+function estimate_indicator_changes(x, config::WindowedIndicatorConfig)
     t = eachindex(x)
-    return estimate_transitions(t, x, config)
+    return estimate_indicator_changes(t, x, config)
 end
 
-function estimate_transitions(config::WindowedIndicatorConfig, x, t = eachindex(x))
+function estimate_indicator_changes(config::WindowedIndicatorConfig, x, t = eachindex(x))
     # initialize time vectors
     t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
         stride = config.stride_ind)
@@ -139,7 +139,7 @@ end
 """
     WindowedIndicatorResults
 
-A struct containing the output of [`estimate_transitions`](@ref) used with
+A struct containing the output of [`estimate_indicator_changes`](@ref) used with
 [`WindowedIndicatorConfig`](@ref).
 It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
