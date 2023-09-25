@@ -127,7 +127,7 @@ function overplot_surrogate_significance!(fig, surromethod, color = "black")
     ## and also plot the flags with same color
     for (i, indicator) in enumerate(indicators)
         ## To make things visually clear, we will also plot some example surrogate
-        # timeseries for each indicator and change metric pair
+        ## timeseries for each indicator and change metric pair
         for _ in 1:10
             s = TimeseriesSurrogates.surrogate(x, surromethod)
             p = windowmap(indicator, s; width = width_ind)
@@ -136,11 +136,10 @@ function overplot_surrogate_significance!(fig, surromethod, color = "black")
         end
         ## Plot the flags as vertical dashed lines
         vlines!(fig[i+1, 1], results.t_change[flags[:, i]];
-            label = string(nameof(typeof(surromethod))), color = color, linestyle = :dash, linewidth = 3
+            color = color, linestyle = :dash, linewidth = 3
         )
-        # axislegend(content(fig[i+1, 1]); unique = true, position = :lt)
     end
-    # add a title to the figure
+    ## add a title to the figure with how we estimate significance
     content(fig[1, 1]).title = "surrogates: "*string(nameof(typeof(surromethod)))
 end
 

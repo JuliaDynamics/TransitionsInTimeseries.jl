@@ -174,9 +174,9 @@ Performing the step-by-step analysis of transition indicators is possible and mi
 
 TransitionsInTimeseries.jl wraps this typical workflow into a simple, extendable, and modular API that researchers can use with little effort. In addition, it allows performing the same analysis for several indicators / change metrics in one go.
 
-The interface is simple, and directly parallelizes the [Workflow](@ref). It is based on the creation of a [`TransitionsSurrogatesConfig`](@ref), which contains a list of indicators, and corresponding metrics, to use for doing the above analysis. It also specifies what kind of surrogates to generate.
+The interface is simple, and directly parallelizes the [Workflow](@ref). It is based on the creation of a [`WindowedIndicatorConfig`](@ref), which contains a list of indicators, and corresponding metrics, to use for doing the above analysis.
 
-The following blocks illustrate how the above extensive example is re-created in TransitionsInTimeseries.jl
+The following blocks illustrate how the above extensive example is re-created in TransitionsInTimeseries.jl. First, let's load the timeseries again.
 
 ```@example MAIN
 using TransitionsInTimeseries, CairoMakie
