@@ -4,13 +4,20 @@ using TransitionsInTimeseries, Statistics, StatsBase
 
 using Literate
 
-Literate.markdown("src/examples.jl", "src"; credit = false)
+# process examples and add then in a sidebar column
+example_files = readdir(joinpath(@__DIR__, "src", "examples"))
+example_pages = String[]
+for file in example_files
+    mkdownname = splitext(file)[1]*".md"
+    Literate.markdown("src/examples/$(file)", "src/examples"; credit = false)
+    push!(example_pages, "examples/$(mkdownname)")
+end
 
 pages = [
     "index.md",
     "tutorial.md",
     "api.md",
-    "examples.md",
+    "Examples" => example_pages,
 ]
 
 import Downloads
