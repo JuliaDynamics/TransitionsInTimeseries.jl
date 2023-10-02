@@ -18,19 +18,19 @@
 using DynamicalSystemsBase
 using CairoMakie
 
-logistic_rule(u, p, t) = @inbounds SVector(p[1]*u[1]*(1 - u[1]))
-ds = DeterministicIteratedMap(logistic_rule, [0.5], [1.0])
-
+## time-dependent logistic map, so that the `r` parameter increases with time
 r1 = 3.83
 r2 = 3.86
 N = 2000
 rs = range(r1, r2; length = N)
-x = zeros(N)
-for (i, r) in enumerate(rs)
-    set_parameter!(ds, 1, r)
-    step!(ds)
-    x[i] = current_state(ds)[1]
+
+function logistic_drifting_rule(u, rs, n)
+    r = rs[n+1] # time is `n`, starting from 0
+    return SVector(r*u[1]*(1 - u[1]))
 end
+
+ds = DeterministicIteratedMap(logistic_drifting_rule, [0.5], rs)
+x = trajectory(ds, N-1)[1][:, 1]
 
 # Plot it, using as time the parameter value (they coincide)
 fig, ax = lines(rs, x; linewidth = 0.5)
