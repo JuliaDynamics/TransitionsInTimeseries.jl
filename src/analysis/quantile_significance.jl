@@ -65,7 +65,7 @@ function significant_transitions(res::WindowedIndicatorResults, signif::SigmaSig
     for (i, x) in enumerate(eachcol(res.x_change))
         μ = mean(x)
         σ = std(x; mean = μ)
-        factor = signif.factor isa AbstractVector ? signif.factor[i] : factor
+        factor = signif.factor isa AbstractVector ? signif.factor[i] : signif.factor
         flag = view(flags, :, i)
         if signif.tail == :right
             @. flag = x > μ + factor*σ

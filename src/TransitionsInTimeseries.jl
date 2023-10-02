@@ -54,7 +54,7 @@ export difference_of_means
 # analysis
 export WindowedIndicatorConfig, estimate_indicator_changes, WindowedIndicatorResults
 export TransitionsSignificance, significant_transitions
-export QuantileSignificance, SurrogatesSignificance
+export QuantileSignificance, SigmaSignificance, SurrogatesSignificance
 
 # timeseries
 export isequispaced, equispaced_step

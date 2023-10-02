@@ -1,6 +1,4 @@
-# # Examples for TransitionsInTimeseries.jl
-
-# ## Permutation entropy for dynamic regime changes
+# # Permutation entropy for dynamic regime changes
 
 # Permutation entropy is used frequently to detect a transition between
 # one dynamic regime to another. It is useful when the mean and std. of the
@@ -12,7 +10,7 @@
 # are arguably better suitable in such an application than the [Tutorial](@ref)'s default
 # of significance via random Fourier surrogates.
 
-# ### Logistic map timeseries
+# ## Logistic map timeseries
 
 # A simple example of this is transitions from periodic to weakly chaotic to chaotic
 # motion in the logistic map. First, let's generate a timeseries of the logistic map
@@ -45,7 +43,7 @@ fig
 # to weak chaos at r ≈ 3.847. This transition is barely visible in the
 # timeseries, and in fact many of the timeseries statistical properties remain identical.
 
-# ### Using a simpler change metric
+# ## Using a simpler change metric
 
 # Now, let's compute and various indicators and their changes,
 # focusing on the fourth indicator, the permutation entropy. We use
@@ -102,7 +100,7 @@ fig = plot_change_metrics()
 # Due to its construction, permutation entropy will have a spike for periodic data at the
 # start of the timeseries, so we can safely ignore the spike at r ≈ 3.83.
 
-# ### Significance via random Fourier surrogates
+# ## Significance via random Fourier surrogates
 
 # One way to test for significance would be via the standard way as in the [Tutorial](@ref),
 # utilizing surrogate timeseries and [`SurrogatesSignificance`](@ref).
@@ -117,10 +115,11 @@ fig = plot_change_metrics()
 surromethod = RandomFourier()
 
 ## Define a function because we will re-use later
+using Random: Xoshiro
 function overplot_surrogate_significance!(fig, surromethod, color = "black")
 
     signif = SurrogatesSignificance(;
-        n = 1000, tail = [:both, :both, :right], surromethod
+        n = 2000, tail = [:both, :both, :right], surromethod, rng = Xoshiro(42),
     )
     flags = significant_transitions(results, signif)
 
@@ -148,30 +147,35 @@ overplot_surrogate_significance!(fig, surromethod)
 
 fig
 
-# ### More appropriate surrogates
+# ## Different surrogates
 # %% #src
-# Using random Fourier surrogates does not make much sense in our application.
-# Those surrogates perserve the power spectrum of the timeseries, but the power spectrum
+# Random Fourier surrogates perserve the power spectrum of the timeseries, but the power spectrum
 # is a property integrated over the whole timeseries. It doesn't contain any information
-# regarding a sharp transition at some point in the timeseries.
+# highlighting the _local_ dynamics or information that preserves the local
+# changes of dynamical behavior.
+
+# A surrogate type that does a better job in preserving local sharp
+# changes in the timeseries (and hence provides **stricter**
+# surrogate-based significance) is for example `RelativePartialRandomization`.
+
 # A much better alternative is to use block-shuffled surrogates, which
 # preserve the short term local temporal correlation in the timeseries and hence
 # also preserve local short term sharp changes in the dynamic behavior.
 
-surromethod = BlockShuffle(15)
+surromethod = RelativePartialRandomization(0.25)
 fig = plot_change_metrics()
-overplot_surrogate_significance!(fig, surromethod, "red")
+overplot_surrogate_significance!(fig, surromethod, "gray")
 fig
 
-# The results are better for the variance and AR1 indicators.
-# For the permutation entropy the results do not change because it already is an
-# exceptionally well
-# suited indicator for this application scenario. But in other cases where things
-# are not as clear, or data are contaminated with noise, or we have shorter data,
-# choosing a more suitable
-# surrogate generator may make the difference between a false positive or not.
+# Our results have improved. In the permutation entropy, we see only two
+# transitions detected as significant, which is correct: only two
+# real dynamical transitions exist in the data.
+# In the other two indicators we also see fewer transitions, but as we
+# have already discussed, no results with the other indicators should
+# be taken into meaningful consideration, as these indicators
+# are simply inappropriate for what we are looking for here.
 
-# ### Simpler Significance
+# ## Simpler Significance
 # %% #src
 # Arguably, exactly because we are using the [`difference_of_means`](@ref) as a
 # change metric, we may want to be less strict and more simple with our tests for significance.
@@ -180,7 +184,7 @@ fig
 # whenever a change metric exceeds some pre-defined factor of its timeseries standard deviation.
 
 fig = plot_change_metrics()
-flags = significant_transitions(results, SigmaSignificance(factor = 3.0))
+flags = significant_transitions(results, SigmaSignificance(factor = 5.0))
 
 ## Plot the flags
 for (i, indicator) in enumerate(indicators)
@@ -188,5 +192,5 @@ for (i, indicator) in enumerate(indicators)
         color = Cycled(3), linestyle = :dash, linewidth = 3
     )
 end
-content(fig[1, 1]).title = "significance from quantile"
+content(fig[1, 1]).title = "significance from std"
 fig
