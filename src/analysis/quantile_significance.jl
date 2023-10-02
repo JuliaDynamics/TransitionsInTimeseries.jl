@@ -1,5 +1,5 @@
 """
-    QuantileSignificance(; p = 0.95, tail = :right) <: TransitionsSignificance
+    QuantileSignificance(; p = 0.95, tail = :both) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
 When used with [`WindowedIndicatorResults`](@ref), significance is estimated
@@ -15,7 +15,7 @@ See also [`SigmaSignificance`](@ref) that is similar but does not have this guar
 """
 Base.@kwdef struct QuantileSignificance{P<:Real}
     p::P = 0.95
-    tail::Symbol = :right
+    tail::Symbol = :both
 end
 
 using Statistics: quantile
@@ -39,7 +39,7 @@ function significant_transitions(res::WindowedIndicatorResults, signif::Quantile
 end
 
 """
-    SigmaSignificance(; m = 3.0, tail = :right) <: TransitionsSignificance
+    SigmaSignificance(; m = 3.0, tail = :both) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
 When used with [`WindowedIndicatorResults`](@ref), significance is estimated
@@ -55,7 +55,7 @@ See also [`QuantileSignificance`](@ref).
 """
 Base.@kwdef struct SigmaSignificance{P}
     m::P = 0.95
-    tail::Symbol = :right
+    tail::Symbol = :both
 end
 
 using Statistics: std, mean
