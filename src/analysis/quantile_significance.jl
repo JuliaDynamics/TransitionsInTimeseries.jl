@@ -79,4 +79,3 @@ function significant_transitions(res::WindowedIndicatorResults, signif::SigmaSig
     end
     return flags
 end
-

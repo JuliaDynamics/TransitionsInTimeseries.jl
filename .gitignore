@@ -3,4 +3,4 @@ Manifest.toml
 *.scss
 *.css
 *style.jl
-docs/src/examples.md
+docs/src/examples/*.md
