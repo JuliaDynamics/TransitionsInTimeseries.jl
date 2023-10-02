@@ -39,22 +39,22 @@ function significant_transitions(res::WindowedIndicatorResults, signif::Quantile
 end
 
 """
-    SigmaSignificance(; m = 3.0, tail = :both) <: TransitionsSignificance
+    SigmaSignificance(; factor = 3.0, tail = :both) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
 When used with [`WindowedIndicatorResults`](@ref), significance is estimated
 by comparing how many standard deviations (`σ`) the value exceeds the mean value (`μ`).
-Values that exceed (if `tail = :right`) `μ + m*σ`, or subseed (if `tail = :left`) `μ - m*σ`
+Values that exceed (if `tail = :right`) `μ + factor*σ`, or subseed (if `tail = :left`) `μ - factor*σ`
 are deemed significant.
 If `tail = :both` then either condition is checked.
 
-`m` can also be a vector of values,
+`factor` can also be a vector of values,
 in which case a different value is used for each change metric.
 
 See also [`QuantileSignificance`](@ref).
 """
 Base.@kwdef struct SigmaSignificance{P}
-    m::P = 0.95
+    factor::P = 0.95
     tail::Symbol = :both
 end
 
@@ -65,14 +65,14 @@ function significant_transitions(res::WindowedIndicatorResults, signif::SigmaSig
     for (i, x) in enumerate(eachcol(res.x_change))
         μ = mean(x)
         σ = std(x; mean = μ)
-        m = signif.m isa AbstractVector ? signif.m[i] : m
+        factor = signif.factor isa AbstractVector ? signif.factor[i] : factor
         flag = view(flags, :, i)
         if signif.tail == :right
-            @. flag = x > μ + m*σ
+            @. flag = x > μ + factor*σ
         elseif signif.tail == :left
-            @. flag = x < μ - m*σ
+            @. flag = x < μ - factor*σ
         elseif signif.tail == :both
-            @. flag = (x < μ - m*σ) | (x > μ + m*σ)
+            @. flag = (x < μ - factor*σ) | (x > μ + factor*σ)
         else
             error("`tail` can be only `:left, :right, :both`. Got $(tail).")
         end

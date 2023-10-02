@@ -174,13 +174,13 @@ fig
 # ### Simpler Significance
 # %% #src
 # Arguably, exactly because we are using the [`difference_of_means`](@ref) as a
-# change metric, we may want to be much less strict with our tests for significance.
+# change metric, we may want to be less strict and more simple with our tests for significance.
 # Instead of using [`SurrogatesSignificance`](@ref) we may use the simpler and much faster
-# [`QuantileSignificance`](@ref), which simply claims significant time points
-# whenever a change metric exceeds some pre-defined quantile of its timeseries.
+# [`SigmaSignificance`](@ref), which simply claims significant time points
+# whenever a change metric exceeds some pre-defined factor of its timeseries standard deviation.
 
 fig = plot_change_metrics()
-flags = significant_transitions(results, QuantileSignificance())
+flags = significant_transitions(results, SigmaSignificance(factor = 3.0))
 
 ## Plot the flags
 for (i, indicator) in enumerate(indicators)
