@@ -72,7 +72,6 @@ function significant_transitions(res::WindowedIndicatorResults, signif::Surrogat
     # Dummy vals for surrogate parallelization
     indicator_dummys = [res.x_indicator[:, 1] for _ in 1:Threads.nthreads()]
     change_dummys = [res.x_change[:, 1] for _ in 1:Threads.nthreads()]
-
     for i in 1:size(pvalues, 2) # loop over change metrics
         indicator = indicators[i]
         i_metric = length(change_metrics) == length(indicators) ? i : 1
@@ -125,4 +124,52 @@ function indicator_metric_surrogates_loop!(
     if tail == :both
         pval .= 2min.(pval_right, pval_left)
     end
+end
+
+"""
+    segmented_significance(t, r, t_transitions, margins, indconfig, signif)
+
+Perform the surrogate significance analysis of the residual `r` over time `t` as defined by
+`indconfig` and `signif` for each segment `i` defined by `t_transitions[i]+margin[1] < t <
+t_transitions[i+1]+margin[2]`. For each segment, the window width to compute the change
+metric is chosen s.t. a single value of significance is returned (per indicator).
+"""
+function segmented_significance(t, r, t_transitions, margins, indconfig, change_metrics, signif)
+
+    if var(diff(t)) > 1e-8 * mean(diff(t))
+        error("Segment analysis only implemented for evenly-spaced time series.")
+    end
+
+    # Initialize p-values over segment and indicator dimensions
+    pvalues = fill(Inf, length(t_transitions), length(indconfig.indicators))
+    # Initialize indicator results as vector of placeholder matrices
+    indicator_results = [fill(Inf, 1, 1) for t in t_transitions]
+
+    for i in eachindex(t_transitions)
+        # Select the correct segment limits
+        t_start = i == 1 ? first(t) : t_transitions[i-1] + margins[1]
+        t_end = t_transitions[i] - margins[2]
+        i_start, i_end = argmin(abs.(t .- t_start)), argmin(abs.(t .- t_end))
+        tseg, rseg = t[i_start:i_end], r[i_start:i_end]
+
+        # only analyze if segment long enough to compute indicators
+        if last(tseg) - first(tseg) > indconfig.width_ind
+
+            t_indicator = windowmap(last, tseg; width = indconfig.width_ind)
+            segconfig = WindowedIndicatorConfig(indconfig.indicators,
+                change_metrics; whichtime = indconfig.whichtime,
+                width_ind = indconfig.width_ind, width_cha = length(t_indicator))
+
+            # only populate the pre-allocated arrays if enough point in indicator
+            # timeseries to estimate a change
+            if length(t_indicator) > 30
+                segresults = estimate_indicator_changes(segconfig, rseg, tseg)
+                _ = significant_transitions(segresults, signif)
+
+                pvalues[i, :] .= signif.pvalues[1, :]
+                indicator_results[i] = hcat(segresults.t_indicator, segresults.x_indicator)
+            end
+        end
+    end
+    return pvalues, indicator_results
 end

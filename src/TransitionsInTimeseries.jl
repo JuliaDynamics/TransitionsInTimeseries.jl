@@ -48,12 +48,12 @@ export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis # from StatsBase
 export permutation_entropy
 export kendalltau, spearman
-export RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
+export ridgematrix, RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export difference_of_means
 
 # analysis
 export WindowedIndicatorConfig, estimate_indicator_changes, WindowedIndicatorResults
-export TransitionsSignificance, significant_transitions
+export TransitionsSignificance, significant_transitions, segmented_significance
 export QuantileSignificance, SigmaSignificance, SurrogatesSignificance
 
 # timeseries
