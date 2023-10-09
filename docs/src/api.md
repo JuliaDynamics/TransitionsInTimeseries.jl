@@ -3,7 +3,8 @@
 ## Main analysis functions
 
 ```@docs
-WindowedIndicatorConfig
+SlidingWindowConfig
+SegmentWindowConfig
 estimate_indicator_changes
 WindowedIndicatorResults
 ```

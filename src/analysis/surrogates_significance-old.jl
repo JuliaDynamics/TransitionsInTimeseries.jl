@@ -57,7 +57,7 @@ function SurrogatesSignificance(;
     return SurrogatesSignificance(surromethod, n, tail, rng, p, zeros(1,1))
 end
 
-function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSignificance)
+function significant_transitions(res::WindowedIndicatorResults, signif::SurrogatesSignificance)
     (; indicators, change_metrics) = res.config
     tail = signif.tail
     if !(tail isa Symbol) && length(tail) ≠ length(indicators)
@@ -72,7 +72,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     # Dummy vals for surrogate parallelization
     indicator_dummys = [res.x_indicator[:, 1] for _ in 1:Threads.nthreads()]
     change_dummys = [res.x_change[:, 1] for _ in 1:Threads.nthreads()]
-    for i in 1:size(pvalues, 2) # loop over change metrics
+    for i in 1:size(pvalues, 2)     # loop over change metrics
         indicator = indicators[i]
         i_metric = length(change_metrics) == length(indicators) ? i : 1
         chametric = change_metrics[i_metric]
@@ -80,7 +80,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
         c = view(res.x_change, :, i) # change metric timeseries
         # p values for current i
         pval = view(pvalues, :, i)
-        sliding_surrogates_loop!(
+        indicator_metric_surrogates_loop!(
             indicator, chametric, c, pval, signif.n, sgens,
             indicator_dummys, change_dummys,
             res.config.width_ind, res.config.stride_ind, res.config.width_cha, res.config.stride_cha, tai
@@ -90,57 +90,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     return pvalues .< signif.p
 end
 
-function significant_transitions(res::SegmentWindowResults, signif::SurrogatesSignificance)
-    # Unpack and sanity checks
-    X = eltype(res.x_change)
-    (; indicators, change_metrics, tseg_start, tseg_end) = res.config
-    tail = signif.tail
-    if !(tail isa Symbol) && length(tail) ≠ length(indicators)
-        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
-        "as the input indicators. Got length $(length(tail)) instead of $(length(indicators))."
-        ))
-    end
-    # Multi-threaded surrogate realization
-    seeds = rand(signif.rng, 1:typemax(Int), Threads.nthreads())
-    change_dummys = [X(0) for _ in 1:Threads.nthreads()]
-    pvalues = signif.pvalues = zeros(X, size(res.x_change)...)
-
-    for k in eachindex(tseg_start)  # loop over segments
-        # If segment too short, return inf p-value
-        if length(res.x_indicator[k][:, 1]) < res.config.min_width_cha
-            pvalues[k, :] .= Inf
-        else
-            tseg, xseg = segment(res.t, res.x, tseg_start[k], tseg_end[k])
-            sgens = [surrogenerator(xseg, signif.surrogate, Random.Xoshiro(seed))
-                for seed in seeds]
-            # Dummy vals for surrogate parallelization
-            indicator_dummys = [res.x_indicator[k][:, 1] for _ in 1:Threads.nthreads()]
-            for i in eachindex(indicators)
-                indicator = indicators[i]
-                i_metric = length(change_metrics) == length(indicators) ? i : 1
-                chametric = change_metrics[i_metric]
-
-                # Precomputation: include time vector for metrics that require it!
-                if chametric isa PrecomputableFunction
-                    chametric = precompute(chametric, res.t_indicator[k])
-                end
-
-                tai = tail isa Symbol ? tail : tail[i]
-                c = res.x_change[k, i]  # change metric
-                pval = view(pvalues, k, i)
-                # p values for current i
-                segmented_surrogates_loop!(
-                    indicator, chametric, c, pval, signif.n, sgens,
-                    indicator_dummys, change_dummys,
-                    res.config.width_ind, res.config.stride_ind, tai)
-            end
-        end
-    end
-    pvalues ./= signif.n
-    return pvalues .< signif.p
-end
-
-function sliding_surrogates_loop!(
+function indicator_metric_surrogates_loop!(
         indicator, chametric, c, pval, n_surrogates, sgens,
         indicator_dummys, change_dummys,
         width_ind, stride_ind, width_cha, stride_cha, tail
@@ -150,6 +100,7 @@ function sliding_surrogates_loop!(
         pval_right = zeros(length(pval))
         pval_left = copy(pval_right)
     end
+
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()
@@ -158,9 +109,11 @@ function sliding_surrogates_loop!(
         windowmap!(indicator, indicator_dummys[id], s;
             width = width_ind, stride = stride_ind)
         windowmap!(chametric, change_dummy, indicator_dummys[id];
-            width = width_cha, stride = stride_cha)
+            width = width_cha, stride = stride_cha
+        )
+        # accumulate for p-value
         if tail == :right
-            pval .+= c .< change_dummy
+            pval .+= c .< change_dummys[id]
         elseif tail == :left
             pval .+= c .> change_dummy
         elseif tail == :both
@@ -173,34 +126,88 @@ function sliding_surrogates_loop!(
     end
 end
 
-function segmented_surrogates_loop!(
-    indicator, chametric, c, pval, n_surrogates, sgens,
-    indicator_dummys, change_dummys, width_ind, stride_ind, tail
-)
 
-    if tail == :both
-        pval_right = zeros(length(pval))
-        pval_left = copy(pval_right)
-    end
-    
-    # parallelized surrogate loop
-    Threads.@threads for _ in 1:n_surrogates
-        id = Threads.threadid()
-        s = sgens[id]()
-        change_dummy = change_dummys[id]
-        windowmap!(indicator, indicator_dummys[id], s;
-            width = width_ind, stride = stride_ind)
-        change_dummy = chametric(indicator_dummys[id])
-        if tail == :right
-            pval .+= c .< change_dummy
-        elseif tail == :left
-            pval .+= c .> change_dummy
-        elseif tail == :both
-            pval_right .+= c .< change_dummy
-            pval_left .+= c .> change_dummy
+
+function estimate_indicator_changes(config::SegmentWindowConfig, x, t)
+    n_ind = length(config.indicators)
+    t_indicator = [Float64[] for _ in eachindex(config.tsegments)]
+    x_indicator = [Float64[;;] for _ in eachindex(config.tsegments)]
+    x_change = fill(Inf, length(config.tsegments), length(config.indicators))
+    one2one = length(config.change_metrics) == length(config.indicators)
+
+    for k in eachindex(config.tsegments)
+        # Select the correct segment limits
+        t1 = k == 1 ? first(t) : config.tsegments[k-1] + config.margins[1]
+        t2 = config.tsegments[k] - config.margins[2]
+        i1, i2 = argmin(abs.(t .- t1)), argmin(abs.(t .- t2))
+        tseg, xseg = view(t, i1:i2), view(x, i1:i2)
+
+        t_indicator[k] = windowmap(config.whichtime, tseg; width = config.width_ind,
+            stride = config.stride_ind)
+        len_ind = length(t_indicator[k])
+        x_indicator[k] = fill(Inf, len_ind, n_ind)
+
+        # only analyze if segment long enough to compute metrics
+        if len_ind > config.min_width_cha
+            # Loop over indicators
+            for i in 1:n_ind
+                indicator = config.indicators[i]
+                chametric = one2one ? config.change_metrics[i] : config.change_metrics[1]
+                z = view(x_indicator[k], :, i)
+                windowmap!(indicator, z, xseg;
+                    width = config.width_ind, stride = config.stride_ind
+                )
+                x_change[k, i] = chametric(z)
+            end
         end
     end
-    if tail == :both
-        pval .= 2min.(pval_right, pval_left)
+    # put everything together in the output type
+    return SegmentWindowResults(t, x, t_indicator, x_indicator, x_change, config)
+end
+"""
+    segmented_significance(t, r, t_transitions, margins, indconfig, signif)
+
+Perform the surrogate significance analysis of the residual `r` over time `t` as defined by
+`indconfig` and `signif` for each segment `i` defined by `t_transitions[i]+margin[1] < t <
+t_transitions[i+1]+margin[2]`. For each segment, the window width to compute the change
+metric is chosen s.t. a single value of significance is returned (per indicator).
+"""
+function segmented_significance(t, r, t_transitions, margins, indconfig, change_metrics, signif)
+
+    if var(diff(t)) > 1e-8 * mean(diff(t))
+        error("Segment analysis only implemented for evenly-spaced time series.")
     end
+
+    # Initialize p-values over segment and indicator dimensions
+    pvalues = fill(Inf, length(t_transitions), length(indconfig.indicators))
+    # Initialize indicator results as vector of placeholder matrices
+    indicator_results = [fill(Inf, 1, 1) for t in t_transitions]
+
+    for i in eachindex(t_transitions)
+        # Select the correct segment limits
+        t_start = i == 1 ? first(t) : t_transitions[i-1] + margins[1]
+        t_end = t_transitions[i] - margins[2]
+        i_start, i_end = argmin(abs.(t .- t_start)), argmin(abs.(t .- t_end))
+        tseg, rseg = t[i_start:i_end], r[i_start:i_end]
+
+        # only analyze if segment long enough to compute indicators
+        if last(tseg) - first(tseg) > indconfig.width_ind
+
+            t_indicator = windowmap(last, tseg; width = indconfig.width_ind)
+            segconfig = SlidingWindowConfig(indconfig.indicators,
+                change_metrics; whichtime = indconfig.whichtime,
+                width_ind = indconfig.width_ind, width_cha = length(t_indicator))
+
+            # only populate the pre-allocated arrays if enough point in indicator
+            # timeseries to estimate a change
+            if length(t_indicator) > 30
+                segresults = estimate_indicator_changes(segconfig, rseg, tseg)
+                _ = significant_transitions(segresults, signif)
+
+                pvalues[i, :] .= signif.pvalues[1, :]
+                indicator_results[i] = hcat(segresults.t_indicator, segresults.x_indicator)
+            end
+        end
+    end
+    return pvalues, indicator_results
 end

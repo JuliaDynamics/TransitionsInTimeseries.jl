@@ -205,7 +205,7 @@ fig
 #=
 To perform all of the above analysis we follow a 2-step process.
 
-Step 1, we decide what indicators and change metrics to use in [`WindowedIndicatorConfig`](@ref) and apply those via
+Step 1, we decide what indicators and change metrics to use in [`SlidingWindowConfig`](@ref) and apply those via
 a sliding window to the input timeseries using [`transition_metrics`](@ref).
 =#
 
@@ -216,7 +216,7 @@ indicators = (var, ar1_whitenoise)
 change_metrics = RidgeRegressionSlope()
 
 ## choices go into a configuration struct
-config = WindowedIndicatorConfig(indicators, change_metrics;
+config = SlidingWindowConfig(indicators, change_metrics;
     width_ind = 400, width_cha = 30, whichtime = last)
 
 ## choices are processed

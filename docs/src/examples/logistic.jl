@@ -65,7 +65,7 @@ width_ind = N÷100
 width_cha = 20
 stride_cha = 10
 
-config = WindowedIndicatorConfig(indicators, metric;
+config = SlidingWindowConfig(indicators, metric;
     width_ind, width_cha, stride_cha,
 )
 

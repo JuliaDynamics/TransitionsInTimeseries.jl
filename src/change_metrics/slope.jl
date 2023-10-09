@@ -61,3 +61,8 @@ function ridgematrix(t::AbstractVector{T}, lambda::Real) where {T<:Real}
     TT = hcat(t, ones(T, length(t)))'
     return inv(TT * TT' + lambda .* LinearAlgebra.I(2) ) * TT
 end
+
+function (rr::RidgeRegressionSlope)(x::AbstractVector{<:Real})
+    regression_matrix = ridgematrix(eachindex(x), rr.lambda)
+    return view(regression_matrix, 1, :)' * x    # only return slope.
+end
