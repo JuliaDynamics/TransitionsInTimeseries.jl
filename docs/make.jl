@@ -16,12 +16,14 @@ for file in jl_examples
 end
 
 # Sort pages with increasing complexity rather than alphabetically
-permute!(example_pages, [3, 2, 1])
+permute!(example_pages, [2, 1])
 
 pages = [
     "index.md",
-    "api.md",
+    "tutorial.md",
     "Examples" => example_pages,
+    "api.md",
+    "refs.md",
 ]
 
 import Downloads
