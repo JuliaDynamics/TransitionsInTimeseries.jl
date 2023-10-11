@@ -1,19 +1,21 @@
 #=
-# Dansgaard-Oescher events
+# Dansgaard-Oescher events and Critical Slowing Down
 
 The $\delta^{18}O$ timeseries of the North Greenland Ice Core Project ([NGRIP](https://en.wikipedia.org/wiki/North_Greenland_Ice_Core_Project)) are, to this date, the best proxy record for the Dansgaard-Oeschger events ([DO-events](https://en.wikipedia.org/wiki/Dansgaard%E2%80%93Oeschger_event)). DO-events are sudden warming episodes of the North Atlantic, reaching 10 degrees of regional warming within 100 years. They happened quasi-periodically over the last glacial cycle due to transitions between strong and weak states of the Atlantic Meridional Overturning Circulation and might be therefore be the most prominent examples of abrupt transitions in the field of climate science. We here propose to hindcast these events by applying the theory of Critical Slowing Down (CSD) on the NGRIP data, which can be found [here](https://www.iceandclimate.nbi.ku.dk/data/) in its raw format. This analysis has already been done in [boers-early-warning-2018](@cite) and we here try to reproduce Figure 2.d-f.
 
 ## Preprocessing NGRIP
 
-Over this example, it will appear that the convenience of TransitionsInTimeseries leads the bulk of the code to be written for plotting and preprocessing. The latter consists in various steps $i = \lbrace 1,2,3 \rbrace$:
+Data pre-processing is not part of TransitionsInTimeseries.jl, but a step the user has to do before using the package. To present an example with a complete scientific workflow, we will showcase typical data pre-processing here, that consist of the following steps:
 1. Load the data, reverse and offset it to have time vector = time before 2000 AD.
 2. Filter non-unique points in time and sort the data.
 3. Regrid the data from uneven to even sampling.
 
-The time and $\delta^{18}O$ vectors resulting from the $i$-th preprocessing step are respectively called $t_i$ and $x_i$. The final step consists in obtaining a residual $r$, i.e. the fluctuations of the system around the attractor, which, within the CSD theory, is assumed to be tracked.
+The time and $\delta^{18}O$ vectors resulting from the $i$-th preprocessing step are respectively called $t_i$ and $x_i$. The final step consists in obtaining a residual $r$, i.e. the fluctuations of the system around the attractor, which, within the CSD theory, is assumed to be tracked. Over this example, it will appear that the convenience of TransitionsInTimeseries.jl leads the bulk of the code to be written for plotting and preprocessing.
+
+### Step 1:
 =#
 
-using DelimitedFiles, Downloads, DSP, BSplineKit, Loess
+using DelimitedFiles, Downloads
 
 function load_ngrip()
     tmp = Base.download("https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/"*
@@ -21,6 +23,12 @@ function load_ngrip()
     data, labels = readdlm(tmp, header = true)
     return reverse(data[:, 1]) .- 2000, reverse(data[:, 2]) # (time, delta-18-0) vectors
 end
+
+t1, x1 = load_ngrip()
+
+#=
+### Step 2
+=#
 
 uniqueidx(v) = unique(i -> v[i], eachindex(v))
 function keep_unique(t, x)
@@ -35,6 +43,15 @@ function sort_timeseries!(t, x)
     return nothing
 end
 
+t2, x2 = keep_unique(t1, x1)
+sort_timeseries!(t2, x2)
+
+#=
+### Step 3
+=#
+
+using BSplineKit
+
 function regrid2evensampling(t, x, dt)
     itp = BSplineKit.interpolate(t, x, BSplineOrder(4))
     tspan = (ceil(minimum(t)), floor(maximum(t)))
@@ -43,8 +60,19 @@ function regrid2evensampling(t, x, dt)
     return t_even, x_even
 end
 
+dt = 5.0        # dt = 5 yr as in (Boers 2018) 
+t3, x3 = regrid2evensampling(t2, x2, dt)
+
+#=
+### Step 4
+
+For the final step we drop the indices:
+=#
+
+using DSP
+
 function chebyshev_filter(t, x, fcutoff)
-    ii = 10     # Chebyshev filtering requires to prune first points of timeseries.
+    ii = 10             # Chebyshev filtering requires to prune first points of timeseries.
     responsetype = Highpass(fcutoff, fs = 1/dt)
     designmethod = Chebyshev1(8, 0.05)
     r = filt(digitalfilter(responsetype, designmethod), x)
@@ -52,18 +80,14 @@ function chebyshev_filter(t, x, fcutoff)
     return t[ii:end], x[ii:end], xtrend[ii:end], r[ii:end]
 end
 
-dt, fcutoff = 5.0, 0.95*0.01    # dt = 5 yr and cutoff ≃ 0.01 yr^-1 as in (Boers 2018)
-t1, x1 = load_ngrip()
-t2, x2 = keep_unique(t1, x1)
-sort_timeseries!(t2, x2)
-t3, x3 = regrid2evensampling(t2, x2, dt)
+fcutoff = 0.95 * 0.01   # cutoff ≃ 0.01 yr^-1 as in (Boers 2018)
 t, x, xtrend, r = chebyshev_filter(t3, x3, fcutoff)
 
 #=
 Let's now visualize our data in what will become our main figure. For the segmentation of the DO-events, we rely on the tabulated data from [rasmussen-stratigraphic-2014](@cite) (which will soon be available as downloadable):
 =#
 
-using CairoMakie
+using CairoMakie, Loess
 
 function loess_filter(t, x; span = 0.005)
     loessmodel = loess(t, x, span = span)
@@ -107,7 +131,7 @@ end
 
 xlims = (-60e3, -10e3)
 xticks = kyr_xticks(-60e3:5e3:5e3)
-t_rasmussen = -[59440, 58280, 55800, 54220, 49280, 46860, 43340, 41460, 40160,
+t_rasmussen = -[-60000, 59440, 58280, 55800, 54220, 49280, 46860, 43340, 41460, 40160,
                 38220, 35480, 33740, 32500, 28900, 27780, 23340, 14692, 11703]
 tloess, _, xloess, rloess = loess_filter(t3, x3)    # loess-filtered signal for visualization
 fig, axs = plot_do(t3, x3, tloess, xloess, t, r, t_rasmussen, xlims, xticks)
@@ -116,7 +140,7 @@ fig
 #=
 ## Hindcast on NGRIP data
 
-As one can see... there is not much to see so far. Residuals are impossible to simply eye-ball and we therefore use TransitionsInTimeseries to study the evolution, measured by the ridge-regression slope of the residual's variance and lag-1 autocorrelation (AC1) over time. In many examples of the literature, including [boers-early-warning-2018](@cite), the CSD analysis is performed over segments (sometimes only one) of the timeseries, such that a significance value is obtained for each segment. By using `SegmentWindowConfig`, dealing with segments can be easily done in TransitionsInTimeseries and is demonstrated here:
+As one can see... there is not much to see so far. Residuals are impossible to simply eye-ball and we therefore use TransitionsInTimeseries.jl to study the evolution, measured by the ridge-regression slope of the residual's variance and lag-1 autocorrelation (AC1) over time. In many examples of the literature, including [boers-early-warning-2018](@cite), the CSD analysis is performed over segments (sometimes only one) of the timeseries, such that a significance value is obtained for each segment. By using `SegmentWindowConfig`, dealing with segments can be easily done in TransitionsInTimeseries.jl and is demonstrated here:
 =#
 
 using TransitionsInTimeseries, StatsBase
@@ -133,6 +157,10 @@ config = SegmentWindowConfig(indicators, change_metrics,
 results = estimate_indicator_changes(config, r, t)
 signif = SurrogatesSignificance(n = 10_000, tail = :right, rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
+
+#=
+That's it! We can now visulaise our results with a generic function that we will re-use later:
+=#
 
 function plot_segment_analysis!(axs, results, signif)
     (; t_indicator, x_indicator) = results
@@ -156,7 +184,7 @@ plot_segment_analysis!(axs, results, signif)
 fig
 
 #=
-In [boers-early-warning-2018](@cite), 13/16 and 7/16 true positives are respectively found for the variance and AC1, with 16 referring to the total number of transitions. The timeseries actually includes 18 transition but, in [boers-early-warning-2018](@cite), some segments are considered too small to be analysed. In contrast, we here respectively find 9/16 true positives for the variance and 3/16 for AC1. We can track down the discrepancies to be in the surrogate testing, since the indicator timeseries computed here are almost exactly similar to those of [boers-early-warning-2018](@cite). This mismatch points out that packages like TransitionsInTimeseries are wishful for research to be reproducible, especially since CSD is gaining attention - not only within the scientific community but also in popular media.
+In [boers-early-warning-2018](@cite), 13/16 and 7/16 true positives are respectively found for the variance and AC1, with 16 referring to the total number of transitions. The timeseries actually includes 18 transition but, in [boers-early-warning-2018](@cite), some segments are considered too small to be analysed. In contrast, we here respectively find 9/16 true positives for the variance and 3/16 for AC1. We can track down the discrepancies to be in the surrogate testing, since the indicator timeseries computed here are almost exactly similar to those of [boers-early-warning-2018](@cite). This mismatch points out that packages like TransitionsInTimeseries.jl are wishful for research to be reproducible, especially since CSD is gaining attention - not only within the scientific community but also in popular media.
 
 ## CSD: only a necessary condition, only in some cases
 
@@ -183,7 +211,7 @@ We draw attention upon the fact that the $\delta^{18}O$ timeseries is noisy and 
     These sources of error come along the usual problem of arbitrarily choosing (1) a filtering method, (2) windowing parameters and (3) appropriate metrics (for instance when the forcing noise is suspected to be correlated). This leads to a large number of degrees of freedom (DoF). Although sensible guesses are possible here, checking that results are robust w.r.t. the DoF should be a standard practice.
 
 !!! info "Future improvement"
-    Supporting the computations for uneven timeseries is a planned improvement of TransitionsInTimeseries. This will avoid the need of regridding data on coarse grids and will prevent from introducing any bias.
+    Supporting the computations for uneven timeseries is a planned improvement of TransitionsInTimeseries.jl. This will avoid the need of regridding data on coarse grids and will prevent from introducing any bias.
 
 ## Hindcasting simulated DO-events
 
@@ -217,7 +245,7 @@ for j in 1:2
     dt = mean(diff(tcx))
     config = SegmentWindowConfig(
         indicators, change_metrics, tseg_start[j], tseg_end[j],
-        whichtime = last, width_ind = Int(200÷dt), min_width_cha = 50)
+        whichtime = last, width_ind = Int(200÷dt), min_width_cha = 100)
     results = estimate_indicator_changes(config, r, t)
     signif = SurrogatesSignificance(n = 1_000, tail = :right, rng = Xoshiro(1995))
     flags = significant_transitions(results, signif)
@@ -236,9 +264,4 @@ figvec[2]
 
 #=
 Same here! Although CLIMBER-X does not represent real DO-events, the above-performed analysis might be hinting at the fact that not all DO transitions can be forecasted with CSD. Nonetheless, performing a CSD analysis can inform on the evolution of a system's resilience.
-
-# References
-
-```@bibliography
-```
 =#

@@ -2,10 +2,9 @@
     WindowConfig
 
 Supertype used to define the window configuration of [`estimate_indicator_changes`](@ref).
-    Valid subtypes are:
-    
-    - [`SlidingWindowConfig`](@ref).
-    - [`SegmentWindowConfig`](@ref).
+Valid subtypes are:
+ - [`SlidingWindowConfig`](@ref).
+ - [`SegmentWindowConfig`](@ref).
 """
 abstract type WindowConfig end
 
@@ -80,16 +79,18 @@ function SlidingWindowConfig(
 end
 
 """
-    SegmentWindowConfig(indicators, change_metrics; kwargs...) → config
+    SegmentWindowConfig(indicators, change_metrics, tseg_start, tseg_end;
+        kwargs...) → config
 
-A configuration struct for TransitionsInTimeseries.jl that collects the segmented window
-parameters, the indicators and the corresponding metrics to use in
-[`estimate_indicator_changes`](@ref).
+A configuration struct for TransitionsInTimeseries.jl that collects the start and end time
+of the segments over which the analysis [`estimate_indicator_changes`](@ref) is to be run,
+as well as its windowing parameters.
 
 `indicators` is a tuple of indicators (or a single indicator).
 `change_metrics` is also a tuple or a single function. If a single function,
 the same change metric is used for all provided indicators. This way the analysis
 can be efficiently repeated for many indicators and/or change metrics.
+`tseg_start` and `tseg_end` are `::Vector` of length `n`, with `n` the number of segments.
 
 Both indicators and change metrics are generic Julia functions that input an
 `x::AbstractVector` and output an `s::Real`. Any appropriate function may be given and
@@ -101,17 +102,16 @@ for more information.
 - `width_ind::Int=100, stride_ind::Int=1`: width and stride given to [`WindowViewer`](@ref)
   to compute the indicator from the input timeseries.
 - `min_width_cha::Int=50`: minimal width required to perform the change metric estimation.
-  to compute the change metric timeseries from the indicator timeseries.
+  If segment not sufficiently long, return `Inf`.
 - `whichtime = midpoint`: The time vector corresponding to the indicators / change metric
   timeseries is obtained from `t` in [`estimate_indicator_changes`](@ref) using the keyword
   `whichtime`. Options include:
     - `last`: use the last timepoint of each window
     - `midpoint`: use the mid timepoint of each time window
     - `first`: use first timepoint of each window
-  In fact, the indicators time vector is computed simply via
+  In fact, the indicators time vector for the k-th segment is computed simply via:
   ```julia
-  t_indicator = windowmap(whichtime, t; width_ind, stride_ind)
-  t_change = windowmap(whichtime, t_indicator; width_cha, stride_cha)
+  t_indicator[k] = windowmap(whichtime, t; width_ind, stride_ind)
   ```
   so any other function of the time window may be given to extract the time point itself,
   such as `mean` or `median`.
@@ -180,7 +180,7 @@ as described by `config`:
 
 If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
 
-Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
+Return the output as [`WindowResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
@@ -233,7 +233,7 @@ as described by `config`:
 
 If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
 
-Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
+Return the output as [`WindowResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
@@ -253,7 +253,10 @@ function estimate_indicator_changes(config::SegmentWindowConfig, x, t)
         t_indicator[k] = windowmap(config.whichtime, tseg; width = config.width_ind,
             stride = config.stride_ind)
         len_ind = length(t_indicator[k])
-        x_indicator[k] = fill(Inf, len_ind, n_ind)
+
+        # Init with Inf instead of 0 to easily recognise when the segment was too short
+        # for the computation to be performed.
+        x_indicator[k] = fill(Inf, len_ind, n_ind)  
 
         # only analyze if segment long enough to compute metrics
         if len_ind > config.min_width_cha
@@ -282,11 +285,20 @@ function segment(t, x, t1, t2)
 end
 
 """
-    WindowedIndicatorResults
+    WindowResults
+
+Supertype used to gather results of [`estimate_indicator_changes`](@ref).
+Valid subtypes are:
+ - [`SlidingWindowResults`](@ref).
+ - [`SegmentWindowResults`](@ref).
+"""
+abstract type WindowResults end
+
+"""
+    SlidingWindowResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
-[`SlidingWindowConfig`](@ref).
-It can be used for further analysis, visualization,
+[`SlidingWindowConfig`](@ref). It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 
 It has the following fields that the user may access
@@ -302,9 +314,8 @@ It has the following fields that the user may access
 
 - [`config::SlidingWindowConfig`](@ref), used for the analysis.
 """
-abstract type WindowedIndicatorResults end
 struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: WindowedIndicatorResults
+    W} <: WindowResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{T}
@@ -314,8 +325,31 @@ struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     config::W
 end
 
+"""
+    SegmentWindowResults
+
+A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+[`SegmentWindowConfig`](@ref). It can be used for further analysis, visualization,
+or given to [`significant_transitions`](@ref).
+
+It has the following fields that the user may access
+
+- `x`: the input timeseries.
+- `t`: the time vector of the input timeseries.
+
+- `x_indicator::Vector{Matrix}`, with `x_indicator[k]` the indicator timeseries (matrix
+   with each column one indicator) of the `k`-th segment.
+- `t_indicator::Vector{Vector}`, with `t_indicator[k]` the time vector of the indicator
+  timeseries for the `k`-th segment.
+
+- `x_change::Matrix`, the change metric values with `x[k, i]` the change metric of the
+  `i`-th indicator for the `k`-th segment.
+- `t_change`, the time vector of the change metric.
+
+- [`config::SegmentWindowConfig`](@ref), used for the analysis.
+"""
 struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: WindowedIndicatorResults
+    W} <: WindowResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{Vector{T}}
@@ -325,8 +359,8 @@ struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     config::W
 end
 
-function Base.show(io::IO, ::MIME"text/plain", res::WindowedIndicatorResults)
-    println(io, "WindowedIndicatorResults")
+function Base.show(io::IO, ::MIME"text/plain", res::WindowResults)
+    println(io, "WindowResults")
     descriptors = [
         "input timeseries" => summary(res.x),
         "indicators" => [nameof(i) for i in res.config.indicators],

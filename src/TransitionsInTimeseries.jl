@@ -52,9 +52,9 @@ export ridgematrix, RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export difference_of_means
 
 # analysis
-export SlidingWindowConfig, SegmentWindowConfig
+export WindowConfig, SlidingWindowConfig, SegmentWindowConfig
 export SlidingWindowResults, SegmentWindowResults
-export estimate_indicator_changes, WindowedIndicatorResults
+export estimate_indicator_changes, WindowResults
 export TransitionsSignificance, significant_transitions, segmented_significance
 export QuantileSignificance, SigmaSignificance, SurrogatesSignificance
 
