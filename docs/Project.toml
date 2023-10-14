@@ -1,6 +1,7 @@
 [deps]
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+ComplexityMeasures = "ab4b797d-85ee-42ba-b621-05d793b346a2"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -15,3 +16,4 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 Documenter = "0.27"
+ComplexityMeasures = "^2.7"
