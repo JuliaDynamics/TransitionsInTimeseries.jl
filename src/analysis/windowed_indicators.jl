@@ -4,7 +4,7 @@
 Supertype used to define the window configuration of [`estimate_indicator_changes`](@ref).
 Valid subtypes are:
  - [`SlidingWindowConfig`](@ref).
- - [`SegmentWindowConfig`](@ref).
+ - [`SegmentedWindowConfig`](@ref).
 """
 abstract type WindowConfig end
 
@@ -79,7 +79,7 @@ function SlidingWindowConfig(
 end
 
 """
-    SegmentWindowConfig(indicators, change_metrics, tseg_start, tseg_end;
+    SegmentedWindowConfig(indicators, change_metrics, tseg_start, tseg_end;
         kwargs...) → config
 
 A configuration struct for TransitionsInTimeseries.jl that collects the start and end time
@@ -119,7 +119,7 @@ for more information.
 - `T = Float64`: Element type of input timeseries to initialize some computations.
 
 """
-struct SegmentWindowConfig{F, G, W<:Function} <: WindowConfig
+struct SegmentedWindowConfig{F, G, W<:Function} <: WindowConfig
     indicators::F
     change_metrics::G
     tseg_start::Vector
@@ -130,7 +130,7 @@ struct SegmentWindowConfig{F, G, W<:Function} <: WindowConfig
     whichtime::W
 end
 
-function SegmentWindowConfig(
+function SegmentedWindowConfig(
     indicators, change_metrics, tseg_start, tseg_end;
     width_ind = 100,
     stride_ind = 1,
@@ -146,7 +146,7 @@ function SegmentWindowConfig(
     # Last step: precomputable functions, if any
     indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
 
-    return SegmentWindowConfig(
+    return SegmentedWindowConfig(
         indicators, change_metrics, tseg_start, tseg_end,
         width_ind, stride_ind, min_width_cha, whichtime,
     )
@@ -221,7 +221,7 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 end
 
 """
-    estimate_indicator_changes(config::SegmentWindowConfig, x [,t]) → output
+    estimate_indicator_changes(config::SegmentedWindowConfig, x [,t]) → output
 
 Estimate possible transitions for input timeseries `x` using a segmented window approach
 as described by `config`:
@@ -237,7 +237,7 @@ Return the output as [`WindowResults`](@ref) which can be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
-function estimate_indicator_changes(config::SegmentWindowConfig, x, t)
+function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
     X, T = eltype(x), eltype(t)
     (; indicators, change_metrics, tseg_start, tseg_end) = config
     n_ind = length(indicators)
@@ -256,7 +256,7 @@ function estimate_indicator_changes(config::SegmentWindowConfig, x, t)
 
         # Init with Inf instead of 0 to easily recognise when the segment was too short
         # for the computation to be performed.
-        x_indicator[k] = fill(Inf, len_ind, n_ind)  
+        x_indicator[k] = fill(Inf, len_ind, n_ind)
 
         # only analyze if segment long enough to compute metrics
         if len_ind > config.min_width_cha
@@ -329,7 +329,7 @@ end
     SegmentWindowResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
-[`SegmentWindowConfig`](@ref). It can be used for further analysis, visualization,
+[`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 
 It has the following fields that the user may access
@@ -346,7 +346,7 @@ It has the following fields that the user may access
   `i`-th indicator for the `k`-th segment.
 - `t_change`, the time vector of the change metric.
 
-- [`config::SegmentWindowConfig`](@ref), used for the analysis.
+- [`config::SegmentedWindowConfig`](@ref), used for the analysis.
 """
 struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     W} <: WindowResults

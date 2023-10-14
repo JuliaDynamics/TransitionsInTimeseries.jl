@@ -5,7 +5,7 @@
 ```@docs
 WindowConfig
 SlidingWindowConfig
-SegmentWindowConfig
+SegmentedWindowConfig
 estimate_indicator_changes
 WindowResults
 SlidingWindowResults

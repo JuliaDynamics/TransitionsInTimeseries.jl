@@ -60,7 +60,7 @@ function regrid2evensampling(t, x, dt)
     return t_even, x_even
 end
 
-dt = 5.0        # dt = 5 yr as in (Boers 2018) 
+dt = 5.0        # dt = 5 yr as in (Boers 2018)
 t3, x3 = regrid2evensampling(t2, x2, dt)
 
 #=
@@ -140,7 +140,7 @@ fig
 #=
 ## Hindcast on NGRIP data
 
-As one can see... there is not much to see so far. Residuals are impossible to simply eye-ball and we therefore use TransitionsInTimeseries.jl to study the evolution, measured by the ridge-regression slope of the residual's variance and lag-1 autocorrelation (AC1) over time. In many examples of the literature, including [boers-early-warning-2018](@cite), the CSD analysis is performed over segments (sometimes only one) of the timeseries, such that a significance value is obtained for each segment. By using `SegmentWindowConfig`, dealing with segments can be easily done in TransitionsInTimeseries.jl and is demonstrated here:
+As one can see... there is not much to see so far. Residuals are impossible to simply eye-ball and we therefore use TransitionsInTimeseries.jl to study the evolution, measured by the ridge-regression slope of the residual's variance and lag-1 autocorrelation (AC1) over time. In many examples of the literature, including [boers-early-warning-2018](@cite), the CSD analysis is performed over segments (sometimes only one) of the timeseries, such that a significance value is obtained for each segment. By using `SegmentedWindowConfig`, dealing with segments can be easily done in TransitionsInTimeseries.jl and is demonstrated here:
 =#
 
 using TransitionsInTimeseries, StatsBase
@@ -151,7 +151,7 @@ indicators = (var, ac1)
 change_metrics = RidgeRegressionSlope()
 tseg_start = t_rasmussen[1:end-1] .+ 200
 tseg_end = t_rasmussen[2:end] .- 200
-config = SegmentWindowConfig(indicators, change_metrics,
+config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end; whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)        # require >=100 data points to estimate change metric
 results = estimate_indicator_changes(config, r, t)
@@ -192,7 +192,7 @@ For codimension-1 systems, approaching a fold, Hopf or transcritical bifurcation
 =#
 
 tseg_end = t_rasmussen[2:end] .- 700    # stop analysis 500 years earlier than before
-config = SegmentWindowConfig(indicators, change_metrics,
+config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end, whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)
 results = estimate_indicator_changes(config, r, t)
@@ -243,7 +243,7 @@ for j in 1:2
 
     ## Run sliding analysis and update figure with results
     dt = mean(diff(tcx))
-    config = SegmentWindowConfig(
+    config = SegmentedWindowConfig(
         indicators, change_metrics, tseg_start[j], tseg_end[j],
         whichtime = last, width_ind = Int(200÷dt), min_width_cha = 100)
     results = estimate_indicator_changes(config, r, t)
