@@ -46,12 +46,19 @@ fig
 # ## Using a simpler change metric
 
 # Now, let's compute and various indicators and their changes,
-# focusing on the fourth indicator, the permutation entropy. We use
+# focusing on the permutation entropy as an indicator. We use
 # order 4 here, because we know that to detect changes in a period `m` we would need
 # an order ≥ `m+1` permutation entropy.
 
-using TransitionsInTimeseries
-indicators = (var, ar1_whitenoise, permutation_entropy(m = 4))
+using TransitionsInTimeseries, ComplexityMeasures
+
+function permutation_entropy(m)
+    est = SymbolicPermutation(; m) # order 3
+    indicator = x -> entropy_normalized(est, x)
+    return indicator
+end
+
+indicators = (var, ar1_whitenoise, permutation_entropy(4))
 indistrings = ("var", "ar1", "pe")
 
 # In this example there is no critical slowing down;
