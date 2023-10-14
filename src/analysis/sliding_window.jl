@@ -85,22 +85,6 @@ function sanitycheck_metrics(indicators, change_metrics)
     return indicators, change_metrics
 end
 
-"""
-    estimate_indicator_changes(config::SlidingWindowConfig, x [,t]) → output
-
-Estimate possible transitions for input timeseries `x` using a sliding window approach
-as described by `config`:
-
-1. Estimate the timeseries of an indicator by sliding a window over the input timeseries.
-2. Estimate changes of an indicator by sliding a window of the change metric over
-   the indicator timeseries.
-
-If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
-
-Return the output as [`WindowResults`](@ref) which can be given to
-[`significant_transitions`](@ref) to deduce which possible transitions are statistically
-significant using a variety of significance tests.
-"""
 function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachindex(x))
     # initialize time vectors
     t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
@@ -138,74 +122,11 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 end
 
 """
-    estimate_indicator_changes(config::SegmentedWindowConfig, x [,t]) → output
-
-Estimate possible transitions for input timeseries `x` using a segmented window approach
-as described by `config`:
-
-1. For each segment specified in `config`, estimate the corresponding indicator timeseries
-   by sliding a window over the input timeseries.
-2. For each segment of the indicator timeseries, estimate a scalar change metric by applying
-   a window of the size of the indicator segment.
-
-If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
-
-Return the output as [`WindowResults`](@ref) which can be given to
-[`significant_transitions`](@ref) to deduce which possible transitions are statistically
-significant using a variety of significance tests.
-"""
-function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
-    X, T = eltype(x), eltype(t)
-    (; indicators, change_metrics, tseg_start, tseg_end) = config
-    n_ind = length(indicators)
-
-    t_indicator = [T[] for _ in eachindex(tseg_start)]
-    x_indicator = [X[;;] for _ in eachindex(tseg_start)]
-    t_change = T.(config.tseg_end)
-    x_change = fill(Inf, length(tseg_start), n_ind)
-    one2one = length(change_metrics) == length(indicators)
-
-    for k in eachindex(tseg_start)
-        tseg, xseg = segment(t, x, tseg_start[k], tseg_end[k])
-        t_indicator[k] = windowmap(config.whichtime, tseg; width = config.width_ind,
-            stride = config.stride_ind)
-        len_ind = length(t_indicator[k])
-
-        # Init with Inf instead of 0 to easily recognise when the segment was too short
-        # for the computation to be performed.
-        x_indicator[k] = fill(Inf, len_ind, n_ind)
-
-        # only analyze if segment long enough to compute metrics
-        if len_ind > config.min_width_cha
-            # Loop over indicators
-            for i in 1:n_ind
-                indicator = indicators[i]
-                chametric = one2one ? change_metrics[i] : change_metrics[1]
-                z = view(x_indicator[k], :, i)
-                windowmap!(indicator, z, xseg;
-                    width = config.width_ind, stride = config.stride_ind
-                )
-                if chametric isa PrecomputableFunction
-                    chametric = precompute(chametric, t_indicator[k])
-                end
-                x_change[k, i] = chametric(z)
-            end
-        end
-    end
-    # put everything together in the output type
-    return SegmentWindowResults(t, x, t_indicator, x_indicator, t_change, x_change, config)
-end
-
-function segment(t, x, t1, t2)
-    i1, i2 = argmin(abs.(t .- t1)), argmin(abs.(t .- t2))
-    return t[i1:i2], x[i1:i2]
-end
-
-"""
     WindowResults
 
 Supertype used to gather results of [`estimate_indicator_changes`](@ref).
 Valid subtypes are:
+
  - [`SlidingWindowResults`](@ref).
  - [`SegmentWindowResults`](@ref).
 """
