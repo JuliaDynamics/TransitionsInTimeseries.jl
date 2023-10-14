@@ -101,3 +101,39 @@ function segment(t, x, t1, t2)
     i1, i2 = argmin(abs.(t .- t1)), argmin(abs.(t .- t2))
     return t[i1:i2], x[i1:i2]
 end
+
+
+"""
+    SegmentWindowResults
+
+A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+[`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
+or given to [`significant_transitions`](@ref).
+
+It has the following fields that the user may access
+
+- `x`: the input timeseries.
+- `t`: the time vector of the input timeseries.
+
+- `x_indicator::Vector{Matrix}`, with `x_indicator[k]` the indicator timeseries (matrix
+   with each column one indicator) of the `k`-th segment.
+- `t_indicator::Vector{Vector}`, with `t_indicator[k]` the time vector of the indicator
+  timeseries for the `k`-th segment.
+
+- `x_change::Matrix`, the change metric values with `x[k, i]` the change metric of the
+  `i`-th indicator for the `k`-th segment.
+- `t_change`, the time vector of the change metric.
+
+- [`config::SegmentedWindowConfig`](@ref), used for the analysis.
+"""
+struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+    W} <: IndicatorsChangesResults
+    t::TT # original time vector; most often it is `Base.OneTo`.
+    x::XX
+    t_indicator::Vector{Vector{T}}
+    x_indicator::Vector{Matrix{X}}
+    t_change::Vector{T}
+    x_change::Matrix{X}
+    config::W
+end
+
