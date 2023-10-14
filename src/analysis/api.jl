@@ -24,3 +24,11 @@ significant using a variety of significance tests.
 """
 function estimate_indicator_changes end
 # The function is extended via multiple dispatch in the specific files
+
+"""
+    IndicatorsChangesResults
+
+Supertype used to gather results of [`estimate_indicator_changes`](@ref).
+The concrete subtype instances are described in the docstrings of configuration types.
+"""
+abstract type IndicatorsChangesResults end
