@@ -15,12 +15,13 @@ window segments as follows:
 (the window segments may overlap, that's okay).
 `indicators, change_metrics` are identical as in [`SlidingWindowConfig`](@ref).
 
+The results output corresponding to `SlidingWindowConfig` is [`SegmentedWindowResults`](@ref).
+
 ## Keyword arguments
--
 - `width_ind::Int=100, stride_ind::Int=1, whichtime = midpoint, T = Float64`: keywords
   identical as in [`SlidingWindowConfig`](@ref).
-- `min_width_cha::Int=50`: minimal width required to perform the change metric estimation.
-  If segment not sufficiently long, return `NaN`.
+- `min_width_cha::Int=typemax(Int)`: minimal width required to perform the change metric estimation.
+  If a segment is not sufficiently long, the change metric is `NaN`.
 """
 struct SegmentedWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
     indicators::F
@@ -37,7 +38,7 @@ function SegmentedWindowConfig(
         indicators, change_metrics, tseg_start, tseg_end;
         width_ind = 100,
         stride_ind = 1,
-        min_width_cha = 50,
+        min_width_cha = typemax(Int),
         whichtime =  midpoint,
         T = Float64,
     )
@@ -94,10 +95,69 @@ function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
         end
     end
     # put everything together in the output type
-    return SegmentWindowResults(t, x, t_indicator, x_indicator, t_change, x_change, config)
+    return SegmentedWindowResults(t, x, t_indicator, x_indicator, t_change, x_change, config)
 end
 
 function segment(t, x, t1, t2)
     i1, i2 = argmin(abs.(t .- t1)), argmin(abs.(t .- t2))
     return t[i1:i2], x[i1:i2]
+end
+
+
+"""
+    SegmentedWindowResults <: IndicatorsChangesResults
+
+A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+[`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
+or given to [`significant_transitions`](@ref).
+
+It has the following fields that the user may access
+
+- `x`: the input timeseries.
+- `t`: the time vector of the input timeseries.
+
+- `x_indicator::Vector{Matrix}`, with `x_indicator[k]` the indicator timeseries (matrix
+   with each column one indicator) of the `k`-th segment.
+- `t_indicator::Vector{Vector}`, with `t_indicator[k]` the time vector of the indicator
+  timeseries for the `k`-th segment.
+
+- `x_change::Matrix`, the change metric values with `x[k, i]` the change metric of the
+  `i`-th indicator for the `k`-th segment.
+- `t_change`, the time vector of the change metric.
+
+- `config::SegmentedWindowConfig`, what was used for the analysis.
+"""
+struct SegmentedWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+    W} <: IndicatorsChangesResults
+    t::TT # original time vector; most often it is `Base.OneTo`.
+    x::XX
+    t_indicator::Vector{Vector{T}}
+    x_indicator::Vector{Matrix{X}}
+    t_change::Vector{T}
+    x_change::Matrix{X}
+    config::W
+end
+
+# Segmented and Sliding results share their show method
+function Base.show(io::IO, ::MIME"text/plain", res::Union{SegmentedWindowResults, SlidingWindowResults})
+    println(io, "IndicatorsChangesResults")
+    descriptors = [
+        "input timeseries" => summary(res.x),
+        "indicators" => [nameof(i) for i in res.config.indicators],
+        "indicator (window, stride)" => (res.config.width_ind, res.config.stride_ind),
+        "change metrics" => [nameof(c) for c in res.config.change_metrics],
+        show_changemetric(res),
+    ]
+    padlen = maximum(length(d[1]) for d in descriptors) + 2
+    for (desc, val) in descriptors
+        println(io, rpad(" $(desc): ", padlen), val)
+    end
+end
+
+function show_changemetric(res::SlidingWindowResults)
+    return "change metric (window, stride)" => (res.config.width_cha, res.config.stride_cha)
+end
+
+function show_changemetric(res::SegmentedWindowResults)
+    return "change metric (window)" => ([length(t) for t in res.t_indicator])
 end

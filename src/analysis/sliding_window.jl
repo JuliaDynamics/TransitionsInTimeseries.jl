@@ -19,6 +19,8 @@ Both indicators and change metrics are **generic Julia functions** that input an
 see [making custom indicators/change metrics](@ref own_indicator) in the documentation
 for more information on possible optimizations.
 
+The results output corresponding to `SlidingWindowConfig` is [`SlidingWindowResults`](@ref).
+
 ## Keyword arguments
 
 - `width_ind::Int=100, stride_ind::Int=1`: width and stride given to [`WindowViewer`](@ref)
@@ -122,18 +124,7 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 end
 
 """
-    WindowResults
-
-Supertype used to gather results of [`estimate_indicator_changes`](@ref).
-Valid subtypes are:
-
- - [`SlidingWindowResults`](@ref).
- - [`SegmentWindowResults`](@ref).
-"""
-abstract type WindowResults end
-
-"""
-    SlidingWindowResults
+    SlidingWindowResults <: IndicatorsChangesResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
 [`SlidingWindowConfig`](@ref). It can be used for further analysis, visualization,
@@ -150,10 +141,10 @@ It has the following fields that the user may access
 - `x_change`, the change metric timeseries (matrix with each column one change metric).
 - `t_change`, the time vector of the change metric timeseries.
 
-- [`config::SlidingWindowConfig`](@ref), used for the analysis.
+- `config::SlidingWindowConfig`, what was used for the analysis.
 """
 struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: WindowResults
+    W} <: IndicatorsChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{T}
@@ -161,61 +152,4 @@ struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     t_change::Vector{T}
     x_change::Matrix{X}
     config::W
-end
-
-"""
-    SegmentWindowResults
-
-A struct containing the output of [`estimate_indicator_changes`](@ref) used with
-[`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
-or given to [`significant_transitions`](@ref).
-
-It has the following fields that the user may access
-
-- `x`: the input timeseries.
-- `t`: the time vector of the input timeseries.
-
-- `x_indicator::Vector{Matrix}`, with `x_indicator[k]` the indicator timeseries (matrix
-   with each column one indicator) of the `k`-th segment.
-- `t_indicator::Vector{Vector}`, with `t_indicator[k]` the time vector of the indicator
-  timeseries for the `k`-th segment.
-
-- `x_change::Matrix`, the change metric values with `x[k, i]` the change metric of the
-  `i`-th indicator for the `k`-th segment.
-- `t_change`, the time vector of the change metric.
-
-- [`config::SegmentedWindowConfig`](@ref), used for the analysis.
-"""
-struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: WindowResults
-    t::TT # original time vector; most often it is `Base.OneTo`.
-    x::XX
-    t_indicator::Vector{Vector{T}}
-    x_indicator::Vector{Matrix{X}}
-    t_change::Vector{T}
-    x_change::Matrix{X}
-    config::W
-end
-
-function Base.show(io::IO, ::MIME"text/plain", res::WindowResults)
-    println(io, "WindowResults")
-    descriptors = [
-        "input timeseries" => summary(res.x),
-        "indicators" => [nameof(i) for i in res.config.indicators],
-        "indicator (window, stride)" => (res.config.width_ind, res.config.stride_ind),
-        "change metrics" => [nameof(c) for c in res.config.change_metrics],
-        show_changemetric(res),
-    ]
-    padlen = maximum(length(d[1]) for d in descriptors) + 2
-    for (desc, val) in descriptors
-        println(io, rpad(" $(desc): ", padlen), val)
-    end
-end
-
-function show_changemetric(res::SlidingWindowResults)
-    return "change metric (window, stride)" => (res.config.width_cha, res.config.stride_cha)
-end
-
-function show_changemetric(res::SegmentWindowResults)
-    return "change metric (window)" => ([length(t) for t in res.t_indicator])
 end
