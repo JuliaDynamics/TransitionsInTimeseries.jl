@@ -24,6 +24,13 @@ include("misc/timeseries.jl")
 include("misc/load_data.jl")
 include("misc/precomputation.jl")
 
+include("analysis/api.jl")
+include("analysis/sliding_window.jl")
+include("analysis/segmented_window.jl")
+include("significance/api_significance.jl")
+include("significance/surrogates_significance.jl")
+include("significance/quantile_significance.jl")
+
 include("indicators/critical_slowing_down.jl")
 include("indicators/distribution_distance.jl")
 include("indicators/nlts.jl")
@@ -33,10 +40,6 @@ include("indicators/statistics.jl")
 include("change_metrics/slope.jl")
 include("change_metrics/valuediff.jl")
 
-include("analysis/windowed_indicators.jl")
-include("analysis/api_significance.jl")
-include("analysis/surrogates_significance.jl")
-include("analysis/quantile_significance.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
