@@ -20,11 +20,3 @@ end
     @test metricc(y_lofreq[1:nt]) > 0.95
     @test metricc(y_hifreq[1:nt]) < 0.05
 end
-
- @testset "perment" begin
-    x = 1:1000
-    pe = permutation_entropy()
-    # Sliding window over this x gives the same entropy values, all of which are zero
-    res = windowmap(pe, x; width = 10)
-    @test res == zeros(length(res))
-end

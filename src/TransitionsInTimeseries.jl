@@ -13,7 +13,6 @@ using Downloads
 using DelimitedFiles
 using InteractiveUtils
 using FFTW
-using ComplexityMeasures
 
 using Reexport
 @reexport using TimeseriesSurrogates
