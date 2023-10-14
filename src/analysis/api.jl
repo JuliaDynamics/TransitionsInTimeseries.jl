@@ -21,3 +21,4 @@ Return the output as [`WindowResults`](@ref) which can be given to
 significant using a variety of significance tests.
 """
 function estimate_indicator_changes end
+# The function is extended via multiple dispatch in the specific files
