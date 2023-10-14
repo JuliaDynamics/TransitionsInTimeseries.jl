@@ -10,10 +10,10 @@ abstract type TransitionsSignificance end
 
 
 """
-    significant_transitions(res::WindowedIndicatorResults, signif::TransitionsSignificance)
+    significant_transitions(res::WindowResults, signif::TransitionsSignificance)
 
 Estimate significant transtions in `res` using the method described by `signif`.
 Return `flags`, a Boolean matrix with identical size as `res.x_change`.
 It contains trues wherever a change metric of `res` is deemed significant.
 """
-function significant_transitions(::WindowedIndicatorResults, ::TransitionsSignificance) end
+function significant_transitions(::WindowResults, ::TransitionsSignificance) end

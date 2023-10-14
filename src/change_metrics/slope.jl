@@ -38,7 +38,7 @@ struct PrecomputedRidgeRegressionSlope{T} <: Function
 end
 
 function precompute(rr::RidgeRegressionSlope, t::AbstractVector{T}) where {T<:Real}
-    regression_matrix = precompute_ridgematrix(t, rr.lambda)
+    regression_matrix = ridgematrix(t, rr.lambda)
     return PrecomputedRidgeRegressionSlope(isequispaced(t), regression_matrix)
 end
 
@@ -51,13 +51,18 @@ function (rr::PrecomputedRidgeRegressionSlope)(x::AbstractVector{<:Real})
     if !(rr.equispaced)
         error("Time vector is not evenly spaced." *
             "So far, the API is only designed for evenly spaced time series!")
-        # For future something like: M .= precompute_ridgematrix(window_view(t))
+        # For future something like: M .= ridgematrix(window_view(t))
     end
     return view(rr.regression_matrix, 1, :)' * x    # only return slope.
     # view(rr.regression_matrix, 2, :)' * x --> would return the bias.
 end
 
-function precompute_ridgematrix(t::AbstractVector{T}, lambda::Real) where {T<:Real}
+function ridgematrix(t::AbstractVector{T}, lambda::Real) where {T<:Real}
     TT = hcat(t, ones(T, length(t)))'
     return inv(TT * TT' + lambda .* LinearAlgebra.I(2) ) * TT
+end
+
+function (rr::RidgeRegressionSlope)(x::AbstractVector{<:Real})
+    regression_matrix = ridgematrix(eachindex(x), rr.lambda)
+    return view(regression_matrix, 1, :)' * x    # only return slope.
 end

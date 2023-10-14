@@ -3,9 +3,13 @@
 ## Main analysis functions
 
 ```@docs
-WindowedIndicatorConfig
+IndicatorsChangesConfig
+SlidingWindowConfig
+SegmentedWindowConfig
 estimate_indicator_changes
-WindowedIndicatorResults
+WindowResults
+SlidingWindowResults
+SegmentWindowResults
 ```
 
 ## Significance testing

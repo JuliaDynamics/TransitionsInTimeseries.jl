@@ -8,7 +8,7 @@ using TransitionsInTimeseries, Test
     indicators = (mean, var)
     change_metric = RidgeRegressionSlope()
 
-    config = WindowedIndicatorConfig(indicators, change_metric;
+    config = SlidingWindowConfig(indicators, change_metric;
         width_ind = 100, stride_ind = 1,
         width_cha = 100, stride_cha = 1, whichtime = last,
     )

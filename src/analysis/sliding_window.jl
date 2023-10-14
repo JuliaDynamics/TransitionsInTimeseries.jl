@@ -1,18 +1,23 @@
 """
-    WindowedIndicatorConfig(indicators, change_metrics; kwargs...) → config
+    SlidingWindowConfig <: IndicatorsChangesConfig
+    SlidingWindowConfig(indicators, change_metrics; kwargs...)
 
-A configuration struct for TransitionsInTimeseries.jl that collects
-what indicators and corresponding metrics to use in the [`estimate_indicator_changes`](@ref).
+A configuration that can be given to [`estimate_indicator_changes`](@ref).
+It estimates transitions by a sliding window approach:
+
+1. Estimate the timeseries of an indicator by sliding a window over the input timeseries.
+2. Estimate changes of an indicator by sliding a window of the change metric over
+   the indicator timeseries.
 
 `indicators` is a tuple of indicators (or a single indicator).
 `change_metrics` is also a tuple or a single function. If a single function,
 the same change metric is used for all provided indicators. This way the analysis
 can be efficiently repeated for many indicators and/or change metrics.
 
-Both indicators and change metrics are generic Julia functions that input an
-`x::AbstractVector` and output an `s::Real`. Any appropriate function may be given and
+Both indicators and change metrics are **generic Julia functions** that input an
+`x::AbstractVector` and output an `s::Real`. Any function may be given and
 see [making custom indicators/change metrics](@ref own_indicator) in the documentation
-for more information.
+for more information on possible optimizations.
 
 ## Keyword arguments
 
@@ -33,11 +38,9 @@ for more information.
   ```
   so any other function of the time window may be given to extract the time point itself,
   such as `mean` or `median`.
-
 - `T = Float64`: Element type of input timeseries to initialize some computations.
-
 """
-struct WindowedIndicatorConfig{F, G, W<:Function}
+struct SlidingWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
     indicators::F
     change_metrics::G
     width_ind::Int
@@ -47,7 +50,7 @@ struct WindowedIndicatorConfig{F, G, W<:Function}
     whichtime::W
 end
 
-function WindowedIndicatorConfig(
+function SlidingWindowConfig(
         indicators, change_metrics;
         width_ind = 100,
         stride_ind = 1,
@@ -56,7 +59,18 @@ function WindowedIndicatorConfig(
         whichtime =  midpoint,
         T = Float64,
     )
-    # Sanity checks
+    indicators, change_metrics = sanitycheck_metrics(indicators, change_metrics)
+    # Last step: precomputable functions, if any
+    indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
+    change_metrics = map(f -> precompute(f, 1:T(width_cha)), change_metrics)
+
+    return SlidingWindowConfig(
+        indicators, change_metrics,
+        width_ind, stride_ind, width_cha, stride_cha, whichtime,
+    )
+end
+
+function sanitycheck_metrics(indicators, change_metrics)
     if !(indicators isa Tuple)
         indicators = (indicators,)
     end
@@ -68,38 +82,10 @@ function WindowedIndicatorConfig(
         throw(ArgumentError("The amount of change metrics must be as many as the"*
             "indicators, or only 1."))
     end
-    # Last step: precomputable functions, if any
-    indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
-    change_metrics = map(f -> precompute(f, 1:T(width_cha)), change_metrics)
-
-    return WindowedIndicatorConfig(
-        indicators, change_metrics,
-        width_ind, stride_ind, width_cha, stride_cha, whichtime,
-    )
+    return indicators, change_metrics
 end
 
-"""
-    estimate_indicator_changes(config::WindowedIndicatorConfig, x [,t]) → output
-
-Estimate possible transitions for input timeseries `x` using a sliding window approach
-as described by `config`:
-
-1. Estimate the timeseries of an indicator by sliding a window over the input timeseries.
-2. Estimate changes of an indicator by sliding a window of the change metric over
-   the indicator timeseries.
-
-If `t` (the time vector of `x`), is not provided, it is assumed `t = eachindex(x)`.
-
-Return the output as [`WindowedIndicatorResults`](@ref) which can be given to
-[`significant_transitions`](@ref) to deduce which possible transitions are statistically
-significant using a variety of significance tests.
-"""
-function estimate_indicator_changes(x, config::WindowedIndicatorConfig)
-    t = eachindex(x)
-    return estimate_indicator_changes(t, x, config)
-end
-
-function estimate_indicator_changes(config::WindowedIndicatorConfig, x, t = eachindex(x))
+function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachindex(x))
     # initialize time vectors
     t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
         stride = config.stride_ind)
@@ -130,18 +116,27 @@ function estimate_indicator_changes(config::WindowedIndicatorConfig, x, t = each
     end
 
     # put everything together in the output type
-    return WindowedIndicatorResults(
+    return SlidingWindowResults(
         t, x, t_indicator, x_indicator, t_change, x_change, config
     )
 end
 
+"""
+    WindowResults
+
+Supertype used to gather results of [`estimate_indicator_changes`](@ref).
+Valid subtypes are:
+
+ - [`SlidingWindowResults`](@ref).
+ - [`SegmentWindowResults`](@ref).
+"""
+abstract type WindowResults end
 
 """
-    WindowedIndicatorResults
+    SlidingWindowResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
-[`WindowedIndicatorConfig`](@ref).
-It can be used for further analysis, visualization,
+[`SlidingWindowConfig`](@ref). It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 
 It has the following fields that the user may access
@@ -155,29 +150,72 @@ It has the following fields that the user may access
 - `x_change`, the change metric timeseries (matrix with each column one change metric).
 - `t_change`, the time vector of the change metric timeseries.
 
-- [`wim::WindowedIndicatorConfig`](@ref), used for the analysis.
+- [`config::SlidingWindowConfig`](@ref), used for the analysis.
 """
-struct WindowedIndicatorResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, W}
+struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+    W} <: WindowResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{T}
     x_indicator::Matrix{X}
     t_change::Vector{T}
     x_change::Matrix{X}
-    wim::W
+    config::W
 end
 
-function Base.show(io::IO, ::MIME"text/plain", res::WindowedIndicatorResults)
-    println(io, "WindowedIndicatorResults")
+"""
+    SegmentWindowResults
+
+A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+[`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
+or given to [`significant_transitions`](@ref).
+
+It has the following fields that the user may access
+
+- `x`: the input timeseries.
+- `t`: the time vector of the input timeseries.
+
+- `x_indicator::Vector{Matrix}`, with `x_indicator[k]` the indicator timeseries (matrix
+   with each column one indicator) of the `k`-th segment.
+- `t_indicator::Vector{Vector}`, with `t_indicator[k]` the time vector of the indicator
+  timeseries for the `k`-th segment.
+
+- `x_change::Matrix`, the change metric values with `x[k, i]` the change metric of the
+  `i`-th indicator for the `k`-th segment.
+- `t_change`, the time vector of the change metric.
+
+- [`config::SegmentedWindowConfig`](@ref), used for the analysis.
+"""
+struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+    W} <: WindowResults
+    t::TT # original time vector; most often it is `Base.OneTo`.
+    x::XX
+    t_indicator::Vector{Vector{T}}
+    x_indicator::Vector{Matrix{X}}
+    t_change::Vector{T}
+    x_change::Matrix{X}
+    config::W
+end
+
+function Base.show(io::IO, ::MIME"text/plain", res::WindowResults)
+    println(io, "WindowResults")
     descriptors = [
         "input timeseries" => summary(res.x),
-        "indicators" => [nameof(i) for i in res.wim.indicators],
-        "indicator (window, stride)" => (res.wim.width_ind, res.wim.stride_ind),
-        "change metrics" => [nameof(c) for c in res.wim.change_metrics],
-        "change metric (window, stride)" => (res.wim.width_cha, res.wim.stride_cha),
+        "indicators" => [nameof(i) for i in res.config.indicators],
+        "indicator (window, stride)" => (res.config.width_ind, res.config.stride_ind),
+        "change metrics" => [nameof(c) for c in res.config.change_metrics],
+        show_changemetric(res),
     ]
     padlen = maximum(length(d[1]) for d in descriptors) + 2
     for (desc, val) in descriptors
         println(io, rpad(" $(desc): ", padlen), val)
     end
+end
+
+function show_changemetric(res::SlidingWindowResults)
+    return "change metric (window, stride)" => (res.config.width_cha, res.config.stride_cha)
+end
+
+function show_changemetric(res::SegmentWindowResults)
+    return "change metric (window)" => ([length(t) for t in res.t_indicator])
 end
