@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/JuliaDynamics/TransitionsInTimeseries.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaDynamics/TransitionsInTimeseries.jl)
 [![Package Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/TransitionsInTimeseries)](https://pkgs.genieframework.com?packages=TransitionsInTimeseries)
 
-A Julia package for estimating transitions (from one dynamic regime or stable state to another) in timeseries and testing the statistical significance of found transitions. It integrates with the entire Julia ecosystem of timeseries analysis, and hence offers thousands of metrics that can indicate transitions right out of the box. It currently offers two analysis pipelines for identifying transitions and two statistical pipelines for testing for significance.
+A Julia package for estimating transitions (from one dynamic regime or stable state to another) in timeseries and testing the statistical significance of found transitions. It integrates with the entire Julia ecosystem of timeseries analysis, and hence offers thousands of metrics that can indicate transitions right out of the box. It also offers a variety of analysis pipelines for identifying transitions and a variety of statistical pipelines for testing for significance.
 
 In contrast to other existing software with similar target application, TransitionsInTimeseries.jl defines a generic interface for how to find transitions and how to test for significance. Within this interface, it is easy to expand the software in three orthogonal ways:
 
