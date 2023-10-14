@@ -3,7 +3,7 @@
 ## Main analysis functions
 
 ```@docs
-WindowConfig
+IndicatorsChangesConfig
 SlidingWindowConfig
 SegmentedWindowConfig
 estimate_indicator_changes

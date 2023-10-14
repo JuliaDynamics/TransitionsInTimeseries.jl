@@ -1,12 +1,13 @@
 """
-    WindowConfig
+    IndicatorsChangesConfig
 
-Supertype used to define the window configuration of [`estimate_indicator_changes`](@ref).
-Valid subtypes are:
+Supertype used to define how indicators and their changes are estimated in
+[`estimate_indicator_changes`](@ref). Valid subtypes are:
+
  - [`SlidingWindowConfig`](@ref).
  - [`SegmentedWindowConfig`](@ref).
 """
-abstract type WindowConfig end
+abstract type IndicatorsChangesConfig end
 
 """
     SlidingWindowConfig(indicators, change_metrics; kwargs...) → config
@@ -48,7 +49,7 @@ for more information.
 - `T = Float64`: Element type of input timeseries to initialize some computations.
 
 """
-struct SlidingWindowConfig{F, G, W<:Function} <: WindowConfig
+struct SlidingWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
     indicators::F
     change_metrics::G
     width_ind::Int
@@ -119,7 +120,7 @@ for more information.
 - `T = Float64`: Element type of input timeseries to initialize some computations.
 
 """
-struct SegmentedWindowConfig{F, G, W<:Function} <: WindowConfig
+struct SegmentedWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
     indicators::F
     change_metrics::G
     tseg_start::Vector
