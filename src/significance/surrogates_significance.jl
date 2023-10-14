@@ -15,7 +15,7 @@ using timeseries surrogates.
 
 ## Description
 
-When used with [`WindowResults`](@ref), significance is estimated as follows:
+When used with [`IndicatorsChangesResults`](@ref), significance is estimated as follows:
 `n` surrogates from the input timeseries are generated using `surromethod`, which is
 any `Surrogate` subtype provided by
 [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/dev/api/).
@@ -34,7 +34,7 @@ higher change metric, discriminatory statistic values. This is the case for stat
 that quantify entropy. For statistics that quantify autocorrelation, use `tail = :right`
 instead. For anything else, use the default `tail = :both`.
 An iterable of `tail` values can also be given, in which case a specific `tail`
-is used for each change metric in [`WindowResults`](@ref).
+is used for each change metric in [`IndicatorsChangesResults`](@ref).
 
 Note that the raw p-values can be accessed in the field `.pvalues`, after calling the
 [`significant_transitions`](@ref) function with `SurrogatesSignificance`, in case you wish
@@ -182,7 +182,7 @@ function segmented_surrogates_loop!(
         pval_right = zeros(length(pval))
         pval_left = copy(pval_right)
     end
-    
+
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()

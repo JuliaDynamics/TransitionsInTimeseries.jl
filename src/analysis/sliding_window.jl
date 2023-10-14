@@ -122,7 +122,7 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 end
 
 """
-    WindowResults
+    IndicatorsChangesResults
 
 Supertype used to gather results of [`estimate_indicator_changes`](@ref).
 Valid subtypes are:
@@ -130,7 +130,7 @@ Valid subtypes are:
  - [`SlidingWindowResults`](@ref).
  - [`SegmentWindowResults`](@ref).
 """
-abstract type WindowResults end
+abstract type IndicatorsChangesResults end
 
 """
     SlidingWindowResults
@@ -153,7 +153,7 @@ It has the following fields that the user may access
 - [`config::SlidingWindowConfig`](@ref), used for the analysis.
 """
 struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: WindowResults
+    W} <: IndicatorsChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{T}
@@ -187,7 +187,7 @@ It has the following fields that the user may access
 - [`config::SegmentedWindowConfig`](@ref), used for the analysis.
 """
 struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: WindowResults
+    W} <: IndicatorsChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{Vector{T}}
@@ -197,8 +197,8 @@ struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     config::W
 end
 
-function Base.show(io::IO, ::MIME"text/plain", res::WindowResults)
-    println(io, "WindowResults")
+function Base.show(io::IO, ::MIME"text/plain", res::IndicatorsChangesResults)
+    println(io, "IndicatorsChangesResults")
     descriptors = [
         "input timeseries" => summary(res.x),
         "indicators" => [nameof(i) for i in res.config.indicators],
