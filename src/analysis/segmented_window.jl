@@ -9,7 +9,7 @@ window segments as follows:
 1. For each segment specified, estimate the corresponding indicator timeseries
    by sliding a window over the input timeseries (within the window segment).
 2. For each segment of the indicator timeseries, estimate a scalar change metric by applying
-   a window of the size of the indicator segment.
+   the change metric over the full segment of the indicator timeseries.d
 
 `tseg_start, tseg_end` are the starts and ends of the window segments
 (the window segments may overlap, that's okay).
