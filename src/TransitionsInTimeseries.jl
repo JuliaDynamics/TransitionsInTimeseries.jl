@@ -55,7 +55,7 @@ export difference_of_means
 
 # analysis
 export IndicatorsChangesConfig, SlidingWindowConfig, SegmentedWindowConfig
-export SlidingWindowResults, SegmentWindowResults
+export SlidingWindowResults, SegmentedWindowResults
 export estimate_indicator_changes, IndicatorsChangesResults
 export TransitionsSignificance, significant_transitions, segmented_significance
 export QuantileSignificance, SigmaSignificance, SurrogatesSignificance

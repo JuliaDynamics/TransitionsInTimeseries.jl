@@ -9,7 +9,7 @@ SegmentedWindowConfig
 estimate_indicator_changes
 IndicatorsChangesResults
 SlidingWindowResults
-SegmentWindowResults
+SegmentedWindowResults
 ```
 
 ## Significance testing

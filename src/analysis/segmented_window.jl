@@ -95,7 +95,7 @@ function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
         end
     end
     # put everything together in the output type
-    return SegmentWindowResults(t, x, t_indicator, x_indicator, t_change, x_change, config)
+    return SegmentedWindowResults(t, x, t_indicator, x_indicator, t_change, x_change, config)
 end
 
 function segment(t, x, t1, t2)
@@ -105,7 +105,7 @@ end
 
 
 """
-    SegmentWindowResults <: IndicatorsChangesResults
+    SegmentedWindowResults <: IndicatorsChangesResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
 [`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
@@ -127,7 +127,7 @@ It has the following fields that the user may access
 
 - `config::SegmentedWindowConfig`, what was used for the analysis.
 """
-struct SegmentWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+struct SegmentedWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     W} <: IndicatorsChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
@@ -158,6 +158,6 @@ function show_changemetric(res::SlidingWindowResults)
     return "change metric (window, stride)" => (res.config.width_cha, res.config.stride_cha)
 end
 
-function show_changemetric(res::SegmentWindowResults)
+function show_changemetric(res::SegmentedWindowResults)
     return "change metric (window)" => ([length(t) for t in res.t_indicator])
 end

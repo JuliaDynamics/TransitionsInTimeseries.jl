@@ -90,7 +90,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     return pvalues .< signif.p
 end
 
-function significant_transitions(res::SegmentWindowResults, signif::SurrogatesSignificance)
+function significant_transitions(res::SegmentedWindowResults, signif::SurrogatesSignificance)
     # Unpack and sanity checks
     X = eltype(res.x_change)
     (; indicators, change_metrics, tseg_start, tseg_end) = res.config
