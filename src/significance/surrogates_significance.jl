@@ -195,7 +195,6 @@ end
 
 function choose_pval!(pval, pval_right, pval_left, tail)
     if tail == :both
-        println(pval_right, pval_left)
         pval .= 2min.(pval_right, pval_left)
     elseif tail == :right
         pval .= pval_right
