@@ -187,13 +187,15 @@ end
 function accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
     if tail == :both || tail == :right
         pval_right .+= c .< change_dummy
-    elseif tail == :both || tail == :left
+    end
+    if tail == :both || tail == :left
         pval_left .+= c .> change_dummy
     end
 end
 
 function choose_pval!(pval, pval_right, pval_left, tail)
     if tail == :both
+        println(pval_right, pval_left)
         pval .= 2min.(pval_right, pval_left)
     elseif tail == :right
         pval .= pval_right
