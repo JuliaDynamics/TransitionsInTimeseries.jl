@@ -145,7 +145,9 @@ function sliding_surrogates_loop!(
         indicator_dummys, change_dummys,
         width_ind, stride_ind, width_cha, stride_cha, tail
     )
-    pval_right, pval_left = init_pvals(pval)
+    pval_right = zeros(length(pval))
+    pval_left = copy(pval_right)
+
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()
@@ -164,7 +166,8 @@ function segmented_surrogates_loop!(
     indicator, chametric, c, pval, n_surrogates, sgens,
     indicator_dummys, change_dummys, width_ind, stride_ind, tail
 )
-    pval_right, pval_left = init_pvals(pval)
+    pval_right = zeros(length(pval))
+    pval_left = copy(pval_right)
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()
@@ -176,12 +179,6 @@ function segmented_surrogates_loop!(
         accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
     end
     choose_pval!(pval, pval_right, pval_left, tail)
-end
-
-function init_pvals(pval)
-    pval_right = zeros(length(pval))
-    pval_left = copy(pval_right)
-    return pval_right, pval_left
 end
 
 function accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
