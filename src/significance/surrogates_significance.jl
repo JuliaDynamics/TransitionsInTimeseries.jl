@@ -145,11 +145,9 @@ function sliding_surrogates_loop!(
         indicator_dummys, change_dummys,
         width_ind, stride_ind, width_cha, stride_cha, tail
     )
+    pval_right = zeros(length(pval))
+    pval_left = copy(pval_right)
 
-    if tail == :both
-        pval_right = zeros(length(pval))
-        pval_left = copy(pval_right)
-    end
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()
@@ -159,30 +157,17 @@ function sliding_surrogates_loop!(
             width = width_ind, stride = stride_ind)
         windowmap!(chametric, change_dummy, indicator_dummys[id];
             width = width_cha, stride = stride_cha)
-        if tail == :right
-            pval .+= c .< change_dummy
-        elseif tail == :left
-            pval .+= c .> change_dummy
-        elseif tail == :both
-            pval_right .+= c .< change_dummy
-            pval_left .+= c .> change_dummy
-        end
+        accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
     end
-    if tail == :both
-        pval .= 2min.(pval_right, pval_left)
-    end
+    choose_pval!(pval, pval_right, pval_left, tail)
 end
 
 function segmented_surrogates_loop!(
     indicator, chametric, c, pval, n_surrogates, sgens,
     indicator_dummys, change_dummys, width_ind, stride_ind, tail
 )
-
-    if tail == :both
-        pval_right = zeros(length(pval))
-        pval_left = copy(pval_right)
-    end
-
+    pval_right = zeros(length(pval))
+    pval_left = copy(pval_right)
     # parallelized surrogate loop
     Threads.@threads for _ in 1:n_surrogates
         id = Threads.threadid()
@@ -191,16 +176,26 @@ function segmented_surrogates_loop!(
         windowmap!(indicator, indicator_dummys[id], s;
             width = width_ind, stride = stride_ind)
         change_dummy = chametric(indicator_dummys[id])
-        if tail == :right
-            pval .+= c .< change_dummy
-        elseif tail == :left
-            pval .+= c .> change_dummy
-        elseif tail == :both
-            pval_right .+= c .< change_dummy
-            pval_left .+= c .> change_dummy
-        end
+        accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
     end
+    choose_pval!(pval, pval_right, pval_left, tail)
+end
+
+function accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
+    if tail == :both || tail == :right
+        pval_right .+= c .< change_dummy
+    end
+    if tail == :both || tail == :left
+        pval_left .+= c .> change_dummy
+    end
+end
+
+function choose_pval!(pval, pval_right, pval_left, tail)
     if tail == :both
         pval .= 2min.(pval_right, pval_left)
+    elseif tail == :right
+        pval .= pval_right
+    elseif tail == :left
+        pval .= pval_left
     end
 end
