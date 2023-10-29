@@ -17,11 +17,11 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TimeseriesSurrogates = "c804724b-8c18-5caa-8579-6025a0767c70"
 
 [compat]
-julia = "1.9"
 DelimitedFiles = "1"
+FFTW = "^1.6"
 HypothesisTests = "0.11"
 Reexport = "1.2"
+Statistics = "1"
 StatsBase = "0.33, 0.34"
 TimeseriesSurrogates = "2"
-FFTW = "^1.6"
-
+julia = "1.9"
