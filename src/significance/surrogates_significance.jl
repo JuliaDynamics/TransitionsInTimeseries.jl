@@ -58,127 +58,116 @@ function SurrogatesSignificance(;
 end
 
 function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSignificance)
-    (; indicators, change_metrics) = res.config
-    tail = signif.tail
-    if !(tail isa Symbol) && length(tail) ≠ length(indicators)
-        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
-        "as the input indicators. Got length $(length(tail)) instead of $(length(indicators))."
-        ))
-    end
-    pvalues = signif.pvalues = similar(res.x_change)
+    # Unpack structs + sanity check
+    (; x, x_indicator, x_change) = res
+    (; indicators, change_metrics, width_ind, stride_ind, width_cha, stride_cha) = res.config
+    (; surrogate, n, tail, rng, p, pvalues) = signif
+    n_ind = length(indicators)
+    sanitycheck_tail(tail, n_ind)
+    
+    # Init pvalues
+    X = eltype(x_change)
+    pvalues = signif.pvalues = zeros(X, size(x_change))
+    pvals_right = copy(pvalues)
+    pvals_left = copy(pvalues)
+
     # Multi-threaded surrogate realization
-    seeds = rand(signif.rng, 1:typemax(Int), Threads.nthreads())
-    sgens = [surrogenerator(res.x, signif.surrogate, Random.Xoshiro(seed)) for seed in seeds]
+    seeds = rand(rng, 1:typemax(Int), Threads.nthreads())
+    sgens = [surrogenerator(x, surrogate, Xoshiro(seed)) for seed in seeds]
     # Dummy vals for surrogate parallelization
-    indicator_dummys = [res.x_indicator[:, 1] for _ in 1:Threads.nthreads()]
-    change_dummys = [res.x_change[:, 1] for _ in 1:Threads.nthreads()]
-    for i in 1:size(pvalues, 2) # loop over change metrics
-        indicator = indicators[i]
-        i_metric = length(change_metrics) == length(indicators) ? i : 1
-        chametric = change_metrics[i_metric]
-        tai = tail isa Symbol ? tail : tail[i]
-        c = view(res.x_change, :, i) # change metric timeseries
-        # p values for current i
-        pval = view(pvalues, :, i)
-        sliding_surrogates_loop!(
-            indicator, chametric, c, pval, signif.n, sgens,
-            indicator_dummys, change_dummys,
-            res.config.width_ind, res.config.stride_ind, res.config.width_cha, res.config.stride_cha, tai
-        )
+    indicator_dummys = [x_indicator[:, 1] for _ in 1:Threads.nthreads()]
+    change_dummys = [x_change[:, 1] for _ in 1:Threads.nthreads()]
+
+    Threads.@threads for _ in 1:n
+
+        id = Threads.threadid()
+        s = sgens[id]()
+        change_dummy = change_dummys[id]
+
+        for i in 1:n_ind
+            indicator, change_metric, tai = choose_metrics(indicators, change_metrics,
+                tail, i)
+            c = view(x_change, :, i)    # change metric timeseries
+            pval_right = view(pvals_right, :, i)
+            pval_left = view(pvals_left, :, i)
+            windowmap!(indicator, indicator_dummys[id], s;
+                width = width_ind, stride = stride_ind)
+            windowmap!(change_metric, change_dummys[id], indicator_dummys[id];
+                width = width_cha, stride = stride_cha)
+            accumulate_pvals!(pval_right, pval_left, tai, c, change_dummy)
+        end
     end
-    pvalues ./= signif.n
-    return pvalues .< signif.p
+    choose_pval!(pvalues, pvals_right, pvals_left, tail, n_ind)
+    pvalues ./= n
+    return pvalues .< p
 end
 
 function significant_transitions(res::SegmentedWindowResults, signif::SurrogatesSignificance)
-    # Unpack and sanity checks
-    X = eltype(res.x_change)
-    (; indicators, change_metrics, tseg_start, tseg_end) = res.config
-    tail = signif.tail
-    if !(tail isa Symbol) && length(tail) ≠ length(indicators)
-        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
-        "as the input indicators. Got length $(length(tail)) instead of $(length(indicators))."
-        ))
-    end
+    # Unpack structs + sanity check
+    (; x, t_indicator, x_change, i1, i2, precomp_change_metrics) = res
+    (; indicators, change_metrics, width_ind, stride_ind, min_width_cha) = res.config
+    (; surrogate, n, tail, rng, p) = signif
+    n_ind = length(indicators)
+    sanitycheck_tail(tail, n_ind)
+
+    # Init pvalues
+    X = eltype(x_change)
+    pvalues = signif.pvalues = zeros(X, size(x_change))
+    pvals_right = copy(pvalues)
+    pvals_left = copy(pvalues)
+
     # Multi-threaded surrogate realization
-    seeds = rand(signif.rng, 1:typemax(Int), Threads.nthreads())
-    change_dummys = [X(0) for _ in 1:Threads.nthreads()]
-    pvalues = signif.pvalues = zeros(X, size(res.x_change)...)
+    seeds = rand(rng, 1:typemax(Int), Threads.nthreads())
+    change_dummys = zeros(X, Threads.nthreads())
+    xind_length = map(x -> length(x), t_indicator)
+    indicator_dummys = Vector{X}[zeros(X, maximum(xind_length)) for _ in
+        1:Threads.nthreads()]
 
-    for k in eachindex(tseg_start)  # loop over segments
-        # If segment too short, return inf p-value
-        if length(res.x_indicator[k][:, 1]) < res.config.min_width_cha
-            pvalues[k, :] .= Inf
+    # Loop over segments
+    for k in eachindex(i1)
+
+        # If segment too short, return NaN p-value
+        if xind_length[k] < min_width_cha
+            view(pvalues, k, :) .= X(NaN)
         else
-            tseg, xseg = segment(res.t, res.x, tseg_start[k], tseg_end[k])
-            sgens = [surrogenerator(xseg, signif.surrogate, Random.Xoshiro(seed))
-                for seed in seeds]
-            # Dummy vals for surrogate parallelization
-            indicator_dummys = [res.x_indicator[k][:, 1] for _ in 1:Threads.nthreads()]
-            for i in eachindex(indicators)
-                indicator = indicators[i]
-                i_metric = length(change_metrics) == length(indicators) ? i : 1
-                chametric = change_metrics[i_metric]
+            # Generate surrogates of segment size
+            sgens = [surrogenerator(x[i1[k]:i2[k]], surrogate,
+                Random.Xoshiro(seed)) for seed in seeds]
 
-                # Precomputation: include time vector for metrics that require it!
-                if chametric isa PrecomputableFunction
-                    chametric = precompute(chametric, res.t_indicator[k])
+            Threads.@threads for _ in 1:n
+                id = Threads.threadid()
+                s = sgens[id]()
+                for i in eachindex(indicators)
+                    indicator, chametric, tai = choose_metrics(indicators,
+                        precomp_change_metrics[k], tail, i)
+                    c = x_change[k, i]
+                    indicator_dummy = view(indicator_dummys[id], 1:xind_length[k])
+                    windowmap!(indicator, indicator_dummy, s;
+                        width = width_ind, stride = stride_ind)
+                    change_dummys[id] = chametric(indicator_dummy)
+                    accumulate_pvals!(pvals_right, pvals_left, tai, c, change_dummys[id],
+                        k, i)
+                    choose_pval!(pvalues, pvals_right, pvals_left, tail, k, i)
                 end
-
-                tai = tail isa Symbol ? tail : tail[i]
-                c = res.x_change[k, i]  # change metric
-                pval = view(pvalues, k, i)
-                # p values for current i
-                segmented_surrogates_loop!(
-                    indicator, chametric, c, pval, signif.n, sgens,
-                    indicator_dummys, change_dummys,
-                    res.config.width_ind, res.config.stride_ind, tai)
             end
         end
     end
-    pvalues ./= signif.n
-    return pvalues .< signif.p
+    pvalues ./= n
+    return pvalues .< p
 end
 
-function sliding_surrogates_loop!(
-        indicator, chametric, c, pval, n_surrogates, sgens,
-        indicator_dummys, change_dummys,
-        width_ind, stride_ind, width_cha, stride_cha, tail
-    )
-    pval_right = zeros(length(pval))
-    pval_left = copy(pval_right)
-
-    # parallelized surrogate loop
-    Threads.@threads for _ in 1:n_surrogates
-        id = Threads.threadid()
-        s = sgens[id]()
-        change_dummy = change_dummys[id]
-        windowmap!(indicator, indicator_dummys[id], s;
-            width = width_ind, stride = stride_ind)
-        windowmap!(chametric, change_dummy, indicator_dummys[id];
-            width = width_cha, stride = stride_cha)
-        accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
+function sanitycheck_tail(tail, n_ind)
+    if !(tail isa Symbol) && length(tail) ≠ n_ind
+        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
+        "as the input indicators. Got length $(length(tail)) instead of $n_ind."
+        ))
     end
-    choose_pval!(pval, pval_right, pval_left, tail)
 end
 
-function segmented_surrogates_loop!(
-    indicator, chametric, c, pval, n_surrogates, sgens,
-    indicator_dummys, change_dummys, width_ind, stride_ind, tail
-)
-    pval_right = zeros(length(pval))
-    pval_left = copy(pval_right)
-    # parallelized surrogate loop
-    Threads.@threads for _ in 1:n_surrogates
-        id = Threads.threadid()
-        s = sgens[id]()
-        change_dummy = change_dummys[id]
-        windowmap!(indicator, indicator_dummys[id], s;
-            width = width_ind, stride = stride_ind)
-        change_dummy = chametric(indicator_dummys[id])
-        accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
-    end
-    choose_pval!(pval, pval_right, pval_left, tail)
+function choose_metrics(indicators::Tuple{Vararg}, change_metrics, tail, i::Int)
+    i_metric = length(change_metrics) == length(indicators) ? i : 1
+    tai = tail isa Symbol ? tail : tail[i]
+    return indicators[i], change_metrics[i_metric], tai
 end
 
 function accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
@@ -190,6 +179,26 @@ function accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
     end
 end
 
+function accumulate_pvals!(pvals_right, pvals_left, tail, c, change_dummy, k, i)
+    if tail == :both || tail == :right
+        pvals_right[k, i] += c < change_dummy
+    end
+    if tail == :both || tail == :left
+        pvals_left[k, i] += c > change_dummy
+    end
+end
+
+# loop vectorial choose_pval! over indices
+function choose_pval!(pvals, pvals_right, pvals_left, tail, n_ind)
+    for i in 1:n_ind
+        pval = view(pvals, :, i)
+        pval_right = view(pvals_right, :, i)
+        pval_left = view(pvals_left, :, i)
+        choose_pval!(pval, pval_right, pval_left, tail)
+    end
+end
+
+# vectorial choose_pval!
 function choose_pval!(pval, pval_right, pval_left, tail)
     if tail == :both
         pval .= 2min.(pval_right, pval_left)
@@ -197,5 +206,16 @@ function choose_pval!(pval, pval_right, pval_left, tail)
         pval .= pval_right
     elseif tail == :left
         pval .= pval_left
+    end
+end
+
+# scalar choose_pval!
+function choose_pval!(pvals, pvals_right, pvals_left, tail, k, i)
+    if tail == :both
+        pvals[k, i] = 2min(pvals_right[k, i], pvals_left[k, i])
+    elseif tail == :right
+        pvals[k, i] = pvals_right[k, i]
+    elseif tail == :left
+        pvals[k, i] = pvals_left[k, i]
     end
 end
