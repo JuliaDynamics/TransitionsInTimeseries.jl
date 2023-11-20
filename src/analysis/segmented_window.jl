@@ -21,7 +21,7 @@ The results output corresponding to `SlidingWindowConfig` is [`SegmentedWindowRe
 - `width_ind::Int=100, stride_ind::Int=1, whichtime = midpoint, T = Float64`: keywords
   identical as in [`SlidingWindowConfig`](@ref).
 - `min_width_cha::Int=typemax(Int)`: minimal width required to perform the change metric estimation.
-  If a segment is not sufficiently long, the change metric is `Inf`.
+  If a segment is not sufficiently long, the change metric is `NaN`.
 """
 struct SegmentedWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
     indicators::F
@@ -71,7 +71,7 @@ function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
     t_indicator = [T[] for _ in eachindex(tseg_start)]
     x_indicator = [X[;;] for _ in eachindex(tseg_start)]
     t_change = T.(config.tseg_end)
-    x_change = fill(X(Inf), length(tseg_start), n_ind)
+    x_change = fill(X(NaN), length(tseg_start), n_ind)
     one2one = length(change_metrics) == length(indicators)
 
     dummy_chametric = map(f -> precompute(f, X.(1:2)), change_metrics)
@@ -84,9 +84,9 @@ function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
             stride = config.stride_ind)
         len_ind = length(t_indicator[k])
 
-        # Init with Inf instead of 0 to easily recognise when the segment was too short
+        # Init with NaN instead of 0 to easily recognise when the segment was too short
         # for the computation to be performed.
-        x_indicator[k] = fill(X(Inf), len_ind, n_ind)
+        x_indicator[k] = fill(X(NaN), len_ind, n_ind)
 
         # only analyze if segment long enough to compute metrics
         if len_ind > config.min_width_cha

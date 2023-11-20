@@ -126,9 +126,9 @@ function significant_transitions(res::SegmentedWindowResults, signif::Surrogates
     # Loop over segments
     for k in eachindex(i1)
 
-        # If segment too short, return inf p-value
+        # If segment too short, return NaN p-value
         if xind_length[k] < min_width_cha
-            view(pvalues, k, :) .= X(Inf)
+            view(pvalues, k, :) .= X(NaN)
         else
             # Generate surrogates of segment size
             sgens = [surrogenerator(x[i1[k]:i2[k]], surrogate,
