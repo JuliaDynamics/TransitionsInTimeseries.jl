@@ -29,18 +29,33 @@
 # We should point out that the publication we are referring to did a much
 # more detailed analysis: it analyzed many different window widths, and added a
 # conditional clause to exclude transitions that do not exceed a predefined minimum
-# "jump" in the data. Here we won't do that (mainly because it is rather simple
-# to include these additional conditional clauses to filter transitions after they are found).
+# "jump" in the data, and also added another conditional clause that
+# filtered out transitions that are grouped in time (which is a natural consequence
+# of using the Kolmogorov-Smirov test for detecting transitions).
+#
+# Here we won't do that post processing, mainly because it is rather simple
+# to include these additional conditional clauses to filter transitions after they are found.
 
+# ## Performing the analysis with TransitionsInTimeseries.jl
 
+# Doing this kind of work with TransitionsInTimeseries.jl is so easy you won't even trip!
+# This analysis follows the same sliding window approach showcased in our [Tutorial](@ref),
+# and it even excludes the "indicator" aspect: the change metric is estimated directly
+# from the input data!
+
+# As such, we really only need to define three things before we have finished the analysis:
+# 1. The window size we will utilize
+# 2. The input data (we will use the same example as the NGRIP data of
+#    [Dansgaard-Oescher events and Critical Slowing Down](@ref) example).
+# 3. Define the function that estimates the change metric (i.e., the KS-statistic)
+# 4. Estimate the "confident" transitions in the data by comparing the estimated
+#    KS-statistic with a predefined threshold.
 
 # ## Defining the change metric function
-
 
 # HypothesisTest.jl implements this test, however here we are interested
 # in the value of the test iself (the so-called KS-statistic), rather than a p-value.
 # So we will need to
-
 
 using HypothesisTests
 
