@@ -11,8 +11,9 @@ If `tail = :both` then either condition is checked.
 """
 struct ThresholdSignificance{T<:Real}
     threshold::T
-    tail::Symbol = :right
+    tail::Symbol
 end
+ThresholdSignificance(threshold; tail = :right) = ThresholdSignificance(threshold, tail)
 
 function significant_transitions(res::IndicatorsChangesResults, signif::ThresholdSignificance)
     flags = similar(res.x_change, Bool)

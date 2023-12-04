@@ -18,6 +18,8 @@ SegmentedWindowResults
 significant_transitions
 TransitionsSignificance
 SurrogatesSignificance
+ThresholdSignificance
+SigmaSignificance
 QuantileSignificance
 ```
 

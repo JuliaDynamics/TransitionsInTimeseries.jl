@@ -58,7 +58,7 @@ export IndicatorsChangesConfig, SlidingWindowConfig, SegmentedWindowConfig
 export SlidingWindowResults, SegmentedWindowResults
 export estimate_indicator_changes, IndicatorsChangesResults
 export TransitionsSignificance, significant_transitions, segmented_significance
-export QuantileSignificance, SigmaSignificance, SurrogatesSignificance
+export ThresholdSignificance, QuantileSignificance, SigmaSignificance, SurrogatesSignificance
 
 # timeseries
 export isequispaced, equispaced_step

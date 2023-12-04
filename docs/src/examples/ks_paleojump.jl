@@ -56,7 +56,7 @@
 # Following the Dansgaard-Oescher events example, we load
 # the data after all the processing steps done in that example:
 
-using DelimitedFiles
+using DelimitedFiles, CairoMakie
 
 tmp = Base.download("https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/"*
     "master/timeseries/NGRIP_processed.csv")
@@ -154,4 +154,15 @@ visualize_results(results)
 
 # As this identification here is done via a simple threshold,
 # identifying the transitions is a nearly trivial call
-# to [`significant_transitions`](@ref) with
+# to [`significant_transitions`](@ref) with [`ThresholdSignificance`](@ref)
+
+signif = ThresholdSignificance(0.5) # or any other threshold
+flags = significant_transitions(results, signif)
+
+fig = visualize_results(results)
+axDKS = content(fig[2,1])
+vlines!(axDKS, results.t_change[vec(flags)], color = ("red", 0.25))
+fig
+
+# We could proceed with a lot of preprocessing as in [Bagniewski2021](@cite)
+# but we skip this here for the sake of simplicity.
