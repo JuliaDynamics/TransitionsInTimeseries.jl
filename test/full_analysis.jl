@@ -29,3 +29,31 @@ using TransitionsInTimeseries, Test
     @test all(.!flags)
 
 end
+
+@testset "nothing indicator" begin
+
+    N = 1000 # the statistic is independent of `N` for large enough `N`!
+    x = randn(N)
+    y = 1.8randn(N) .+ 4.0
+
+    x = vcat(x, y)
+
+    config = SlidingWindowConfig(nothing, difference_of_means;
+        width_cha = 100, stride_cha = 50
+    )
+
+    res = estimate_indicator_changes(config, x)
+
+    c = res.x_change[:, 1]
+
+    @test maximum(c) > 1
+    @test count(>(1), c) == 1
+
+    # surrogates
+
+    signif = SurrogatesSignificance(n = 100, tail = :right, p = 0.05)
+    flags = significant_transitions(res, signif)
+
+    @test count(flags) == 1
+
+end

@@ -1,6 +1,6 @@
 """
     SurrogatesSignificance <: TransitionsSignificance
-    SurrogatesSignificance(; surrogate = RandomFourier(), n = 10_000, tail = :both, rng)
+    SurrogatesSignificance(; kwargs...)
 
 A configuration struct for significance testing [`significant_transitions`](@ref)
 using timeseries surrogates.
@@ -30,7 +30,7 @@ in the field `.pvalues` (to e.g., threshold with different `p`).
 The p-value is simply the proportion of surrogate change metric values
 that exceed (for `tail = :right`) or subseed (`tail = :left`) the original change metric
 at each given time point. Use `tail = :left` if the surrogate data are expected to have
-higher change metric, discriminatory statistic values. This is the case for statistics
+higher change metric values. This is the case for statistics
 that quantify entropy. For statistics that quantify autocorrelation, use `tail = :right`
 instead. For anything else, use the default `tail = :both`.
 An iterable of `tail` values can also be given, in which case a specific `tail`
@@ -64,7 +64,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     (; surrogate, n, tail, rng, p, pvalues) = signif
     n_ind = length(indicators)
     sanitycheck_tail(tail, n_ind)
-    
+
     # Init pvalues
     X = eltype(x_change)
     pvalues = signif.pvalues = zeros(X, size(x_change))
@@ -75,7 +75,11 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     seeds = rand(rng, 1:typemax(Int), Threads.nthreads())
     sgens = [surrogenerator(x, surrogate, Xoshiro(seed)) for seed in seeds]
     # Dummy vals for surrogate parallelization
-    indicator_dummys = [x_indicator[:, 1] for _ in 1:Threads.nthreads()]
+    if indicators !== (nothing, )
+        indicator_dummys = [x_indicator[:, 1] for _ in 1:Threads.nthreads()]
+    else
+        indicator_dummys = [copy(x) for _ in 1:Threads.nthreads()]
+    end
     change_dummys = [x_change[:, 1] for _ in 1:Threads.nthreads()]
 
     Threads.@threads for _ in 1:n
@@ -90,9 +94,13 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
             c = view(x_change, :, i)    # change metric timeseries
             pval_right = view(pvals_right, :, i)
             pval_left = view(pvals_left, :, i)
-            windowmap!(indicator, indicator_dummys[id], s;
+            if !isnothing(indicator)
+                windowmap!(indicator, indicator_dummys[id], s;
                 width = width_ind, stride = stride_ind)
-            windowmap!(change_metric, change_dummys[id], indicator_dummys[id];
+                # Skip the indicator step if not provided
+                # (we don't need a clause, this is already the `x` timeseries
+            end
+            windowmap!(change_metric, change_dummy, indicator_dummys[id];
                 width = width_cha, stride = stride_cha)
             accumulate_pvals!(pval_right, pval_left, tai, c, change_dummy)
         end

@@ -105,8 +105,9 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
         t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
             stride = config.stride_ind)
     end
-    t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha,
-        stride = config.stride_cha)
+    t_change = windowmap(config.whichtime, t_indicator;
+        width = config.width_cha, stride = config.stride_cha
+    )
     len_ind = length(t_indicator)
     len_change = length(t_change)
 
@@ -161,11 +162,11 @@ It has the following fields that the user may access
 
 - `config::SlidingWindowConfig`, what was used for the analysis.
 """
-struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
+struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, IT,
     W} <: IndicatorsChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
-    t_indicator::Vector{T}
+    t_indicator::IT
     x_indicator::Matrix{X}
     t_change::Vector{T}
     x_change::Matrix{X}
