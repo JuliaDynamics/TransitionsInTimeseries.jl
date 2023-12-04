@@ -42,12 +42,11 @@
 # and it even excludes the "indicator" aspect: the change metric is estimated directly
 # from the input data!
 
-# As such, we really only need to do these things before we have finished the analysis:
+# As such, we really only need to define/do these things before we have finished the analysis:
 
-# 0. Obtain the input timeseries
-# 1. The window size we will utilize
-# 2. The input data (we will use the same example as the NGRIP data of
-#    [Dansgaard-Oescher events and Critical Slowing Down](@ref) example).
+# 1. Load the input data (we will use the same example as the NGRIP data of
+#    [Dansgaard-Oescher events and Critical Slowing Down](@ref) example)
+#    and set the appropriate time window.
 # 3. Define the function that estimates the change metric (i.e., the KS-statistic)
 # 3. Perform the sliding window analysis as in the [Tutorial](@ref) with [`estimate_indicator_changes`](@ref)
 # 4. Estimate the "confident" transitions in the data by comparing the estimated
@@ -92,18 +91,18 @@ function normalized_KS_statistic(timeseries)
     nx = ny = i # length of each timeseries half of total
     n = nx*ny/(nx + ny) # written fully for concreteness
     D_KS = kstest.δ # can be compared directly with sqrt(-log(α/2)/2)
-    @show D_KS
     ## Rescale according to eq. (5) of the paper
     rescaled = 1 - ((1 - D_KS)/(1 - sqrt(1/n)))
     return rescaled
 end
 
-x = randn(1000)
-y = 0.8randn(1000) .+ 1.0
-z = randn(1000)
-w = 0.6randn(1000) .- 2.0
+N = 1000 # the statistic is independent of `N` for large enough `N`!
+x = randn(N)
+y = 1.8randn(N) .+ 1.0
+z = randn(N)
+w = 0.6randn(N) .- 2.0
 
-fig, ax = density(x; color = "black")
+fig, ax = density(x; color = ("black", 0.5), strokewidth = 4.0, label = "reference distribution")
 ax.title = "showcase of normalized KS-statistic"
 for q in (y, z, w)
     D_KS = normalized_KS_statistic(vcat(x, q))
@@ -111,3 +110,10 @@ for q in (y, z, w)
 end
 axislegend(ax)
 fig
+
+# ## Perform the sliding window analysis
+
+# This is just a straightforward call to [`estimate_indicator_changes`](@ref).
+# In fact, it is even simpler than the tutorial. Here we skip completely
+# the "indicator" estimation step, and we evaluate the change metric directly
+# on input data. We do this by simply passing `nothing` as the indicators.
