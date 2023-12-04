@@ -117,3 +117,41 @@ fig
 # In fact, it is even simpler than the tutorial. Here we skip completely
 # the "indicator" estimation step, and we evaluate the change metric directly
 # on input data. We do this by simply passing `nothing` as the indicators.
+
+using TransitionsInTimeseries
+
+config = SlidingWindowConfig(nothing, normalized_KS_statistic; width_cha = 500)
+
+results = estimate_indicator_changes(config, xtrend, t)
+
+# Which we can visualize
+function visualize_results(results)
+    fig, ax1 = lines(t, xtrend; axis = (ylabel = "NGRIP (processed)",))
+    ax2, = lines(fig[2, 1], results.t_change, vec(results.x_change), axis = (ylabel = "D_KS (normalized)", xlabel = "time"))
+    linkxaxes!(ax1, ax2)
+    hidexdecorations!(ax1; grid = false)
+    xloess_normed = (xloess .- minimum(xloess))./(maximum(xloess) - minimum(xloess))
+    lines!(ax2, t, xloess_normed; color = ("gray", 0.5))
+    fig
+end
+
+visualize_results(results)
+
+# By overplotting the (smoothened) NGRIP timeseries and the
+# normalized KS-statistic, it already becomes pretty clear
+# that the statistic peaks when transitions occur.
+
+# The same thing happens if we alter the window duration
+
+config = SlidingWindowConfig(nothing, normalized_KS_statistic; width_cha = 200)
+results = estimate_indicator_changes(config, xtrend, t)
+visualize_results(results)
+
+# So one can easily obtain extra confidence by varying window
+# size as in [Bagniewski2021](@cite).
+
+# ## Identifying "confident" transitions
+
+# As this identification here is done via a simple threshold,
+# identifying the transitions is a nearly trivial call
+# to [`significant_transitions`](@ref) with

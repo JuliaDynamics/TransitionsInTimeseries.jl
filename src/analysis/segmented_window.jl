@@ -160,7 +160,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::Union{SegmentedWindowResults
     println(io, "IndicatorsChangesResults")
     descriptors = [
         "input timeseries" => summary(res.x),
-        "indicators" => [nameof(i) for i in res.config.indicators],
+        "indicators" => [_nameof(i) for i in res.config.indicators],
         "indicator (window, stride)" => (res.config.width_ind, res.config.stride_ind),
         "change metrics" => [nameof(c) for c in res.config.change_metrics],
         show_changemetric(res),
@@ -170,6 +170,9 @@ function Base.show(io::IO, ::MIME"text/plain", res::Union{SegmentedWindowResults
         println(io, rpad(" $(desc): ", padlen), val)
     end
 end
+
+_nameof(x) = nameof(x)
+_nameof(::Nothing) = nothing
 
 function show_changemetric(res::SlidingWindowResults)
     return "change metric (window, stride)" => (res.config.width_cha, res.config.stride_cha)

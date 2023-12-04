@@ -21,6 +21,9 @@ for more information on possible optimizations.
 
 The results output corresponding to `SlidingWindowConfig` is [`SlidingWindowResults`](@ref).
 
+Step 1. is skipped if `nothing` is provided as `indicators`, in which case
+the change metrics are estimated directly from input data.
+
 ## Keyword arguments
 
 - `width_ind::Int=100, stride_ind::Int=1`: width and stride given to [`WindowViewer`](@ref)
@@ -87,17 +90,27 @@ function sanitycheck_metrics(indicators, change_metrics)
     return indicators, change_metrics
 end
 
+# TODO: This function needs to be split into two as per good practices
+# for performant code. One function does the initialization,
+# and the other overwrites in place. This makes it easier
+# to apply for surrogates as well!
+
 function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachindex(x))
+    (; indicators, change_metrics) = config
     # initialize time vectors
-    t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
-        stride = config.stride_ind)
+    if indicators === (nothing, )
+        # Skip indicators if they are nothing
+        t_indicator = t
+    else
+        t_indicator = windowmap(config.whichtime, t; width = config.width_ind,
+            stride = config.stride_ind)
+    end
     t_change = windowmap(config.whichtime, t_indicator; width = config.width_cha,
         stride = config.stride_cha)
     len_ind = length(t_indicator)
     len_change = length(t_change)
 
     # initialize array containers
-    (; indicators, change_metrics) = config
     X = eltype(x)
     n_ind = length(indicators)
     x_indicator = zeros(X, len_ind, n_ind)
@@ -108,10 +121,15 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
     for i in 1:n_ind
         indicator = config.indicators[i]
         chametric = one2one ? change_metrics[i] : change_metrics[1]
-        z = view(x_indicator, :, i)
-        windowmap!(indicator, z, x;
-            width = config.width_ind, stride = config.stride_ind
-        )
+        if indicators !== (nothing, )
+            z = view(x_indicator, :, i)
+            windowmap!(indicator, z, x;
+                width = config.width_ind, stride = config.stride_ind
+            )
+        else
+            # Just equate x here, we're skipping the indicator estimation
+            z = x
+        end
         windowmap!(chametric, view(x_change, :, i), z;
             width = config.width_cha, stride = config.stride_cha
         )
