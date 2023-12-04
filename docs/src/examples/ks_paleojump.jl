@@ -1,17 +1,16 @@
-# # Kolmogorov-Smirnov test for detecting transitions
+# # Kolmogorov-Smirnov test for detecting transitions in paleoclimate timeseries
 
 # The goal of this example is to show how simple it is to re-create an analysis _similar_
 # to what was done in the paper
-# "Automatic detection of abrupt transitions in paleoclimate records"
-# by Bagniewski, Ghil, Rousseau, with DOI: <https://doi.org/10.1063/5.0062543>.
-# In fact, using TransitionsInTimeseries.jl and HypothesisTests.jl,
-# the whole analysis becomes a 10-lines-of-code script
-# (for each timeseries in the Paleojump record).
-
+# "Automatic detection of abrupt transitions in paleoclimate records",
+# [Bagniewski2021](@cite). The same analysis was then used to create a database
+# of transitions in paleoclimate records in [Bagniewski2023](@cite)
+# Using TransitionsInTimeseries.jl and HypothesisTests.jl,
+# the analysis becomes a 10-lines-of-code script (for a given timeseries).
 
 # ## Scientific background
 
-# The approach of the paper is based on the [two-sample
+# The approach of [Bagniewski2021](@cite) is based on the [two-sample
 # Kolmogorov Smirnov test](https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test#Two-sample_Kolmogorov%E2%80%93Smirnov_test).
 # It tests whether the samples from two datasets
 # are distributed according to the same PDF or not.
