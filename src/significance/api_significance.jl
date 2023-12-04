@@ -5,6 +5,9 @@ Supertype used to test for significance in [`significant_transitions`](@ref).
 Valid subtypes are:
 
 - [`SurrogatesSignificance`](@ref).
+- [`SigmaSignificance`](@ref).
+- [`QuantileSignificance`](@ref).
+- [`ThresholdSignificance`](@ref).
 """
 abstract type TransitionsSignificance end
 

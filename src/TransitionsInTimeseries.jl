@@ -28,7 +28,7 @@ include("analysis/sliding_window.jl")
 include("analysis/segmented_window.jl")
 include("significance/api_significance.jl")
 include("significance/surrogates_significance.jl")
-include("significance/quantile_significance.jl")
+include("significance/basic_stat_significance.jl")
 
 include("indicators/critical_slowing_down.jl")
 include("indicators/distribution_distance.jl")

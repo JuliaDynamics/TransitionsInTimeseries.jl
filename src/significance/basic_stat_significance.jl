@@ -1,4 +1,39 @@
 """
+    ThresholdSignificance(threshold::Real; tail = :right) <: TransitionsSignificance
+
+A configuration struct for significance testing in [`significant_transitions`](@ref).
+Significance is estimated by comparing the value of each change metric with
+the given `threshold`.
+Values that exceed the threshold (if `tail = :right`)
+or subseed the threshold (if `tail = :left`)
+are deemed significant.
+If `tail = :both` then either condition is checked.
+"""
+struct ThresholdSignificance{T<:Real}
+    threshold::T
+    tail::Symbol = :right
+end
+
+function significant_transitions(res::IndicatorsChangesResults, signif::ThresholdSignificance)
+    flags = similar(res.x_change, Bool)
+    t = signif.threshold
+    for (i, x) in enumerate(eachcol(res.x_change))
+        flag = view(flags, :, i)
+        if signif.tail == :right
+            @. flag = x > t
+        elseif signif.tail == :left
+            @. flag = x < t
+        elseif signif.tail == :both
+            @. flag = (x < t) | (x > t)
+        else
+            error("`tail` can be only `:left, :right, :both`. Got $(tail).")
+        end
+    end
+    return flags
+end
+
+
+"""
     QuantileSignificance(; p = 0.95, tail = :both) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
