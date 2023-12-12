@@ -51,7 +51,7 @@ end
 
 function SurrogatesSignificance(;
     surromethod = RandomFourier(),
-    n::Int = 10_000,
+    n::Int = 1_000,
     tail = :both,
     rng = Random.default_rng(), p = 0.05)
     return SurrogatesSignificance(surromethod, n, tail, rng, p, zeros(1,1))
@@ -98,7 +98,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
                 windowmap!(indicator, indicator_dummys[id], s;
                 width = width_ind, stride = stride_ind)
                 # Skip the indicator step if not provided
-                # (we don't need a clause, this is already the `x` timeseries
+                # (we don't need a clause, this is already the `x` timeseries)
             end
             windowmap!(change_metric, change_dummy, indicator_dummys[id];
                 width = width_cha, stride = stride_cha)
@@ -172,10 +172,10 @@ function sanitycheck_tail(tail, n_ind)
     end
 end
 
-function choose_metrics(indicators::Tuple{Vararg}, change_metrics, tail, i::Int)
-    i_metric = length(change_metrics) == length(indicators) ? i : 1
+function choose_metrics(indicators::Tuple, change_metrics, tail, i::Int)
+    ind = indicators === (nothing, ) ? nothing : indicators[i]
     tai = tail isa Symbol ? tail : tail[i]
-    return indicators[i], change_metrics[i_metric], tai
+    return ind, change_metrics[i], tai
 end
 
 function accumulate_pvals!(pval_right, pval_left, tail, c, change_dummy)
