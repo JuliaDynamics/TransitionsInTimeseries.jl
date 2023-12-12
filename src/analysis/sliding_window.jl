@@ -9,15 +9,16 @@ It estimates transitions by a sliding window approach:
 2. Estimate changes of an indicator by sliding a window of the change metric over
    the indicator timeseries.
 
-`indicators` is a tuple of indicators (or a single indicator).
-`change_metrics` is also a tuple or a single function. If a single function,
-the same change metric is used for all provided indicators. This way the analysis
-can be efficiently repeated for many indicators and/or change metrics.
-
 Both indicators and change metrics are **generic Julia functions** that input an
 `x::AbstractVector` and output an `s::Real`. Any function may be given and
 see [making custom indicators/change metrics](@ref own_indicator) in the documentation
 for more information on possible optimizations.
+
+`indicators` can be a single function or a tuple of indicators.
+Similarly, `change_metrics` can be a tuple or a single function.
+If tuples, the length of `indicators` and `change_metrics` must match.
+This way the analysis
+can be efficiently repeated for many indicators and/or change metrics.
 
 The results output corresponding to `SlidingWindowConfig` is [`SlidingWindowResults`](@ref).
 
@@ -82,10 +83,8 @@ function sanitycheck_metrics(indicators, change_metrics)
     if !(change_metrics isa Tuple)
         change_metrics = (change_metrics,)
     end
-    L = length(indicators)
-    if length(change_metrics) ∉ (1, L)
-        throw(ArgumentError("The amount of change metrics must be as many as the"*
-            "indicators, or only 1."))
+    if length(change_metrics) ≠ length(indicators) && indicators !== (nothing, )
+        throw(ArgumentError("The amount of change metrics and indicators must match."))
     end
     return indicators, change_metrics
 end
