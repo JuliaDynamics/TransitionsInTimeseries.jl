@@ -112,25 +112,23 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 
     # initialize array containers
     X = eltype(x)
-    n_ind = length(indicators)
-    x_indicator = zeros(X, len_ind, n_ind)
-    x_change = zeros(X, len_change, n_ind)
-    one2one = length(change_metrics) == length(indicators)
+    n_metrics = length(change_metrics)
+    x_indicator = zeros(X, len_ind, n_metrics)
+    x_change = zeros(X, len_change, n_metrics)
 
-    # Loop over indicators
-    for i in 1:n_ind
-        indicator = config.indicators[i]
-        chametric = one2one ? change_metrics[i] : change_metrics[1]
+    for i in 1:n_metrics
+        # estimate indicator timeseries
         if indicators !== (nothing, )
             z = view(x_indicator, :, i)
-            windowmap!(indicator, z, x;
+            windowmap!(indicators[i], z, x;
                 width = config.width_ind, stride = config.stride_ind
             )
         else
             # Just equate x here, we're skipping the indicator estimation
             z = x
         end
-        windowmap!(chametric, view(x_change, :, i), z;
+        # and then apply the change metric
+        windowmap!(change_metrics[i], view(x_change, :, i), z;
             width = config.width_cha, stride = config.stride_cha
         )
     end
