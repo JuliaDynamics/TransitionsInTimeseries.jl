@@ -65,7 +65,7 @@ end
     @test count(>(1), c) == 1
 
     # surrogates
-    signif = SurrogatesSignificance(n = 100, tail = :left, p = 0.05)
+    signif = SurrogatesSignificance(surromethod = RandomShuffle(), n = 1000, tail = :both, p = 0.05)
     flags = significant_transitions(res, signif)
 
     @test count(flags) == 1

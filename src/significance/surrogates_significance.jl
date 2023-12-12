@@ -91,7 +91,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
         for i in 1:n_ind
             indicator, change_metric, tai = choose_metrics(indicators, change_metrics,
                 tail, i)
-            c = view(x_change, :, i)    # change metric timeseries
+            c = view(x_change, :, i) # change metric timeseries
             pval_right = view(pvals_right, :, i)
             pval_left = view(pvals_left, :, i)
             if !isnothing(indicator)
