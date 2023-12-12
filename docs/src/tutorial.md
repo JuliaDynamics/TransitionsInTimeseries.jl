@@ -186,10 +186,9 @@ Performing the step-by-step analysis of transition indicators is possible and mi
 ## [Tutorial -- TransitionsInTimeseries.jl] (@id example_fastforward)
 
 TransitionsInTimeseries.jl wraps this typical workflow into a simple, extendable, and modular API that researchers can use with little effort. In addition, it allows performing the same analysis for several indicators / change metrics in one go.
+The interface is simple, and directly parallelizes the [Workflow](@ref).
 
-The interface is simple, and directly parallelizes the [Workflow](@ref). It is based on the creation of a [`TransitionsSurrogatesConfig`](@ref), which contains a list of indicators, and corresponding metrics, to use for doing the above analysis. It also specifies what kind of surrogates to generate.
-
-The following blocks illustrate how the above extensive example is re-created in TransitionsInTimeseries.jl
+The following blocks illustrate how the above extensive example is re-created in TransitionsInTimeseries.jl. But first, let's load the input timeseries:
 
 ````@example tutorial
 using TransitionsInTimeseries, CairoMakie
@@ -205,17 +204,17 @@ ax.title = "input timeseries"
 fig
 ````
 
-To perform all of the above analysis we follow a 2-step process.
+To perform all of the whole [Workflow](@ref) analysis we follow a 2-step process.
 
-Step 1, we decide what indicators and change metrics to use in [`SlidingWindowConfig`](@ref) and apply those via
-a sliding window to the input timeseries using [`transition_metrics`](@ref).
+**Step 1** is to provide what indicators and change metrics to use in [`SlidingWindowConfig`](@ref) and apply those via
+a sliding window to the input timeseries using [`estimate_indicator_changes`](@ref).
 
 ````@example tutorial
 # These indicators are suitable for Critical Slowing Down
 indicators = (var, ar1_whitenoise)
 
 # use the ridge regression slope for both indicators
-change_metrics = RidgeRegressionSlope()
+change_metrics = (RidgeRegressionSlope(), RidgeRegressionSlope())
 
 # choices go into a configuration struct
 config = SlidingWindowConfig(indicators, change_metrics;
@@ -238,8 +237,8 @@ scatter!(axs[3], results.t_change, results.x_change[:, 2];
 fig
 ````
 
-Step 2 is to estimate significance using [`SurrogatesConfig`](@ref)
-and the function [`estimate_significance!`](@ref).
+**Step 2** is to estimate significance using [`SurrogatesSignificance`](@ref)
+and the function [`significant_transitions`](@ref).
 
 ````@example tutorial
 signif = SurrogatesSignificance(n = 1000, tail = :right)
@@ -264,4 +263,3 @@ vlines!(axs[1], results.t_change[flagsboth]; label = "flags", color = ("black", 
 [xlims!(ax, 0, 50) for ax in axs]
 fig
 ````
-
