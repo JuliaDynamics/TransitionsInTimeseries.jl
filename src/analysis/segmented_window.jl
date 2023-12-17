@@ -157,10 +157,10 @@ end
 
 # Segmented and Sliding results share their show method
 function Base.show(io::IO, ::MIME"text/plain", res::Union{SegmentedWindowResults, SlidingWindowResults})
-    println(io, "IndicatorsChangesResults")
+    println(io, nameof(typeof(res)))
     descriptors = [
         "input timeseries" => summary(res.x),
-        "indicators" => [_nameof(i) for i in res.config.indicators],
+        "indicators" => isnothing(res.config.indicators) ? "nothing" : [nameof(i) for i in res.config.indicators],
         "indicator (window, stride)" => (res.config.width_ind, res.config.stride_ind),
         "change metrics" => [nameof(c) for c in res.config.change_metrics],
         show_changemetric(res),
@@ -170,9 +170,6 @@ function Base.show(io::IO, ::MIME"text/plain", res::Union{SegmentedWindowResults
         println(io, rpad(" $(desc): ", padlen), val)
     end
 end
-
-_nameof(x) = nameof(x)
-_nameof(::Nothing) = nothing
 
 function show_changemetric(res::SlidingWindowResults)
     return "change metric (window, stride)" => (res.config.width_cha, res.config.stride_cha)
