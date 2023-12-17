@@ -16,6 +16,12 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TimeseriesSurrogates = "c804724b-8c18-5caa-8579-6025a0767c70"
 
+[weakdeps]
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+
+[extensions]
+TITVisualizations = "Makie"
+
 [compat]
 DelimitedFiles = "1"
 Downloads = "1"
@@ -23,6 +29,7 @@ FFTW = "^1.6"
 HypothesisTests = "0.11"
 InteractiveUtils = "1"
 LinearAlgebra = "1"
+Makie = "≥ 0.19"
 Random = "1"
 Reexport = "1.2"
 Statistics = "1"

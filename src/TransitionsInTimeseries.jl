@@ -28,7 +28,7 @@ include("analysis/sliding_window.jl")
 include("analysis/segmented_window.jl")
 include("significance/api_significance.jl")
 include("significance/surrogates_significance.jl")
-include("significance/quantile_significance.jl")
+include("significance/basic_stat_significance.jl")
 
 include("indicators/critical_slowing_down.jl")
 include("indicators/distribution_distance.jl")
@@ -39,6 +39,7 @@ include("indicators/statistics.jl")
 include("change_metrics/slope.jl")
 include("change_metrics/valuediff.jl")
 
+include("visualizations.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
@@ -58,12 +59,15 @@ export IndicatorsChangesConfig, SlidingWindowConfig, SegmentedWindowConfig
 export SlidingWindowResults, SegmentedWindowResults
 export estimate_indicator_changes, IndicatorsChangesResults
 export TransitionsSignificance, significant_transitions, segmented_significance
-export QuantileSignificance, SigmaSignificance, SurrogatesSignificance
+export ThresholdSignificance, QuantileSignificance, SigmaSignificance, SurrogatesSignificance
 
 # timeseries
 export isequispaced, equispaced_step
 
 # load_data.jl
 export load_linear_vs_doublewell
+
+# visualizations
+export plot_indicator_changes, plot_significance!
 
 end # module TransitionsInTimeseries
