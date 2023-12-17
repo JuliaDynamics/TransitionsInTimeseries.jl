@@ -39,6 +39,7 @@ include("indicators/statistics.jl")
 include("change_metrics/slope.jl")
 include("change_metrics/valuediff.jl")
 
+include("visualizations.jl")
 
 # windowing.jl
 export WindowViewer, windowmap, windowmap!, midpoint, midvalue
@@ -65,5 +66,8 @@ export isequispaced, equispaced_step
 
 # load_data.jl
 export load_linear_vs_doublewell
+
+# visualizations
+export plot_indicator_changes, plot_significance!
 
 end # module TransitionsInTimeseries
