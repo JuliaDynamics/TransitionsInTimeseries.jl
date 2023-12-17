@@ -67,7 +67,9 @@ function SlidingWindowConfig(
     )
     indicators, change_metrics = sanitycheck_metrics(indicators, change_metrics)
     # Last step: precomputable functions, if any
-    indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
+    if !isnothing(indicators)
+        indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
+    end
     change_metrics = map(f -> precompute(f, 1:T(width_cha)), change_metrics)
 
     return SlidingWindowConfig(
@@ -77,13 +79,13 @@ function SlidingWindowConfig(
 end
 
 function sanitycheck_metrics(indicators, change_metrics)
-    if !(indicators isa Tuple)
-        indicators = (indicators,)
-    end
     if !(change_metrics isa Tuple)
         change_metrics = (change_metrics,)
     end
-    if length(change_metrics) ≠ length(indicators) && indicators !== (nothing, )
+    if indicators isa Function
+        indicators = (indicators, )
+    end
+    if !isnothing(indicators) && (length(change_metrics) ≠ length(indicators))
         throw(ArgumentError("The amount of change metrics and indicators must match."))
     end
     return indicators, change_metrics
@@ -97,7 +99,7 @@ end
 function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachindex(x))
     (; indicators, change_metrics) = config
     # initialize time vectors
-    if indicators === (nothing, )
+    if isnothing(indicators)
         # Skip indicators if they are nothing
         t_indicator = t
     else
@@ -118,7 +120,7 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 
     for i in 1:n_metrics
         # estimate indicator timeseries
-        if indicators !== (nothing, )
+        if !isnothing(indicators)
             z = view(x_indicator, :, i)
             windowmap!(indicators[i], z, x;
                 width = config.width_ind, stride = config.stride_ind

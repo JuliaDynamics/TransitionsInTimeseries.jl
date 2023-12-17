@@ -62,7 +62,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     (; x, x_indicator, x_change) = res
     (; indicators, change_metrics, width_ind, stride_ind, width_cha, stride_cha) = res.config
     (; surrogate, n, tail, rng, p, pvalues) = signif
-    n_ind = length(indicators)
+    n_ind = length(change_metrics)
     sanitycheck_tail(tail, n_ind)
 
     # Init pvalues
@@ -75,7 +75,7 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     seeds = rand(rng, 1:typemax(Int), Threads.nthreads())
     sgens = [surrogenerator(x, surrogate, Xoshiro(seed)) for seed in seeds]
     # Dummy vals for surrogate parallelization
-    if indicators !== (nothing, )
+    if !isnothing(indicators)
         indicator_dummys = [x_indicator[:, 1] for _ in 1:Threads.nthreads()]
     else
         indicator_dummys = [copy(x) for _ in 1:Threads.nthreads()]
@@ -83,7 +83,6 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
     change_dummys = [x_change[:, 1] for _ in 1:Threads.nthreads()]
 
     Threads.@threads for _ in 1:n
-
         id = Threads.threadid()
         s = sgens[id]()
         change_dummy = change_dummys[id]
@@ -172,8 +171,8 @@ function sanitycheck_tail(tail, n_ind)
     end
 end
 
-function choose_metrics(indicators::Tuple, change_metrics, tail, i::Int)
-    ind = indicators === (nothing, ) ? nothing : indicators[i]
+function choose_metrics(indicators, change_metrics, tail, i::Int)
+    ind = isnothing(indicators) ? nothing : indicators[i]
     tai = tail isa Symbol ? tail : tail[i]
     return ind, change_metrics[i], tai
 end
