@@ -42,22 +42,12 @@ end
     N = 1000 # the statistic is independent of `N` for large enough `N`!
     x = randn(rng, N)
     y = 1.8randn(rng, N) .+ 4.0
-
-    x = vcat(x, y)
-
-    function difference_of_maxes(x::AbstractArray)
-        # assumes 1-based indexing
-        n = length(x)
-        x1 = view(x, 1:n÷2)
-        x2 = view(x, (n÷2 + 1):n)
-        return abs(maximum(x1) - maximum(x2))
-    end
+    z = vcat(x, y)
 
     config = SlidingWindowConfig(nothing, (difference_of_means, difference_of_maxes);
-        width_cha = 100, stride_cha = 50
-    )
+        width_cha = 100, stride_cha = 50)
 
-    res = estimate_indicator_changes(config, x)
+    res = estimate_indicator_changes(config, z)
 
     c = res.x_change[:, 1]
 
@@ -65,14 +55,9 @@ end
     @test count(>(1), c) == 1
 
     # surrogates
-    signif = SurrogatesSignificance(surromethod = RandomShuffle(), n = 1000, tail = :left, p = 0.05)
+    signif = SurrogatesSignificance(surromethod = RandomShuffle(), n = 1000, tail = :right, p = 0.05)
     flags = significant_transitions(res, signif)
 
-    @test count(flags) == 1
-
-    # Test the surrogate results
-    # using CairoMakie
-    # fig = plot_indicator_changes(res)
-    # plot_significance!(fig, res, signif)
+    @test count(flags) == 2
 
 end
