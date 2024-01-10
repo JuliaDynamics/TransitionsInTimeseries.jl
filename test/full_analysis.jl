@@ -23,7 +23,7 @@ using TransitionsInTimeseries, Test, Statistics, Random
     @test isapprox(res.x_change[:, 2], vartrend_ground_truth, atol = 1e-9)
 
     # Virtually all results should have 0 significance versus the surrogates
-    signif = SurrogatesSignificance(n = 100, tail = :both, p = 0.1)
+    signif = SurrogatesSignificance(n = 100, tail = [:both, :both], p = 0.1)
     flags = significant_transitions(res, signif)
 
     @test all(.!flags)
@@ -55,7 +55,7 @@ end
     @test count(>(1), c) == 1
 
     # surrogates
-    signif = SurrogatesSignificance(surromethod = RandomShuffle(), n = 1000, tail = :right, p = 0.05)
+    signif = SurrogatesSignificance(surromethod = RandomShuffle(), n = 1000, tail = [:right, :right], p = 0.05)
     flags = significant_transitions(res, signif)
 
     @test count(flags) == 2
