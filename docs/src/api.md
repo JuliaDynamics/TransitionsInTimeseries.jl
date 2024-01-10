@@ -28,7 +28,7 @@ QuantileSignificance
 ### Value distribution
 
 ```@docs
-Statistics.mean(::Any)
+StatsBase.mean
 StatsBase.skewness
 StatsBase.kurtosis
 ```
@@ -36,7 +36,7 @@ StatsBase.kurtosis
 ### Critical Slowing Down
 
 ```@docs
-Statistics.var(::AbstractArray)
+StatsBase.var
 ar1_whitenoise
 ```
 

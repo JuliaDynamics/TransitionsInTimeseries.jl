@@ -66,7 +66,7 @@ indistrings = ("var", "ar1", "pe")
 # Hence, we shouldn't be using any trend-based change metrics.
 # Instead, we will use the most basic change metric, [`difference_of_means`](@ref).
 # With this metric it also makes most sense to use as stride half the window width
-metric = difference_of_means
+metric = (difference_of_means, difference_of_means, difference_of_means)
 
 width_ind = N÷100
 width_cha = 20
@@ -126,7 +126,7 @@ using Random: Xoshiro
 function overplot_surrogate_significance!(fig, surromethod, color = "black")
 
     signif = SurrogatesSignificance(;
-        n = 2000, tail = [:both, :both, :right], surromethod, rng = Xoshiro(42),
+        n = 1000, tail = [:both, :both, :right], surromethod, rng = Xoshiro(42),
     )
     flags = significant_transitions(results, signif)
 
@@ -137,7 +137,7 @@ function overplot_surrogate_significance!(fig, surromethod, color = "black")
         for _ in 1:10
             s = TimeseriesSurrogates.surrogate(x, surromethod)
             p = windowmap(indicator, s; width = width_ind)
-            q = windowmap(metric, p; width = width_cha, stride = stride_cha)
+            q = windowmap(metric[i], p; width = width_cha, stride = stride_cha)
             lines!(fig[i+1, 1], results.t_change, q;  color = (color, 0.2), linewidth = 1)
         end
         ## Plot the flags as vertical dashed lines
