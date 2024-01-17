@@ -95,12 +95,14 @@ function significant_transitions(res::SlidingWindowResults, signif::SurrogatesSi
             pval_left = view(pvals_left, :, i)
             if !isnothing(indicator)
                 windowmap!(indicator, indicator_dummys[id], s;
-                width = width_ind, stride = stride_ind)
+                    width = width_ind, stride = stride_ind)
                 # Skip the indicator step if not provided
                 # (we don't need a clause, this is already the `x` timeseries)
+                windowmap!(change_metric, change_dummy, indicator_dummys[id];
+                    width = width_cha, stride = stride_cha)
+            else
+                windowmap!(change_metric, change_dummy, s; width = width_cha, stride = stride_cha)
             end
-            windowmap!(change_metric, change_dummy, indicator_dummys[id];
-                width = width_cha, stride = stride_cha)
             accumulate_pvals!(pval_right, pval_left, tai, c, change_dummy)
         end
     end
@@ -135,7 +137,8 @@ function significant_transitions(res::SegmentedWindowResults, signif::Surrogates
 
         # If segment too short, return NaN p-value
         if xind_length[k] < min_width_cha
-            view(pvalues, k, :) .= X(NaN)
+            view(pvals_right, k, :) .= X(NaN)
+            view(pvals_left, k, :) .= X(NaN)
         else
             # Generate surrogates of segment size
             sgens = [surrogenerator(x[i1[k]:i2[k]], surrogate,
@@ -149,23 +152,30 @@ function significant_transitions(res::SegmentedWindowResults, signif::Surrogates
                         precomp_change_metrics[k], tail, i)
                     c = x_change[k, i]
                     indicator_dummy = view(indicator_dummys[id], 1:xind_length[k])
-                    windowmap!(indicator, indicator_dummy, s;
-                        width = width_ind, stride = stride_ind)
-                    change_dummys[id] = chametric(indicator_dummy)
+
+                    if !isnothing(indicator)
+                        windowmap!(indicator, indicator_dummy, s;
+                            width = width_ind, stride = stride_ind)
+                        # Skip the indicator step if not provided
+                        # (we don't need a clause, this is already the `x` timeseries)
+                        change_dummys[id] = chametric(indicator_dummy)
+                    else
+                        change_dummys[id] = chametric(s)
+                    end
                     accumulate_pvals!(pvals_right, pvals_left, tai, c, change_dummys[id],
                         k, i)
-                    choose_pval!(pvalues, pvals_right, pvals_left, tail, k, i)
                 end
             end
         end
     end
+    choose_pval!(pvalues, pvals_right, pvals_left, tail, n_ind)
     pvalues ./= n
     return pvalues .< p
 end
 
 function sanitycheck_tail(tail, n_ind)
-    if !(tail isa Symbol) && length(tail) ≠ n_ind
-        throw(ArgumentError("Given `tail` must be a symbol or an iterable of same length "*
+    if length(tail) ≠ n_ind
+        throw(ArgumentError("Given `tail` must be an iterable of same length "*
         "as the input indicators. Got length $(length(tail)) instead of $n_ind."
         ))
     end
@@ -201,7 +211,7 @@ function choose_pval!(pvals, pvals_right, pvals_left, tail, n_ind)
         pval = view(pvals, :, i)
         pval_right = view(pvals_right, :, i)
         pval_left = view(pvals_left, :, i)
-        choose_pval!(pval, pval_right, pval_left, tail)
+        choose_pval!(pval, pval_right, pval_left, tail[i])
     end
 end
 
@@ -213,16 +223,5 @@ function choose_pval!(pval, pval_right, pval_left, tail)
         pval .= pval_right
     elseif tail == :left
         pval .= pval_left
-    end
-end
-
-# scalar choose_pval!
-function choose_pval!(pvals, pvals_right, pvals_left, tail, k, i)
-    if tail == :both
-        pvals[k, i] = 2min(pvals_right[k, i], pvals_left[k, i])
-    elseif tail == :right
-        pvals[k, i] = pvals_right[k, i]
-    elseif tail == :left
-        pvals[k, i] = pvals_left[k, i]
     end
 end

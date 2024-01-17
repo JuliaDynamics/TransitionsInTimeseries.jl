@@ -52,7 +52,7 @@ export mean, std, var, skewness, kurtosis # from StatsBase
 export permutation_entropy
 export kendalltau, spearman
 export ridgematrix, RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
-export difference_of_means
+export difference_of_means, difference_of_maxes
 
 # analysis
 export IndicatorsChangesConfig, SlidingWindowConfig, SegmentedWindowConfig
@@ -63,6 +63,7 @@ export ThresholdSignificance, QuantileSignificance, SigmaSignificance, Surrogate
 
 # timeseries
 export isequispaced, equispaced_step
+export default_window_width
 
 # load_data.jl
 export load_linear_vs_doublewell

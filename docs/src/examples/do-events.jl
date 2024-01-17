@@ -178,14 +178,14 @@ using Random: Xoshiro
 
 ac1(x) = sum(autocor(x, [1]))   # AC1 from StatsBase
 indicators = (var, ac1)
-change_metrics = RidgeRegressionSlope()
+change_metrics = (RidgeRegressionSlope(), RidgeRegressionSlope())
 tseg_start = t_rasmussen[1:end-1] .+ 200
 tseg_end = t_rasmussen[2:end] .- 200
 config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end; whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)        # require >=100 data points to estimate change metric
 results = estimate_indicator_changes(config, r, t)
-signif = SurrogatesSignificance(n = 10_000, tail = :right, rng = Xoshiro(1995))
+signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 
 #=
@@ -196,7 +196,7 @@ function plot_segment_analysis!(axs, results, signif)
     (; t_indicator, x_indicator) = results
     for k in eachindex(t_indicator)             # loop over the segments
         for i in axes(signif.pvalues, 2)        # loop over the indicators
-            if !isinf(signif.pvalues[k, i])     # plot if segment long enough
+            if !isnan(signif.pvalues[k, i])     # plot if segment long enough
                 ## Plot indicator timeseries and its linear regression
                 ti, xi = t_indicator[k], x_indicator[k][:, i]
                 lines!(axs[i+2], ti, xi, color = Cycled(1))
@@ -247,7 +247,7 @@ config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end, whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)
 results = estimate_indicator_changes(config, r, t)
-signif = SurrogatesSignificance(n = 10_000, tail = :right, rng = Xoshiro(1995))
+signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 fig, axs = plot_do(t3, x3, tloess, xloess, t, r, t_rasmussen, xlims, xticks)
 plot_segment_analysis!(axs, results, signif)
@@ -298,7 +298,7 @@ for j in 1:2
         indicators, change_metrics, tseg_start[j], tseg_end[j],
         whichtime = last, width_ind = Int(200÷dt), min_width_cha = 100)
     results = estimate_indicator_changes(config, r, t)
-    signif = SurrogatesSignificance(n = 1_000, tail = :right, rng = Xoshiro(1995))
+    signif = SurrogatesSignificance(n = 1_000, tail = [:right, :right], rng = Xoshiro(1995))
     flags = significant_transitions(results, signif)
 
     plot_segment_analysis!(axs, results, signif)
