@@ -33,4 +33,4 @@ bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:authory
 
 build_docs_with_style(pages, TransitionsInTimeseries, StatsBase;
     authors = "Jan Swierczek-Jereczek <jan.jereczek@gmail.com>, "*
-    "George Datseris <datseris.george@gmail.com>", warnonly = true, bib) # draft = true, 
+    "George Datseris <datseris.george@gmail.com>", warnonly = true, bib)
