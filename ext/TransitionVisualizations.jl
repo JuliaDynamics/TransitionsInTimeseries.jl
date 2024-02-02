@@ -18,9 +18,9 @@ shortname(metric::RidgeRegressionSlope) = "Regression slope"
 
 # Plot results from full analysis
 function TransitionsInTimeseries.plot_changes_significance(res, signif; kwargs...)
-    fig, axs = plot_indicator_changes(res; kwargs...)
-    plot_significance!(axs, res, signif; kwargs...)
-    return fig, axs
+    fig = plot_indicator_changes(res; kwargs...)
+    plot_significance!(fig, res, signif; kwargs...)
+    return fig
 end
 
 # Plot results of original input signal
@@ -32,12 +32,12 @@ function TransitionsInTimeseries.plot_indicator_changes(res::SlidingWindowResult
         kwargs...,
     )
 
-    fig, axs, n, config = init_rowwise_visualisation(res, colors, indicator_names,
+    fig, n = init_rowwise_visualisation(res, colors, indicator_names,
         chametric_names, accent_linewidth)
-    lineplot_metrics!(axs, n, config, res.t_indicator, res.x_indicator,
+    lineplot_metrics!(fig, n, res.config, res.t_indicator, res.x_indicator,
         res.t_change, res.x_change, colors, accent_linewidth)
 
-    return fig, axs
+    return fig
 end
 
 function TransitionsInTimeseries.plot_indicator_changes(res::SegmentedWindowResults;
@@ -48,33 +48,32 @@ function TransitionsInTimeseries.plot_indicator_changes(res::SegmentedWindowResu
     kwargs...,
     )
 
-    fig, axs, n, config = init_rowwise_visualisation(res, colors, indicator_names,
+    fig, n = init_rowwise_visualisation(res, colors, indicator_names,
         chametric_names, accent_linewidth)
     for k in eachindex(res.t_indicator)
-        Makie.lines!(axs[1, 1], res.t[k], res.x[k], color = colors[1],
+        Makie.lines!(contents(fig[1, 1])[1], res.t[k], res.x[k], color = colors[1],
             linewidth = accent_linewidth)
-        lineplot_metrics!(axs, n, config, res.t_indicator[k], res.x_indicator[k],
+        lineplot_metrics!(fig, n, res.config, res.t_indicator[k], res.x_indicator[k],
             res.t_change[k], res.x_change[k, :], colors, accent_linewidth)
     end
 
-    return fig, axs
+    return fig
 end
 
 # utils for plot_indicator_changes
 function init_rowwise_visualisation(res, colors, indicator_names,
     chametric_names, accent_linewidth)
 
-    config = res.config
     fig = Makie.Figure(size = (700, 450), fontsize = 12)
     rlabels = vcat([""], indicator_names)
     llabels = vcat(["Input"], chametric_names)
     n = length(llabels)
 
-    rowaspect = 5
-    raxs = [Makie.Axis(fig[(i-1)*rowaspect+1:i*rowaspect, 1], ylabel = rlabels[i],
+    # rowaspect = 5
+    raxs = [Makie.Axis(fig[i, 1], ylabel = rlabels[i],
         xticklabelsvisible = false, yaxisposition = :right, ygridvisible = false,
         ylabelcolor = colors[2], yticklabelcolor = colors[2]) for i in 1:n]
-    laxs = [Makie.Axis(fig[(i-1)*rowaspect+1:i*rowaspect, 1], ylabel = llabels[i],
+    laxs = [Makie.Axis(fig[i, 1], ylabel = llabels[i],
         xticklabelsvisible = false, ygridvisible = false,
         ylabelcolor = colors[1], yticklabelcolor = colors[1]) for i in 1:n]
     Makie.linkxaxes!(laxs..., raxs...)
@@ -98,23 +97,23 @@ function init_rowwise_visualisation(res, colors, indicator_names,
     end
     Legend(fig[0, 1], elements, labels, nbanks = 4, rowgap = 0, colgap = 10,
         width = Relative(width))
-
-    return fig, hcat(laxs, raxs), n, config
+    rowsize!(fig.layout, 0, Auto(0.3))
+    return fig, n
 end
 
-function lineplot_metrics!(axs, n, config, t_ind, x_ind, t_cha, x_cha,
+function lineplot_metrics!(fig, n, config, t_ind, x_ind, t_cha, x_cha,
     colors, accent_linewidth)
     for i in 2:n
         j = i-1
         if !isnothing(config.indicators)
-            Makie.lines!(axs[i, 2], t_ind, x_ind[:, j], color = colors[2],
+            Makie.lines!(contents(fig[i, 1])[2], t_ind, x_ind[:, j], color = colors[2],
                 linewidth = accent_linewidth)
         end
         if length(t_cha) > 1
-            lines!(axs[i, 1], t_cha, x_cha[:, j], color = colors[1],
+            lines!(contents(fig[i, 1])[1], t_cha, x_cha[:, j], color = colors[1],
                 linewidth = accent_linewidth)
         else
-            Makie.scatter!(axs[i, 1], t_cha, x_cha[j], color = colors[1],
+            Makie.scatter!(contents(fig[i, 1])[1], t_cha, x_cha[j], color = colors[1],
                 markersize = 10)
         end
     end
@@ -122,7 +121,7 @@ end
 
 # Plot results of surrogates
 function TransitionsInTimeseries.plot_significance!(
-    axs::Matrix{Axis},
+    fig::Figure,
     res::SlidingWindowResults,
     signif::SurrogatesSignificance;
     colors = default_colors,
@@ -131,14 +130,13 @@ function TransitionsInTimeseries.plot_significance!(
     kwargs...,
     )
 
-    config = res.config
-    lines_over_surro!(axs, nsurro, res.t, res.t_indicator, res.t_change, res.x,
-        signif, config, flags, colors)
+    lines_over_surro!(fig, nsurro, res.t, res.t_indicator, res.t_change, res.x,
+        signif, res.config, flags, colors)
     return nothing
 end
 
 function TransitionsInTimeseries.plot_significance!(
-    axs::Matrix{Axis},
+    fig::Figure,
     res::SegmentedWindowResults,
     signif::SurrogatesSignificance;
     colors = default_colors,
@@ -147,28 +145,27 @@ function TransitionsInTimeseries.plot_significance!(
     kwargs...,
     )
 
-    config = res.config
     for k in eachindex(res.t_indicator)
         if isnothing(flags)
-            lines_over_surro!(axs, nsurro, res.t[res.i1[k]:res.i2[k]],
+            lines_over_surro!(fig, nsurro, res.t[res.i1[k]:res.i2[k]],
                 res.t_indicator[k], res.t_change[k], res.x[res.i1[k]:res.i2[k]],
-                signif, config, nothing, colors)
+                signif, res.config, nothing, colors)
         else
-            lines_over_surro!(axs, nsurro, res.t[res.i1[k]:res.i2[k]],
+            lines_over_surro!(fig, nsurro, res.t[res.i1[k]:res.i2[k]],
                 res.t_indicator[k], res.t_change[k], res.x[res.i1[k]:res.i2[k]],
-                signif, config, flags[k, :], colors)
+                signif, res.config, flags[k, :], colors)
         end
     end
     return nothing
 end
 
 # utils for plot_significance!
-function lines_over_surro!(axs, nsurro, t, t_ind, t_cha, x, signif, config,
+function lines_over_surro!(fig, nsurro, t, t_ind, t_cha, x, signif, config,
     flags, colors)
     c = zeros(length(config.change_metrics), nsurro)
     for ns in 1:nsurro
         s = TimeseriesSurrogates.surrogate(x, signif.surrogate)
-        Makie.lines!(axs[1, 1], t, s; color = (colors[1], 2/nsurro), linewidth = 1)
+        Makie.lines!(contents(fig[1, 1])[1], t, s; color = (colors[1], 2/nsurro), linewidth = 1)
         for (i, cha) in enumerate(config.change_metrics)
 
             if isnothing(config.indicators)
@@ -176,24 +173,24 @@ function lines_over_surro!(axs, nsurro, t, t_ind, t_cha, x, signif, config,
             else
                 p = windowmap(config.indicators[i], s; width = config.width_ind,
                     stride = config.stride_ind)
-                Makie.lines!(axs[i+1, 2], t_ind, p; color = (colors[2], 2/nsurro),
+                Makie.lines!(contents(fig[i+1, 1])[2], t_ind, p; color = (colors[2], 2/nsurro),
                     linewidth = 1)
             end
             if length(t_cha) > 1
                 q = windowmap(cha, p; width = config.width_cha, stride = config.stride_cha)
-                Makie.lines!(axs[i+1, 1], t_cha, q; color = (colors[1], 2/nsurro),
+                Makie.lines!(contents(fig[i+1, 1])[1], t_cha, q; color = (colors[1], 2/nsurro),
                     linewidth = 1)
             else
                 cha = precompute(cha, eachindex(p))
                 q = windowmap(cha, p; width = length(p), stride = 1)
-                Makie.scatter!(axs[i+1, 1], t_cha, q[1], color = (colors[1], 2/nsurro),
+                Makie.scatter!(contents(fig[i+1, 1])[1], t_cha, q[1], color = (colors[1], 2/nsurro),
                     markersize = 5)
             end
             if !isnothing(flags) && ns == 1 && length(t_cha) > 1
-                Makie.vlines!(axs[i+1, 1], t_cha[flags[:, i]];
+                Makie.vlines!(contents(fig[i+1, 1])[1], t_cha[flags[:, i]];
                     color = (:black, 0.1))
                 elem = [PolyElement(color = (:black, 0.5), strokecolor = :transparent)]
-                axislegend(axs[i+1, 1], elem, ["p<$(signif.p)"], position = :lt)
+                axislegend(contents(fig[i+1, 1])[1], elem, ["p<$(signif.p)"], position = :lt)
             elseif length(t_cha) == 1
                 c[i, ns] = q[1]
             end
