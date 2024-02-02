@@ -261,3 +261,4 @@ results = estimate_indicator_changes(config, input, t)
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right])
 flags = significant_transitions(results, signif)
 fig, axs = plot_changes_significance(results, signif)
+fig # display the figure
