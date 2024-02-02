@@ -229,8 +229,7 @@ We can conveniently plot the information contained in `results` by using
 `plot_indicator_changes`:
 =#
 
-tv = plot_indicator_changes(results, additional_timeseries = x_nlinear[2:end])
-tv.fig
+fig, axs = plot_indicator_changes(results)
 
 #=
 Step 2 is to estimate significance using [`SurrogatesSignificance`](@ref)
@@ -241,8 +240,8 @@ above with `plot_significance!`:
 
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right])
 flags = significant_transitions(results, signif)
-plot_significance!(tv, signif, flags = flags)
-tv.fig
+plot_significance!(axs, results, signif, flags = flags)
+fig
 
 #=
 ### [Segmented windows] (@id segmented_windows)
@@ -261,7 +260,4 @@ config = SegmentedWindowConfig(indicators, change_metrics,
 results = estimate_indicator_changes(config, input, t)
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right])
 flags = significant_transitions(results, signif)
-tv = plot_changes_significance(results, signif,
-    additional_timeseries = x_nlinear[2:end])
-tv.fig
-
+fig, axs = plot_changes_significance(results, signif)
