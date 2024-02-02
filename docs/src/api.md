@@ -44,6 +44,7 @@ ar1_whitenoise
 
 ```@docs
 LowfreqPowerSpectrum
+PrecomputedLowfreqPowerSpectrum
 ```
 
 ### Nonlinear dynamics
@@ -68,6 +69,7 @@ and giving the created `indicator` to e.g., [`SlidingWindowConfig`](@ref).
 kendalltau
 spearman
 RidgeRegressionSlope
+PrecomputedRidgeRegressionSlope
 ```
 
 ### Value distribution differences
@@ -102,4 +104,18 @@ windowmap!
 
 ```@docs
 load_linear_vs_doublewell()
+```
+
+## Visualization
+
+```@docs
+plot_indicator_changes
+plot_significance!
+plot_changes_significance
+```
+
+## Utils
+
+```docs
+default_window_width
 ```

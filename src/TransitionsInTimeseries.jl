@@ -68,7 +68,4 @@ export default_window_width
 # load_data.jl
 export load_linear_vs_doublewell
 
-# visualizations
-export plot_indicator_changes, plot_significance!
-
 end # module TransitionsInTimeseries
