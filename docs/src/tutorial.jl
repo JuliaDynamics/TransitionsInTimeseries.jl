@@ -230,6 +230,7 @@ We can conveniently plot the information contained in `results` by using
 =#
 
 fig, axs = plot_indicator_changes(results)
+fig
 
 #=
 Step 2 is to estimate significance using [`SurrogatesSignificance`](@ref)
