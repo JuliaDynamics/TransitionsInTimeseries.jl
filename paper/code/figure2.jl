@@ -62,7 +62,7 @@ ax.yscale = log10
 ax.xticks = (1:8, [L"Variance $\,$", L"Coeff. of variation $\,$", L"Skewness $\,$",
     L"Kurtosis $\,$", L"Lag-1 autocorr. $\,$", L"Spectral $\,$",
     L"Kendall $\tau$ corr. coeff.", L"Block bootstrap $\,$"])
-ax.ylabel = L"Run time of 100 computations (s) $\,$"
+ax.ylabel = L"Run time (s) of 100 computations on Ricker model data $\,$"
 ax.yticks = (10.0 .^ (-5:1), [L"10^{%$e}" for e in -5:1])
 ax.xgridvisible = false
 ax.ygridvisible = false
