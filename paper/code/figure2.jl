@@ -47,8 +47,8 @@ function main()
 end
 
 t_tt = main()
-t_et = [0.04602551, 0.06428742, 0.03925371, 0.04029417, 8.35453677,
-    0.07624459, 0.42888784, 0.03248596]
+t_et = [0.03840542, 0.05554581, 0.03895116, 0.04029274, 7.96556187,
+    2.73067856, 0.39529872, 0.02751493]
 
 # [0.04681492, 8.13679838, 0.04035759, 0.09219241]
 inds = eachindex(t_et)
@@ -67,5 +67,5 @@ ax.yticks = (10.0 .^ (-5:1), [L"10^{%$e}" for e in -5:1])
 ax.xgridvisible = false
 ax.ygridvisible = false
 ax.xticklabelrotation = π / 4
-axislegend(ax)
+axislegend(ax, position = :lt)
 save("../figures/figure2.png", fig)
