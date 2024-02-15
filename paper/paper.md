@@ -1,83 +1,78 @@
 ---
 title: 'TransitionInTimeSeries.jl: A performant, extensible and reliable software for
-reproducible detection and prediction of transitions in timeseries'
+reproducible detection and prediction of transitions in time series'
 tags:
-  - Julia
-  - nonlinear dynamics
-  - timeseries analysis
-  - change point detection
-  - resilience loss
-  - critical slowing down
-  - early warning signals
+ - Julia
+ - nonlinear dynamics
+ - time series analysis
+ - change point detection
+ - resilience loss
+ - critical slowing down
+ - early warning signals
 authors:
-  - name: Jan Swierczek-Jereczek
-    orcid: 0000-0003-2213-0423
-    affiliation: "1, 2"
-  - name: George Datseris
-    orcid: 0000-0003-0872-7098
-    affiliation: 3
+ - name: Jan Swierczek-Jereczek
+   orcid: 0000-0003-2213-0423
+   affiliation: "1, 2"
+ - name: George Datseris
+   orcid: 0000-0003-0872-7098
+   affiliation: 3
 affiliations:
- - name: Department of Earth Physics and Astrophysics, Complutense University of Madrid.
-   index: 1
- - name: Geosciences Institute, CSIC-UCM.
-   index: 2
- - name: Department of Mathematics and Statistics, University of Exeter.
-   index: 3
+- name: Department of Earth Physics and Astrophysics, Complutense University of Madrid.
+  index: 1
+- name: Geosciences Institute, CSIC-UCM.
+  index: 2
+- name: Department of Mathematics and Statistics, University of Exeter.
+  index: 3
 date: 13 February 2024
 bibliography: paper.bib
 ---
 
 # Summary
 
-Changes in the regime of a nonlinear dynamical system can significantly impact individuals
-and society. Examples of this are ubiquitous and include the onset of cardiac arythmia
+Transitions of nonlinear dynamical systems can significantly impact individuals
+and society. Examples of this are ubiquitous and include the onset of cardiac arrhythmia
 [@tse_mechanisms_2016], the deglaciation of Earth about 20,000 years ago [@wolff_changes_2010]
 and the recent price collapse of many cryptocurrencies [@ismail_detecting_2020]. The systems
 displaying such transitions are therefore usually monitored by measuring state variables
-that are believed to be representative of the underlying process. The resulting time series
-are analyzed with various methods by researchers to detect past transitions or predict
+that are believed to be representative of the underlying process. Researchers analyze the
+resulting time series with various methods to detect past transitions and predict
 future ones.
 
 # Statement of need
 
-Over the last decades, methods to detect and predict transitions from timeseries have gained
+Over the last decades, methods to detect and predict transitions from time series have gained
 a lot of attention, both inside and outside of the scientific community. For instance, recent
 work predicting a collapse of the Atlantic Meridional Overturning Circulation between 2025
 and 2095 has led to no less than 870 news outlets and 4100 tweets [@ditlevsen_warning_2023],
 largely because of the substantial implications of such a collapse for human societies.
 However, some published work is not reproducible despite their strong policy implications.
-This can largely be adressed by a unifying software that is accessible, performant,
-reproducible, reliable and extensible, and therefore propose TransitionsInTimeseries.jl.
+This can be largely addressed by a unifying software that is accessible, performant,
+reproducible, reliable and extensible, and we therefore propose TransitionsInTimeseries.jl.
 We believe this is a major step towards establishing a software as standard, widely used
-by most academics working on transitions in timeseries.
+by academics working on transitions in time series.
 
 # TransitionsInTimeseries.jl
 
 ## Accessibility
 
-### Open science
+### Fully open-source
 
 TransitionsInTimeseries.jl is a free and fully open-source software written in Julia and
 developed on GitHub, which allows any user to track the full history of the changes made
-to the software as well as suggesting new ones by opening a pull request or an issue. It
-is a registered Julia package and can be installed by running:
-
-```julia
-]add TransitionsInTimeseries
-```
+to the software as well as to suggest new ones by opening a pull request or an issue.
 
 ### Ease of use
 
-TransitionsInTimeseries.jl is accesible to any scientist thanks to its extensive documentation
-and the the convenience functions it provides to detect and predict transitions in timeseries
+TransitionsInTimeseries.jl is accessible to any scientist thanks to the convenience functions
+it provides to detect and predict transitions in time series
 with only a few lines of code. A frequent prediction technique relies on observing, prior to
 a transition, an increase of the variance and the AR1 regression coefficient of the detrended
 time series, which is a consequence of Critical Slowing Down
-(CSD, [@scheffer_early-warning_2009]) and is here measured by the Kendall's $\tau$ coefficient.
+(CSD, [@scheffer_early-warning_2009]) and is here measured by Kendall's $\tau$ coefficient.
 To assess whether this increase is significant, one can perform a statistical test, for
-instance by performing the same computations on 1,000 surrogates of the original timeseries.
+instance by performing the same computations on 1,000 surrogates of the original time series.
 The increase in variance and AR1 coefficient can be
-considered significant if the original timeseries classifies in the uppermost 5% of the
+considered significant if the original time series classifies in the uppermost 5% of the
 surrogates, corresponding to a p-value $p<0.05$. All these steps can be performed, along with a
 visualisation of the results within a few lines only:
 
@@ -91,7 +86,7 @@ change_metrics = (kendalltau, kendalltau)
 
 # Configuration with adequate parameters of the sliding window over a segment
 config = SegmentedWindowConfig(indicators, change_metrics, [t[1]], [t[end]];
-    width_ind = length(residual) ÷ 2, whichtime = last, min_width_cha = 100)
+   width_ind = length(residual) ÷ 2, whichtime = last, min_width_cha = 100)
 
 # Compute the metrics over sliding windows and their significance
 results = estimate_indicator_changes(config, data, time)
@@ -104,7 +99,7 @@ fig = plot_changes_significance(results, signif)
 
 We apply this code to data generated by a Ricker model presenting an abrupt transition
 at $t = 860$, which is used in the first tutorial of `ewstools` [@bury_ewstools_2023],
-the most recent software with functionalities that are similar to TransitionsInTimeseries.jl.
+the most recent software covering similar functionalities.
 The results are shown in [Fig. 1](@figure1) and display, as expected from CSD theory, an
 increase in both variance and AR1 coefficient, which is exactly the same as computed
 by `ewstools`. However, calling `signif.pvalues` shows that the increase in variance is not
@@ -113,9 +108,9 @@ significant ($p = 0.284$), whereas the increase in AR1 coefficient is ($p = 0.00
 ![Output of plotting function in usage example.\label{fig: fig1}](figures/figure1.png)
 
 We believe that a concise and unambiguous code will greatly reduce the programming effort of
-many researchers and ease the code reviewing process. Finally, the code documentation
-provides additional examples, showcasing that the simplicity of the code also applies to
-real-world applications.
+many researchers and ease the code reviewing process. Finally, the code
+documentation provides a thorough API description as well as additional examples,
+showcasing that the simplicity of the code also applies to real-world applications.
 
 ## Performance
 
@@ -127,19 +122,19 @@ TransitionsInTimeseries.jl offers a significant speed-up in all the studied case
 
 ## Reproducibility
 
-Some steps of a transition analysis involve random number generators, which need 
-to be handled with care in parallelized codes. This is done in TransitionsInTimeseries.jl, 
-which offers the possibility of seeding a random number generator by using the 
-keyword argument `rng`, as done in the example shown above. Furthermore, 
-TransitionsInTimeseries.jl follows the guidelines of semantic versionning which, 
-along with Julia's integrated package manager, ensures that the same code is used for both 
+Some steps of a transition analysis involve random number generators, which need
+to be handled with care in parallelized codes. This is done in TransitionsInTimeseries.jl,
+which offers the possibility of seeding a random number generator by using the
+keyword argument `rng`, as done in the example shown above. Furthermore,
+TransitionsInTimeseries.jl follows the guidelines of semantic versioning which,
+along with Julia's integrated package manager, ensures that the same code is used for both
 results generation and peer reviewing.
 
 ## Reliability
 
 In high-impact context mentioned above, errors are to be avoided with particular care.
 TransitionsInTimeseries.jl is therefore tested via continuous integration on a large test
-suite, thus providing a reliable research framework. Furthermore, a centralised code base
+suite, thus providing a reliable research framework. Furthermore, a centralized code base
 implies that any new user is a new test, thus increasing the reliability of the code over
 time. Finally, the robustness of the results with respect to a parameter, e.g. the width
 of the sliding window, can be easily studied thanks to the simple syntax, thus contributing
@@ -150,7 +145,7 @@ to the reliability of the results.
 TransitionsInTimeseries.jl detaches the degrees of freedom that are available to the user
 from the analysis pipeline. Methods for detection and prediction can thus be applied equally
 well, since both typically rely on the computation of statistical measures over windows of
-the timeseries. This is of great importance, since a new prediction technique needs to first
+the time series. This is of great importance, since a new prediction technique needs to first
 be tested on hindcasting tasks, which requires a reliable detection and timing
 of previous transitions. To illustrate this, a detection task can be performed by merely
 modifying the indicators, change metrics and window type of the code shown above:
@@ -162,11 +157,11 @@ time, data = load_data()
 indicators = (nothing, nothing)
 change_metrics = (difference_of_mean(), difference_of_max())
 config = SlidingWindowConfig(indicators, change_metrics;
-    width_cha = 50, whichtime = midpoint)
+   width_cha = 50, whichtime = midpoint)
 ```
 
-This example showcases that steps of the analysis pipeline can be skipped alltogether, as
-done here for the computation of indicators. This is not needed here, since the change
+This example showcases that steps of the analysis pipeline can be skipped altogether, as
+done here for the computation of indicators, since the change
 metric of the original time series is already sufficient to detect a transition by comparing
 the difference in mean and maximum values between the two halves of the sliding window.
 Furthermore, the user can define their own `IndicatorChangesConfig` - for instance instead of
@@ -207,15 +202,17 @@ indicators = (var, ar1_whitenoise, StatsBase.skewness)
 
 TransitionsInTimeseries.jl therefore offers an extremely wide and
 potentially unlimited library of indicators. Furthermore, TimeseriesSurrogates.jl
-[@haaga_timeseriessurrogatesjl_2022] is used to create surrogates of the timeseries,
-thus offering optimized routines with numerous surrogate types. Finally, 
+[@haaga_timeseriessurrogatesjl_2022] is used to create surrogates of the time series,
+thus offering optimized routines with numerous surrogate types. Finally,
 `plot_changes_significance` showcased in [Fig. 1](@figure1) relies on Makie.jl, which allows
 the user to customize the figures according to their needs.
 
 # Comparison to already existing alternatives
 
-`earlywarnings` [@dakos_methods_2012] and `spatialwarnings` are toolboxes written in R providing many tools to predict transitions. These are early and valuable efforts but are (1) restricted to
-prediction tasks, (2) written in a less performat language, (3) not parallelised, (4) not
+`earlywarnings` [@dakos_methods_2012] and `spatialwarnings` are toolboxes written in R
+providing many tools to predict transitions.
+These are early and valuable efforts but are (1) restricted to
+prediction tasks, (2) written in a less performant language, (3) not parallelised, (4) not
 designed for convenient reproducibility and (5) not extensible.
 
 `ewstools` [@bury_ewstools_2023] is a Python/TensorFlow package offering similar
@@ -227,11 +224,11 @@ detection and prediction tasks. We believe that this is now covered by
 TransitionsInTimeseries.jl.
 
 Using TransitionsInTimeseries.jl, we reproduced the computations showcased in Tutorial 1
-and Turotial 2 of the `ewstools` documentation, along with the block bootstrapping. We
+and Tutorial 2 of the `ewstools` documentation, along with the block bootstrapping. We
 performed each computation 100 times and show the resulting run times in [Fig. 2](@figure2).
 It appears that all computation are faster in TransitionsInTimeseries, with a speed-up factor
 ranging from 0 to 3 orders of magnitude. The implementation of the deep-learning classifiers
-for transition prediction developped in [@bury_deep_2021], as well as dealing with
+for transition prediction developed in [@bury_deep_2021], as well as dealing with
 multidimensional time series, are part of future developments of TransitionsInTimeseries.jl.
 
 ![Performance comparison between `ewstools` and TransitionsInTimeseries.jl.\label{fig: fig1}](figures/figure2.png)
@@ -244,7 +241,7 @@ The documentation of TransitionsInTimseries.jl is available at
 # Acknowledgements
 
 Jan Swierczek-Jereczek is funded by CriticalEarth, grant no. 956170, an H2020 Research
-Infrastructure of the European Commission. George Datseris is funded by UKRI's Engineering and 
+Infrastructure of the European Commission. George Datseris is funded by UKRI's Engineering and
 Physical Sciences Research Council, grant no. EP/Y01653X/1 (grant agreement for a EU
 Marie Sklodowska-Curie Postdoctoral Fellowship).
 
