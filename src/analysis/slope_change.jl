@@ -43,7 +43,7 @@ function estimate_changes(config::ChangesConfig, x, t = eachindex(x))
     pbest = LsqFit.coef(fit)
     a, b, c, d = pbest
     t_change = (c - a)/(b - d)
-    return SlopeChangeResults(t, x, t_indicator, x_indicator, t_change, pbest, config, fit)
+    return SlopeChangeResults(t, x, t_indicator, x_indicator, [t_change], pbest, config, fit)
 end
 
 function guess_initial_p(x, t)
@@ -96,7 +96,7 @@ struct SlopeChangeResults{T, X, W, L} <: ChangesResults
     x
     t_indicator::T
     x_indicator::X
-    t_change::Float64
+    t_change::Vector{Float64}
     fitparams::Vector{Float64}
     config::W
     lsqfit::L

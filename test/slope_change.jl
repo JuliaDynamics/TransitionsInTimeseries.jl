@@ -14,8 +14,7 @@ x = vcat(x1, x2) .+ randn(rng, 40)./10
     res = estimate_changes(config, x, t)
     a, b, c, d = res.fitparams
 
-    tcross = res.t_change
-    t1[end]
+    tcross = first(res.t_change)
 
     @test tcross ≈ t1[end] atol = 1e-1
     @test b ≈ 1 atol = 1e-1
@@ -43,6 +42,6 @@ end
         res = estimate_changes(SlopeChangeConfig(), x)
         signif = SlopeChangeSignificance(; moe_slope = 0.1, moe_offset = 1.0)
         out = significant_transitions(res, signif)
-        @test out == flag
+        @test first(out) == flag
     end
 end

@@ -7,9 +7,7 @@ Two tests are done:
 1. Check whether the _margin of error_ of the fitted parameters `a, b, c, d`
    of the two linear segments `a + b*t, c + d*t`
    is less than the specified margins of error, for a chosen `pvalue`.
-   To disable this test give `Inf` to the `moe` keywords.
 2. Test that the two slopes `b, d` have difference greater than `slope_diff`.
-   To disable this test give `0` to the `slope_diff` keyword.
 
 The Boolean `&` of the above two is the final test.
 
@@ -31,5 +29,5 @@ function significant_transitions(res::SlopeChangeResults, signif::SlopeChangeSig
         moe[4] ≤ signif.moe_slope)
 
     slopeflag = abs(res.fitparams[2] - res.fitparams[4]) > moe_slope
-    return moeflag && slopeflag
+    return [moeflag && slopeflag]
 end
