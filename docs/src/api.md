@@ -6,10 +6,12 @@
 ChangesConfig
 SlidingWindowConfig
 SegmentedWindowConfig
+SlopeChangeConfig
 estimate_changes
 ChangesResults
 SlidingWindowResults
 SegmentedWindowResults
+SlopeChangeResults
 ```
 
 ## Significance testing
@@ -21,6 +23,7 @@ SurrogatesSignificance
 ThresholdSignificance
 SigmaSignificance
 QuantileSignificance
+SlopeChangeSignificance
 ```
 
 ## [Indicators](@id indicators)
