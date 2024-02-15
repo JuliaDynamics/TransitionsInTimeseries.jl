@@ -24,8 +24,8 @@ And that's it!
 _Optionally_ you can further extend:
 
 - `TransitionsInTimeseries.plot_indicator_changes` with the new `ChangesResults` type you defined. Note the plotting functions are in the `ext` folder of the repository.
-- `significant_transitions(res::ChangesResults, signif::SignificanceConfig)`
-  with your new `ChangesResults` type and as many `SignificanceConfig`
+- `significant_transitions(res::ChangesResults, signif::Significance)`
+  with your new `ChangesResults` type and as many `Significance`
   subtypes you have the capacity to extend for.
 
 
@@ -37,8 +37,8 @@ test for significance and TransitionsInTimeseries.jl allows various methods.
 
 To add a new pipeline for estimating significance follow these steps:
 
-1. Define a new subtype of [`SignificanceConfig`](@ref)
-2. Extend `significant_transitions(res::ChangesResults, signif::SignificanceConfig)`
+1. Define a new subtype of [`Significance`](@ref)
+2. Extend `significant_transitions(res::ChangesResults, signif::Significance)`
    with your new type and as many `ChangesResults` subtypes as you have
    capacity for.
 
