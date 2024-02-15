@@ -1,5 +1,5 @@
 """
-    IndicatorsChangesConfig
+    ChangesConfig
 
 Supertype for how "changes" are estimated in [`estimate_indicator_changes`](@ref).
 "Changes" deemed significant in [`significant_transitions`](@ref) are "transitions".
@@ -9,13 +9,13 @@ Valid subtypes are:
  - [`SlidingWindowConfig`](@ref).
  - [`SegmentedWindowConfig`](@ref).
 """
-abstract type IndicatorsChangesConfig end
+abstract type ChangesConfig end
 
 """
-    estimate_indicator_changes(config::IndicatorsChangesConfig, x [,t]) → result
+    estimate_indicator_changes(config::ChangesConfig, x [,t]) → result
 
 Estimate possible transitions for input timeseries `x` using the approach specified
-in the configuration type `config`, see [`IndicatorsChangesConfig`](@ref) for possibilities.
+in the configuration type `config`, see [`ChangesConfig`](@ref) for possibilities.
 `t` is the time vector corresponding to `x`, which defaults to `eachindex(x)`.
 
 Return the output as subtype of [`IndicatorsChangesResults`](@ref).

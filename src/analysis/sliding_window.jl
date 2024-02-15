@@ -1,5 +1,5 @@
 """
-    SlidingWindowConfig <: IndicatorsChangesConfig
+    SlidingWindowConfig <: ChangesConfig
     SlidingWindowConfig(indicators, change_metrics; kwargs...)
 
 A configuration that can be given to [`estimate_indicator_changes`](@ref).
@@ -46,7 +46,7 @@ the change metrics are estimated directly from input data.
   such as `mean` or `median`.
 - `T = Float64`: Element type of input timeseries to initialize some computations.
 """
-struct SlidingWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
+struct SlidingWindowConfig{F, G, W<:Function} <: ChangesConfig
     indicators::F
     change_metrics::G
     width_ind::Int

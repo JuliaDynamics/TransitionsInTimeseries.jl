@@ -23,7 +23,7 @@ The results output corresponding to `SlidingWindowConfig` is [`SegmentedWindowRe
 - `min_width_cha::Int=typemax(Int)`: minimal width required to perform the change metric estimation.
   If a segment is not sufficiently long, the change metric is `NaN`.
 """
-struct SegmentedWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
+struct SegmentedWindowConfig{F, G, W<:Function} <: ChangesConfig
     indicators::F
     change_metrics::G
     tseg_start::Vector
