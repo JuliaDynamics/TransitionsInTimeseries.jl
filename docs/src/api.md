@@ -18,6 +18,8 @@ SegmentedWindowResults
 significant_transitions
 TransitionsSignificance
 SurrogatesSignificance
+ThresholdSignificance
+SigmaSignificance
 QuantileSignificance
 ```
 
@@ -26,7 +28,7 @@ QuantileSignificance
 ### Value distribution
 
 ```@docs
-Statistics.mean(::Any)
+StatsBase.mean
 StatsBase.skewness
 StatsBase.kurtosis
 ```
@@ -34,7 +36,7 @@ StatsBase.kurtosis
 ### Critical Slowing Down
 
 ```@docs
-Statistics.var(::AbstractArray)
+StatsBase.var
 ar1_whitenoise
 ```
 
@@ -42,6 +44,7 @@ ar1_whitenoise
 
 ```@docs
 LowfreqPowerSpectrum
+PrecomputedLowfreqPowerSpectrum
 ```
 
 ### Nonlinear dynamics
@@ -66,6 +69,7 @@ and giving the created `indicator` to e.g., [`SlidingWindowConfig`](@ref).
 kendalltau
 spearman
 RidgeRegressionSlope
+PrecomputedRidgeRegressionSlope
 ```
 
 ### Value distribution differences
@@ -100,4 +104,18 @@ windowmap!
 
 ```@docs
 load_linear_vs_doublewell()
+```
+
+## Visualization
+
+```@docs
+plot_indicator_changes
+plot_significance!
+plot_changes_significance
+```
+
+## Utils
+
+```docs
+default_window_width
 ```

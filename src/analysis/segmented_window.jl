@@ -46,6 +46,12 @@ function SegmentedWindowConfig(
         throw(ArgumentError("The vectors containing the start and end time of the"*
             " segments must be of equal length."))
     end
+    if length(tseg_start) < 1
+        throw(ArgumentError("SegmentIndexing requires at least one segment."))
+    end
+    if count(tseg_start .>= tseg_end) > 1
+        throw(ArgumentError("End time of segment must be strictly larger than start time."))
+    end
     indicators, change_metrics = sanitycheck_metrics(indicators, change_metrics)
     # Last step: precomputable functions, if any
     indicators = map(f -> precompute(f, 1:T(width_ind)), indicators)
@@ -60,49 +66,54 @@ function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
     X, T = eltype(x), eltype(t)
     (; indicators, change_metrics, tseg_start, tseg_end) = config
     n_ind = length(indicators)
+    i1, i2 = segment_time(t, tseg_start, tseg_end)
 
     t_indicator = [T[] for _ in eachindex(tseg_start)]
     x_indicator = [X[;;] for _ in eachindex(tseg_start)]
     t_change = T.(config.tseg_end)
-    x_change = fill(Inf, length(tseg_start), n_ind)
+    x_change = fill(X(NaN), length(tseg_start), n_ind)
     one2one = length(change_metrics) == length(indicators)
 
+    dummy_chametric = map(f -> precompute(f, X.(1:2)), change_metrics)
+    precomp_change_metrics = [dummy_chametric for _ in eachindex(i1)]
+
     for k in eachindex(tseg_start)
-        tseg, xseg = segment(t, x, tseg_start[k], tseg_end[k])
+        tseg = view(t, i1[k]:i2[k])
+        xseg = view(x, i1[k]:i2[k])
         t_indicator[k] = windowmap(config.whichtime, tseg; width = config.width_ind,
             stride = config.stride_ind)
         len_ind = length(t_indicator[k])
 
         # Init with NaN instead of 0 to easily recognise when the segment was too short
         # for the computation to be performed.
-        x_indicator[k] = fill(NaN, len_ind, n_ind)
+        x_indicator[k] = fill(X(NaN), len_ind, n_ind)
 
         # only analyze if segment long enough to compute metrics
         if len_ind > config.min_width_cha
+            precomp_change_metrics[k] = map(f -> precompute(f, t_indicator[k]), change_metrics)
             # Loop over indicators
             for i in 1:n_ind
                 indicator = indicators[i]
-                chametric = one2one ? change_metrics[i] : change_metrics[1]
+                chametric = one2one ? precomp_change_metrics[k][i] :
+                    precomp_change_metrics[k][1]
                 z = view(x_indicator[k], :, i)
                 windowmap!(indicator, z, xseg;
                     width = config.width_ind, stride = config.stride_ind
                 )
-                if chametric isa PrecomputableFunction
-                    chametric = precompute(chametric, t_indicator[k])
-                end
                 x_change[k, i] = chametric(z)
             end
         end
     end
     # put everything together in the output type
-    return SegmentedWindowResults(t, x, t_indicator, x_indicator, t_change, x_change, config)
+    return SegmentedWindowResults(t, x, t_indicator, x_indicator, t_change, x_change,
+        config, i1, i2, precomp_change_metrics)
 end
 
-function segment(t, x, t1, t2)
-    i1, i2 = argmin(abs.(t .- t1)), argmin(abs.(t .- t2))
-    return t[i1:i2], x[i1:i2]
+function segment_time(t::AbstractVector, t1, t2)
+    i1 = [searchsortedfirst(t, tt) for tt in t1]
+    i2 = [searchsortedlast(t, tt) for tt in t2]
+    return i1, i2
 end
-
 
 """
     SegmentedWindowResults <: IndicatorsChangesResults
@@ -126,9 +137,12 @@ It has the following fields that the user may access
 - `t_change`, the time vector of the change metric.
 
 - `config::SegmentedWindowConfig`, what was used for the analysis.
+- `i1::Vector{Int}` indices corresponding to start time of each segment.
+- `i2::Vector{Int}` indices corresponding to end time of each segment.
+- `precomp_change_metrics` vector containing the precomputed change metrics of each segment.
 """
 struct SegmentedWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W} <: IndicatorsChangesResults
+    W, Z} <: IndicatorsChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{Vector{T}}
@@ -136,14 +150,17 @@ struct SegmentedWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
     t_change::Vector{T}
     x_change::Matrix{X}
     config::W
+    i1::Vector{Int}
+    i2::Vector{Int}
+    precomp_change_metrics::Z
 end
 
 # Segmented and Sliding results share their show method
 function Base.show(io::IO, ::MIME"text/plain", res::Union{SegmentedWindowResults, SlidingWindowResults})
-    println(io, "IndicatorsChangesResults")
+    println(io, nameof(typeof(res)))
     descriptors = [
         "input timeseries" => summary(res.x),
-        "indicators" => [nameof(i) for i in res.config.indicators],
+        "indicators" => isnothing(res.config.indicators) ? "nothing" : [nameof(i) for i in res.config.indicators],
         "indicator (window, stride)" => (res.config.width_ind, res.config.stride_ind),
         "change metrics" => [nameof(c) for c in res.config.change_metrics],
         show_changemetric(res),

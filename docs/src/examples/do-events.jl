@@ -1,16 +1,36 @@
 #=
 # Dansgaard-Oescher events and Critical Slowing Down
 
-The $\delta^{18}O$ timeseries of the North Greenland Ice Core Project ([NGRIP](https://en.wikipedia.org/wiki/North_Greenland_Ice_Core_Project)) are, to this date, the best proxy record for the Dansgaard-Oeschger events ([DO-events](https://en.wikipedia.org/wiki/Dansgaard%E2%80%93Oeschger_event)). DO-events are sudden warming episodes of the North Atlantic, reaching 10 degrees of regional warming within 100 years. They happened quasi-periodically over the last glacial cycle due to transitions between strong and weak states of the Atlantic Meridional Overturning Circulation and might be therefore be the most prominent examples of abrupt transitions in the field of climate science. We here propose to hindcast these events by applying the theory of Critical Slowing Down (CSD) on the NGRIP data, which can be found [here](https://www.iceandclimate.nbi.ku.dk/data/) in its raw format. This analysis has already been done in [boers-early-warning-2018](@cite) and we here try to reproduce Figure 2.d-f.
+The $\delta^{18}O$ timeseries of the North Greenland Ice Core Project
+([NGRIP](https://en.wikipedia.org/wiki/North_Greenland_Ice_Core_Project)) are,
+to this date, the best proxy record for the Dansgaard-Oeschger events
+([DO-events](https://en.wikipedia.org/wiki/Dansgaard%E2%80%93Oeschger_event)).
+DO-events are sudden warming episodes of the North Atlantic, reaching 10 degrees
+of regional warming within 100 years. They happened quasi-periodically over the
+last glacial cycle due to transitions between strong and weak states of the Atlantic
+Meridional Overturning Circulation and might be therefore be the most prominent
+examples of abrupt transitions in the field of climate science. We here propose
+to hindcast these events by applying the theory of Critical Slowing Down (CSD)
+on the NGRIP data, which can be found [here](https://www.iceandclimate.nbi.ku.dk/data/)
+in its raw format. This analysis has already been done in [boers-early-warning-2018](@cite)
+and we here try to reproduce Figure 2.d-f.
 
 ## Preprocessing NGRIP
 
-Data pre-processing is not part of TransitionsInTimeseries.jl, but a step the user has to do before using the package. To present an example with a complete scientific workflow, we will showcase typical data pre-processing here, that consist of the following steps:
+Data pre-processing is not part of TransitionsInTimeseries.jl,
+but a step the user has to do before using the package.
+To present an example with a complete scientific workflow,
+we will showcase typical data pre-processing here, that consist of the following steps:
 1. Load the data, reverse and offset it to have time vector = time before 2000 AD.
 2. Filter non-unique points in time and sort the data.
 3. Regrid the data from uneven to even sampling.
 
-The time and $\delta^{18}O$ vectors resulting from the $i$-th preprocessing step are respectively called $t_i$ and $x_i$. The final step consists in obtaining a residual $r$, i.e. the fluctuations of the system around the attractor, which, within the CSD theory, is assumed to be tracked. Over this example, it will appear that the convenience of TransitionsInTimeseries.jl leads the bulk of the code to be written for plotting and preprocessing.
+The time and $\delta^{18}O$ vectors resulting from the $i$-th preprocessing step are
+respectively called $t_i$ and $x_i$. The final step consists in obtaining a residual
+$r$, i.e. the fluctuations of the system around the attractor, which, within the CSD
+theory, is assumed to be tracked. Over this example, it will appear that the
+convenience of TransitionsInTimeseries.jl leads the bulk of the code to be written
+for plotting and preprocessing.
 
 ### Step 1:
 =#
@@ -84,7 +104,9 @@ fcutoff = 0.95 * 0.01   # cutoff ≃ 0.01 yr^-1 as in (Boers 2018)
 t, x, xtrend, r = chebyshev_filter(t3, x3, fcutoff)
 
 #=
-Let's now visualize our data in what will become our main figure. For the segmentation of the DO-events, we rely on the tabulated data from [rasmussen-stratigraphic-2014](@cite) (which will soon be available as downloadable):
+Let's now visualize our data in what will become our main figure.
+For the segmentation of the DO-events, we rely on the tabulated
+data from [rasmussen-stratigraphic-2014](@cite) (which will soon be available as downloadable):
 =#
 
 using CairoMakie, Loess
@@ -140,7 +162,15 @@ fig
 #=
 ## Hindcast on NGRIP data
 
-As one can see... there is not much to see so far. Residuals are impossible to simply eye-ball and we therefore use TransitionsInTimeseries.jl to study the evolution, measured by the ridge-regression slope of the residual's variance and lag-1 autocorrelation (AC1) over time. In many examples of the literature, including [boers-early-warning-2018](@cite), the CSD analysis is performed over segments (sometimes only one) of the timeseries, such that a significance value is obtained for each segment. By using `SegmentedWindowConfig`, dealing with segments can be easily done in TransitionsInTimeseries.jl and is demonstrated here:
+As one can see... there is not much to see so far.
+Residuals are impossible to simply eye-ball and we therefore use
+TransitionsInTimeseries.jl to study the evolution, measured by the ridge-regression
+slope of the residual's variance and lag-1 autocorrelation (AC1) over time.
+In many examples of the literature, including [boers-early-warning-2018](@cite),
+the CSD analysis is performed over segments (sometimes only one) of the timeseries,
+such that a significance value is obtained for each segment. By using
+`SegmentedWindowConfig`, dealing with segments can be easily done in
+TransitionsInTimeseries.jl and is demonstrated here:
 =#
 
 using TransitionsInTimeseries, StatsBase
@@ -148,14 +178,14 @@ using Random: Xoshiro
 
 ac1(x) = sum(autocor(x, [1]))   # AC1 from StatsBase
 indicators = (var, ac1)
-change_metrics = RidgeRegressionSlope()
+change_metrics = (RidgeRegressionSlope(), RidgeRegressionSlope())
 tseg_start = t_rasmussen[1:end-1] .+ 200
 tseg_end = t_rasmussen[2:end] .- 200
 config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end; whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)        # require >=100 data points to estimate change metric
 results = estimate_indicator_changes(config, r, t)
-signif = SurrogatesSignificance(n = 10_000, tail = :right, rng = Xoshiro(1995))
+signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 
 #=
@@ -166,7 +196,7 @@ function plot_segment_analysis!(axs, results, signif)
     (; t_indicator, x_indicator) = results
     for k in eachindex(t_indicator)             # loop over the segments
         for i in axes(signif.pvalues, 2)        # loop over the indicators
-            if !isinf(signif.pvalues[k, i])     # plot if segment long enough
+            if !isnan(signif.pvalues[k, i])     # plot if segment long enough
                 ## Plot indicator timeseries and its linear regression
                 ti, xi = t_indicator[k], x_indicator[k][:, i]
                 lines!(axs[i+2], ti, xi, color = Cycled(1))
@@ -184,11 +214,32 @@ plot_segment_analysis!(axs, results, signif)
 fig
 
 #=
-In [boers-early-warning-2018](@cite), 13/16 and 7/16 true positives are respectively found for the variance and AC1, with 16 referring to the total number of transitions. The timeseries actually includes 18 transition but, in [boers-early-warning-2018](@cite), some segments are considered too small to be analysed. In contrast, we here respectively find 9/16 true positives for the variance and 3/16 for AC1. We can track down the discrepancies to be in the surrogate testing, since the indicator timeseries computed here are almost exactly similar to those of [boers-early-warning-2018](@cite). This mismatch points out that packages like TransitionsInTimeseries.jl are wishful for research to be reproducible, especially since CSD is gaining attention - not only within the scientific community but also in popular media.
+In [boers-early-warning-2018](@cite), 13/16 and 7/16 true positives are respectively
+found for the variance and AC1, with 16 referring to the total number of transitions.
+The timeseries actually includes 18 transition but, in
+[boers-early-warning-2018](@cite), some segments are considered too small to be analysed.
+In contrast, we here respectively find 9/16 true positives
+for the variance and 3/16 for AC1. We can track down the discrepancies to be in the
+surrogate testing, since the indicator timeseries computed here are almost exactly
+similar to those of [boers-early-warning-2018](@cite). This mismatch points
+out that packages like TransitionsInTimeseries.jl are wishful for research to be
+reproducible, especially since CSD is gaining attention - not only within the
+scientific community but also in popular media.
 
 ## CSD: only a necessary condition, only in some cases
 
-For codimension-1 systems, approaching a fold, Hopf or transcritical bifurcation implies a widening of the potential $U$, which defines the deterministic term $f = -∇U$ of the SDE's right-hand-side. In the presence of noise, this leads to CSD, which is therefore a **necessary condition** for crossing one of these bifurcations - although it is not always assessable by analysing the timeseries due to practical limitations (e.g. sparse data subject to large measurement noise). It is nonetheless not given that DO-events, as many other real-life applications, can be seen as a codimension-1 fold, Hopf or transcritical bifurcations. Besides this, we emphasise that CSD is **not a sufficient condition** for assessing a transition being ahead in near future, since a resilience loss can happen without actually crossing any bifurcation. This can be illustrated on the present example by performing the same analysis only until few hundred years before the transition:
+For codimension-1 systems, approaching a fold, Hopf or transcritical bifurcation implies
+a widening of the potential $U$, which defines the deterministic term $f = -∇U$ of the
+SDE's right-hand-side. In the presence of noise, this leads to CSD, which is therefore
+a **necessary condition** for crossing one of these bifurcations - although it is not
+always assessable by analysing the timeseries due to practical limitations (e.g. sparse
+data subject to large measurement noise). It is nonetheless not given that DO-events,
+as many other real-life applications, can be seen as a codimension-1 fold, Hopf or
+transcritical bifurcations. Besides this, we emphasise that CSD is **not a sufficient
+condition** for assessing a transition being ahead in near future, since a resilience
+loss can happen without actually crossing any bifurcation. This can be illustrated on
+the present example by performing the same analysis only until few hundred years before
+the transition:
 =#
 
 tseg_end = t_rasmussen[2:end] .- 700    # stop analysis 500 years earlier than before
@@ -196,7 +247,7 @@ config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end, whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)
 results = estimate_indicator_changes(config, r, t)
-signif = SurrogatesSignificance(n = 10_000, tail = :right, rng = Xoshiro(1995))
+signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 fig, axs = plot_do(t3, x3, tloess, xloess, t, r, t_rasmussen, xlims, xticks)
 plot_segment_analysis!(axs, results, signif)
@@ -247,7 +298,7 @@ for j in 1:2
         indicators, change_metrics, tseg_start[j], tseg_end[j],
         whichtime = last, width_ind = Int(200÷dt), min_width_cha = 100)
     results = estimate_indicator_changes(config, r, t)
-    signif = SurrogatesSignificance(n = 1_000, tail = :right, rng = Xoshiro(1995))
+    signif = SurrogatesSignificance(n = 1_000, tail = [:right, :right], rng = Xoshiro(1995))
     flags = significant_transitions(results, signif)
 
     plot_segment_analysis!(axs, results, signif)

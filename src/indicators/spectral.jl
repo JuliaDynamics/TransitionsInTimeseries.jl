@@ -19,6 +19,19 @@ Base.@kwdef struct LowfreqPowerSpectrum <: PrecomputableFunction
     q_lofreq::Real = 0.1
 end
 
+"""
+    PrecomputedLowfreqPowerSpectrum
+
+A struct containing all the precomputed fields to efficiently perform repetitive
+computation of the low-frequency power spectrum (LFPS), a number between `0` and `1`
+that characterizes the amount of power contained in the low frequencies of the power
+density spectrum of `x`. Once `lfps::PrecomputedLowfreqPowerSpectrum` is initialized,
+it can be used as a function to obtain the LFPS of `x::AbstractVector` by:
+
+```julia
+lfps(x)
+```
+"""
 struct PrecomputedLowfreqPowerSpectrum <: Function
     plan::FFTW.cFFTWPlan{ComplexF64, -1, false, 1, UnitRange{Int64}}
     i_pos::Int              # fftfreq(N)[1:i_pos] only includes positive freqs.
@@ -32,19 +45,6 @@ function precompute(lfps::LowfreqPowerSpectrum, t::AbstractVector)
     return PrecomputedLowfreqPowerSpectrum(p, i_pos, i_lofreq)
 end
 
-"""
-    PrecomputedLowfreqPowerSpectrum(x::AbstractVector)
-
-A struct containing all the precomputed fields to efficiently perform repetitive
-computation of the low-frequency power spectrum (LFPS), a number between `0` and `1`
-that characterizes the amount of power contained in the low frequencies of the power
-density spectrum of `x`. Once `lfps::PrecomputedLowfreqPowerSpectrum` is initialized,
-it can be used as a function to obtain the LFPS of `x::AbstractVector` by:
-
-```julia
-lfps(x)
-```
-"""
 function (lfps::PrecomputedLowfreqPowerSpectrum)(x::AbstractVector)
     ps = abs.(lfps.plan * x)
     return sum(view(ps, 1:lfps.i_lofreq)) / sum(view(ps, 1:lfps.i_pos))

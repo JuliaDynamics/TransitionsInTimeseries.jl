@@ -4,3 +4,4 @@ Manifest.toml
 *.css
 *style.jl
 docs/src/examples/*.md
+paper/wip

@@ -27,3 +27,14 @@ function difference_of_means(x::AbstractArray)
     x2 = view(x, (n÷2 + 1):n)
     return abs(mean(x1) - mean(x2))
 end
+
+function difference_of_maxes(x::AbstractArray)
+    if length(x) == 2
+        return abs(first(x) - last(x))
+    end
+    # assumes 1-based indexing
+    n = length(x)
+    x1 = view(x, 1:n÷2)
+    x2 = view(x, (n÷2 + 1):n)
+    return abs(maximum(x1) - maximum(x2))
+end

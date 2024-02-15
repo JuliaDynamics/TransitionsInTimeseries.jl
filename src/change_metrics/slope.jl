@@ -32,6 +32,17 @@ Base.@kwdef struct RidgeRegressionSlope <: PrecomputableFunction
     lambda::Real = 0.0
 end
 
+"""
+    PrecomputedRidgeRegressionSlope
+
+A struct containing the precomputed [ridge regression](https://en.wikipedia.org/wiki/Ridge_regression) matrix.
+Once `rrslope::PrecomputedRidgeRegressionSlope` is initialized, it can be used as
+a function to obtain the ridge regression slope of `x::AbstractVector` by applying:
+
+```julia
+rrslope(x)
+```
+"""
 struct PrecomputedRidgeRegressionSlope{T} <: Function
     equispaced::Bool
     regression_matrix::Matrix{T}
@@ -42,11 +53,6 @@ function precompute(rr::RidgeRegressionSlope, t::AbstractVector{T}) where {T<:Re
     return PrecomputedRidgeRegressionSlope(isequispaced(t), regression_matrix)
 end
 
-"""
-    PrecomputedRidgeRegressionSlope(x::AbstractVector)
-
-Return the slope of the [ridge regression](https://en.wikipedia.org/wiki/Ridge_regression) of `x`.
-"""
 function (rr::PrecomputedRidgeRegressionSlope)(x::AbstractVector{<:Real})
     if !(rr.equispaced)
         error("Time vector is not evenly spaced." *
