@@ -1,24 +1,10 @@
 import LsqFit
 
-struct SlopeChangeConfig{I} <: ChangesConfig
-    indicators::I
-    width_ind::Int
-    stride_ind::Int
-    whichtime::W
-end
-
-struct SlopeChangeResults{
-        TT, T<:Real, X<:Real, XX<:AbstractVector{X}, IT,
-        W, L
-    } <: ChangesResults
-    t::T # original time vector
-    x::X # original timeseries
-    t_indicator::IT
-    x_indicator::IX
-    t_change::Float64
-    fitparams::Vector{Float64}
-    config::W
-    lsqfit::L
+@kwdef struct SlopeChangeConfig{I, W} <: ChangesConfig
+    indicators::I = nothing
+    width_ind::Int = 100
+    stride_ind::Int = 1
+    whichtime::W = midpoint
 end
 
 function estimate_changes(config::ChangesConfig, x, t = eachindex(x))
@@ -27,8 +13,12 @@ function estimate_changes(config::ChangesConfig, x, t = eachindex(x))
     if isnothing(indicators)
         # Skip indicators if they are nothing
         t_indicator = t
+        x_indicator = x
     else
         t_indicator = windowmap(config.whichtime, t;
+            width = config.width_ind, stride = config.stride_ind
+        )
+        x_indicator = windowmap(config.indicators, x;
             width = config.width_ind, stride = config.stride_ind
         )
     end
@@ -64,4 +54,15 @@ function twolinear(t, p)
     a, b, c, d = p
     tcrit = (c - a)/(b - d)
     return @. ifelse(t < tcrit, a + b*t, c + d*t)
+end
+
+struct SlopeChangeResults{T, X, W, L} <: ChangesResults
+    t # we don't parameterize these; they are only used for plotting
+    x
+    t_indicator::T
+    x_indicator::X
+    t_change::Float64
+    fitparams::Vector{Float64}
+    config::W
+    lsqfit::L
 end
