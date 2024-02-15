@@ -1,7 +1,7 @@
 """
     ChangesConfig
 
-Supertype for how "changes" are estimated in [`estimate_indicator_changes`](@ref).
+Supertype for how "changes" are estimated in [`estimate_changes`](@ref).
 "Changes" deemed significant in [`significant_transitions`](@ref) are "transitions".
 
 Valid subtypes are:
@@ -12,7 +12,7 @@ Valid subtypes are:
 abstract type ChangesConfig end
 
 """
-    estimate_indicator_changes(config::ChangesConfig, x [,t]) → result
+    estimate_changes(config::ChangesConfig, x [,t]) → result
 
 Estimate possible transitions for input timeseries `x` using the approach specified
 in the configuration type `config`, see [`ChangesConfig`](@ref) for possibilities.
@@ -24,13 +24,13 @@ Regardless of type, `result` can always be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
 significant using a variety of significance tests.
 """
-function estimate_indicator_changes end
+function estimate_changes end
 # The function is extended via multiple dispatch in the specific files
 
 """
     ChangesResults
 
-Supertype used to gather results of [`estimate_indicator_changes`](@ref).
+Supertype used to gather results of [`estimate_changes`](@ref).
 The concrete subtype instances are described in the docstrings of configuration types.
 """
 abstract type ChangesResults end

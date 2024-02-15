@@ -13,7 +13,7 @@ using TransitionsInTimeseries, Test, Statistics, Random
         width_cha = 100, stride_cha = 1, whichtime = last,
     )
 
-    res = estimate_indicator_changes(config, x, t)
+    res = estimate_changes(config, x, t)
 
     # The trend of mean(windowview) is the stride for x=t
     meantrend_ground_truth = fill(1, length(res.t_change))
@@ -47,7 +47,7 @@ end
     config = SlidingWindowConfig(nothing, (difference_of_means, difference_of_maxes);
         width_cha = 100, stride_cha = 50)
 
-    res = estimate_indicator_changes(config, z)
+    res = estimate_changes(config, z)
 
     c = res.x_change[:, 1]
 

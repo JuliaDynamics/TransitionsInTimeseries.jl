@@ -184,7 +184,7 @@ tseg_end = t_rasmussen[2:end] .- 200
 config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end; whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)        # require >=100 data points to estimate change metric
-results = estimate_indicator_changes(config, r, t)
+results = estimate_changes(config, r, t)
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 
@@ -246,7 +246,7 @@ tseg_end = t_rasmussen[2:end] .- 700    # stop analysis 500 years earlier than b
 config = SegmentedWindowConfig(indicators, change_metrics,
     tseg_start, tseg_end, whichtime = last, width_ind = Int(200÷dt),
     min_width_cha = 100)
-results = estimate_indicator_changes(config, r, t)
+results = estimate_changes(config, r, t)
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 fig, axs = plot_do(t3, x3, tloess, xloess, t, r, t_rasmussen, xlims, xticks)
@@ -297,7 +297,7 @@ for j in 1:2
     config = SegmentedWindowConfig(
         indicators, change_metrics, tseg_start[j], tseg_end[j],
         whichtime = last, width_ind = Int(200÷dt), min_width_cha = 100)
-    results = estimate_indicator_changes(config, r, t)
+    results = estimate_changes(config, r, t)
     signif = SurrogatesSignificance(n = 1_000, tail = [:right, :right], rng = Xoshiro(1995))
     flags = significant_transitions(results, signif)
 

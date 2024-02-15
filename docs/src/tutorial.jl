@@ -208,7 +208,7 @@ fig
 To perform all of the above analysis we follow a 2-step process.
 
 Step 1, we decide what indicators and change metrics to use in [`SlidingWindowConfig`](@ref) and apply those via
-a sliding window to the input timeseries using [`estimate_indicator_changes`](@ref).
+a sliding window to the input timeseries using [`estimate_changes`](@ref).
 =#
 
 ## These indicators are suitable for Critical Slowing Down
@@ -222,7 +222,7 @@ config = SlidingWindowConfig(indicators, change_metrics;
     width_ind = 400, width_cha = 30, whichtime = last)
 
 ## choices are processed
-results = estimate_indicator_changes(config, input, t)
+results = estimate_changes(config, input, t)
 
 #=
 We can conveniently plot the information contained in `results` by using
@@ -257,7 +257,7 @@ visualise the results conveniently:
 config = SegmentedWindowConfig(indicators, change_metrics,
     t[1:1], t[1200:1200]; whichtime = last, width_ind = 200,
     min_width_cha = 100)
-results = estimate_indicator_changes(config, input, t)
+results = estimate_changes(config, input, t)
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right])
 flags = significant_transitions(results, signif)
 fig = plot_changes_significance(results, signif)

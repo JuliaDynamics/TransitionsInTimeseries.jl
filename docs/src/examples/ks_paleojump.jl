@@ -48,7 +48,7 @@
 #    [Dansgaard-Oescher events and Critical Slowing Down](@ref) example)
 #    and set the appropriate time window.
 # 3. Define the function that estimates the change metric (i.e., the KS-statistic)
-# 3. Perform the sliding window analysis as in the [Tutorial](@ref) with [`estimate_indicator_changes`](@ref)
+# 3. Perform the sliding window analysis as in the [Tutorial](@ref) with [`estimate_changes`](@ref)
 # 4. Estimate the "confident" transitions in the data by comparing the estimated
 #    KS-statistic with a predefined threshold.
 
@@ -113,7 +113,7 @@ fig
 
 # ## Perform the sliding window analysis
 
-# This is just a straightforward call to [`estimate_indicator_changes`](@ref).
+# This is just a straightforward call to [`estimate_changes`](@ref).
 # In fact, it is even simpler than the tutorial. Here we skip completely
 # the "indicator" estimation step, and we evaluate the change metric directly
 # on input data. We do this by simply passing `nothing` as the indicators.
@@ -122,7 +122,7 @@ using TransitionsInTimeseries
 
 config = SlidingWindowConfig(nothing, normalized_KS_statistic; width_cha = 500)
 
-results = estimate_indicator_changes(config, xtrend, t)
+results = estimate_changes(config, xtrend, t)
 
 # Which we can visualize
 function visualize_results(results)
@@ -144,7 +144,7 @@ visualize_results(results)
 # The same thing happens if we alter the window duration
 
 config = SlidingWindowConfig(nothing, normalized_KS_statistic; width_cha = 200)
-results = estimate_indicator_changes(config, xtrend, t)
+results = estimate_changes(config, xtrend, t)
 visualize_results(results)
 
 # So one can easily obtain extra confidence by varying window

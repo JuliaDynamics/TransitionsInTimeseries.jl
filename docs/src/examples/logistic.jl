@@ -76,7 +76,7 @@ config = SlidingWindowConfig(indicators, metric;
     width_ind, width_cha, stride_cha,
 )
 
-results = estimate_indicator_changes(config, x, rs)
+results = estimate_changes(config, x, rs)
 
 # Let's now plot the change metrics of the indicators
 

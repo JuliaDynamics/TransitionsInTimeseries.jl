@@ -2,7 +2,7 @@
     SegmentedWindowConfig <: IndicatorsChangeConfig
     SegmentedWindowConfig(indicators, change_metrics, tseg_start, tseg_end; kwargs...)
 
-A configuration that can be given to [`estimate_indicator_changes`](@ref).
+A configuration that can be given to [`estimate_changes`](@ref).
 It estimates transitions by estimating indicators and changes in user-defined
 window segments as follows:
 
@@ -62,7 +62,7 @@ function SegmentedWindowConfig(
     )
 end
 
-function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
+function estimate_changes(config::SegmentedWindowConfig, x, t)
     X, T = eltype(x), eltype(t)
     (; indicators, change_metrics, tseg_start, tseg_end) = config
     n_ind = length(indicators)
@@ -118,7 +118,7 @@ end
 """
     SegmentedWindowResults <: ChangesResults
 
-A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+A struct containing the output of [`estimate_changes`](@ref) used with
 [`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 

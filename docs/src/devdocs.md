@@ -15,7 +15,7 @@ To add a new pipeline follow these steps:
 
 1. Define a new subtype of [`ChangesConfig`](@ref)
 2. Define a new subtype of [`ChangesResults`](@ref)
-3. Add a method for [`estimate_indicator_changes`](@ref) which accepts
+3. Add a method for [`estimate_changes`](@ref) which accepts
    the new `ChangesConfig` subtype you defined and
    returns the `ChangesResults` subtype you defined.
 

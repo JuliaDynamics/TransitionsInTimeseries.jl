@@ -57,7 +57,7 @@ export difference_of_means, difference_of_maxes
 # analysis
 export ChangesConfig, SlidingWindowConfig, SegmentedWindowConfig
 export SlidingWindowResults, SegmentedWindowResults
-export estimate_indicator_changes, ChangesResults
+export estimate_changes, ChangesResults
 export TransitionsSignificance, significant_transitions, segmented_significance
 export ThresholdSignificance, QuantileSignificance, SigmaSignificance, SurrogatesSignificance
 
