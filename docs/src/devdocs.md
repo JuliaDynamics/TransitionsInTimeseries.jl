@@ -14,4 +14,11 @@ transitions in timeseries. This new pipeline defines what a "transition" means.
 To add a new pipeline follow these steps:
 
 1. Define a new subtype of [`ChangesConfig`](@ref)
-2.
+2. Define a new subtype of [`ChangesResults`](@ref)
+3. Add a method for [`estimate_indicator_changes`](@ref) which accepts
+   the new `ChangesConfig` subtype you defined and
+   returns the `ChangesResults` subtype you defined.
+
+And that's it!
+
+_Optionally_ you can further extend:
