@@ -16,7 +16,7 @@ SegmentedWindowResults
 
 ```@docs
 significant_transitions
-SignificanceConfig
+Significance
 SurrogatesSignificance
 ThresholdSignificance
 SigmaSignificance

@@ -20,7 +20,7 @@ using TransitionsInTimeseries, Test, Random, Distributions
     # Previous code
 
     # indconfig = IndicatorsConfig(t, last, [var], width = 20, stride = 1)
-    # sigconfig = SignificanceConfig(indconfig, last, [RidgeRegressionSlope()],
+    # sigconfig = Significance(indconfig, last, [RidgeRegressionSlope()],
     #     width = 100, stride = 1)
 
     # x_test = x[indconfig.width:indconfig.stride:end]
