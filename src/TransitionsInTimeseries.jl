@@ -26,6 +26,7 @@ include("misc/precomputation.jl")
 include("analysis/api.jl")
 include("analysis/sliding_window.jl")
 include("analysis/segmented_window.jl")
+include("analysis/slope_change.jl")
 include("significance/api_significance.jl")
 include("significance/surrogates_significance.jl")
 include("significance/basic_stat_significance.jl")
@@ -60,6 +61,7 @@ export SlidingWindowResults, SegmentedWindowResults
 export estimate_changes, ChangesResults
 export Significance, significant_transitions, segmented_significance
 export ThresholdSignificance, QuantileSignificance, SigmaSignificance, SurrogatesSignificance
+export SlopeChangeConfig, SlopeChangeResults
 
 # timeseries
 export isequispaced, equispaced_step
