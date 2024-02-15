@@ -28,3 +28,25 @@ end
     res = estimate_changes(config, y, t)
     @test tcross ≈ t1[end] atol = 1e-1
 end
+
+
+@testset "significance" begin
+    function fakedata(σ = 0.5)
+        x1 = σ*randn(rng, 100)
+        x2 = σ*randn(rng, 100) .+ range(0, 5; length = 100)
+        x = vcat(x1, x2)
+    end
+
+    x = fakedata()
+    for (flag, σ) in zip((true, false), (0.5, 5.0))
+        x = fakedata(σ)
+        res = estimate_changes(SlopeChangeConfig(), x)
+        signif = SlopeChangeSignificance(; moe_slope = 0.1, moe_offset = 1.0)
+        out = significant_transitions(res, signif)
+        @test out == flag
+    end
+end
+
+# Test if MOE is below a given threshold
+# Threshold need to before
+# slope_std = std(diff(x) ./ diff(eachindex(x)))
