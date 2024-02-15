@@ -1,5 +1,5 @@
 """
-    SurrogatesSignificance <: TransitionsSignificance
+    SurrogatesSignificance <: SignificanceConfig
     SurrogatesSignificance(; kwargs...)
 
 A configuration struct for significance testing [`significant_transitions`](@ref)
@@ -40,7 +40,7 @@ Note that the raw p-values can be accessed in the field `.pvalues`, after callin
 [`significant_transitions`](@ref) function with `SurrogatesSignificance`, in case you wish
 to obtain a different threshold of the p-values.
 """
-mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignificance
+mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: SignificanceConfig
     surrogate::S
     n::Int
     tail::T

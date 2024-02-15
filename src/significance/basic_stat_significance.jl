@@ -1,5 +1,5 @@
 """
-    ThresholdSignificance(threshold::Real; tail = :right) <: TransitionsSignificance
+    ThresholdSignificance(threshold::Real; tail = :right) <: SignificanceConfig
 
 A configuration struct for significance testing in [`significant_transitions`](@ref).
 Significance is estimated by comparing the value of each change metric with
@@ -35,7 +35,7 @@ end
 
 
 """
-    QuantileSignificance(; p = 0.95, tail = :both) <: TransitionsSignificance
+    QuantileSignificance(; p = 0.95, tail = :both) <: SignificanceConfig
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
 When used with [`ChangesResults`](@ref), significance is estimated
@@ -75,7 +75,7 @@ function significant_transitions(res::ChangesResults, signif::QuantileSignifican
 end
 
 """
-    SigmaSignificance(; factor = 3.0, tail = :both) <: TransitionsSignificance
+    SigmaSignificance(; factor = 3.0, tail = :both) <: SignificanceConfig
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
 When used with [`ChangesResults`](@ref), significance is estimated
