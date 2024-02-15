@@ -1,12 +1,12 @@
 """
     plot_indicator_changes(res) → (fig, axs)
-Return `fig::Figure` and `axs::Matrix{Axis}`, on which `res::IndicatorsChangesResults`
+Return `fig::Figure` and `axs::Matrix{Axis}`, on which `res::ChangesResults`
 has been visualised.
 
 ## Keyword arguments:
  - `colors = default_colors` sets the colors of the line plots that are to
  be cycled through. The default correspond to the color scheme of Julia Dynamics.
- - `indicator_names = default_indicator_label(res), chametric_names = 
+ - `indicator_names = default_indicator_label(res), chametric_names =
  default_chametric_label(res)` sets the labels for the indicators and the change
  metrics, with the default inferring them from the names of `res.config.indicators`
  and `res.config.change_metrics`.
@@ -29,7 +29,7 @@ function plot_significance! end
 
 """
     plot_changes_significance(res, signif) → (fig, axs)
-Return `fig::Figure` and `axs::Matrix{Axis}`, on which `res::IndicatorsChangesResults`
+Return `fig::Figure` and `axs::Matrix{Axis}`, on which `res::ChangesResults`
 and `signif::SurrogatesSignificance` have been visualised.
 The source code is as simple as:
 

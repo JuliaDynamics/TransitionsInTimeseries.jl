@@ -13,3 +13,5 @@ This means to contribute a fundamentally new "pipeline" for estimating/detecting
 transitions in timeseries. This new pipeline defines what a "transition" means.
 To add a new pipeline follow these steps:
 
+1. Define a new subtype of [`ChangesConfig`](@ref)
+2.

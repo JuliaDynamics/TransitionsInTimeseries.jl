@@ -116,7 +116,7 @@ function segment_time(t::AbstractVector, t1, t2)
 end
 
 """
-    SegmentedWindowResults <: IndicatorsChangesResults
+    SegmentedWindowResults <: ChangesResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
 [`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
@@ -142,7 +142,7 @@ It has the following fields that the user may access
 - `precomp_change_metrics` vector containing the precomputed change metrics of each segment.
 """
 struct SegmentedWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W, Z} <: IndicatorsChangesResults
+    W, Z} <: ChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{Vector{T}}

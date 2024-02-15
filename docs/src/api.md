@@ -7,7 +7,7 @@ ChangesConfig
 SlidingWindowConfig
 SegmentedWindowConfig
 estimate_indicator_changes
-IndicatorsChangesResults
+ChangesResults
 SlidingWindowResults
 SegmentedWindowResults
 ```

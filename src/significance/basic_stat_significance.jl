@@ -15,7 +15,7 @@ struct ThresholdSignificance{T<:Real}
 end
 ThresholdSignificance(threshold; tail = :right) = ThresholdSignificance(threshold, tail)
 
-function significant_transitions(res::IndicatorsChangesResults, signif::ThresholdSignificance)
+function significant_transitions(res::ChangesResults, signif::ThresholdSignificance)
     flags = similar(res.x_change, Bool)
     t = signif.threshold
     for (i, x) in enumerate(eachcol(res.x_change))
@@ -38,7 +38,7 @@ end
     QuantileSignificance(; p = 0.95, tail = :both) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
-When used with [`IndicatorsChangesResults`](@ref), significance is estimated
+When used with [`ChangesResults`](@ref), significance is estimated
 by comparing the value of each change metric with its `p`-quantile.
 Values that exceed the `p`-quantile (if `tail = :right`)
 or subseed the `1-p`-quantile (if `tail = :left`)
@@ -56,7 +56,7 @@ end
 
 using Statistics: quantile
 
-function significant_transitions(res::IndicatorsChangesResults, signif::QuantileSignificance)
+function significant_transitions(res::ChangesResults, signif::QuantileSignificance)
     flags = similar(res.x_change, Bool)
     for (i, x) in enumerate(eachcol(res.x_change))
         qmin, qmax = quantile(x, (1 - signif.p, signif.p))
@@ -78,7 +78,7 @@ end
     SigmaSignificance(; factor = 3.0, tail = :both) <: TransitionsSignificance
 
 A configuration struct for significance testing [`significant_transitions`](@ref).
-When used with [`IndicatorsChangesResults`](@ref), significance is estimated
+When used with [`ChangesResults`](@ref), significance is estimated
 by comparing how many standard deviations (`σ`) the value exceeds the mean value (`μ`).
 Values that exceed (if `tail = :right`) `μ + factor*σ`, or subseed (if `tail = :left`) `μ - factor*σ`
 are deemed significant.
@@ -96,7 +96,7 @@ end
 
 using Statistics: std, mean
 
-function significant_transitions(res::IndicatorsChangesResults, signif::SigmaSignificance)
+function significant_transitions(res::ChangesResults, signif::SigmaSignificance)
     flags = similar(res.x_change, Bool)
     for (i, x) in enumerate(eachcol(res.x_change))
         μ = mean(x)

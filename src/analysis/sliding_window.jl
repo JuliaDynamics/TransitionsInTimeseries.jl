@@ -142,7 +142,7 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 end
 
 """
-    SlidingWindowResults <: IndicatorsChangesResults
+    SlidingWindowResults <: ChangesResults
 
 A struct containing the output of [`estimate_indicator_changes`](@ref) used with
 [`SlidingWindowConfig`](@ref). It can be used for further analysis, visualization,
@@ -162,7 +162,7 @@ It has the following fields that the user may access
 - `config::SlidingWindowConfig`, what was used for the analysis.
 """
 struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, IT,
-    W} <: IndicatorsChangesResults
+    W} <: ChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::IT

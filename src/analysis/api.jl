@@ -18,7 +18,7 @@ Estimate possible transitions for input timeseries `x` using the approach specif
 in the configuration type `config`, see [`ChangesConfig`](@ref) for possibilities.
 `t` is the time vector corresponding to `x`, which defaults to `eachindex(x)`.
 
-Return the output as subtype of [`IndicatorsChangesResults`](@ref).
+Return the output as subtype of [`ChangesResults`](@ref).
 The particular form of the output depends on the `config` and is described in its docstring.
 Regardless of type, `result` can always be given to
 [`significant_transitions`](@ref) to deduce which possible transitions are statistically
@@ -28,9 +28,9 @@ function estimate_indicator_changes end
 # The function is extended via multiple dispatch in the specific files
 
 """
-    IndicatorsChangesResults
+    ChangesResults
 
 Supertype used to gather results of [`estimate_indicator_changes`](@ref).
 The concrete subtype instances are described in the docstrings of configuration types.
 """
-abstract type IndicatorsChangesResults end
+abstract type ChangesResults end
