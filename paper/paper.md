@@ -244,6 +244,8 @@ The documentation of TransitionsInTimseries.jl is available at
 # Acknowledgements
 
 Jan Swierczek-Jereczek is funded by CriticalEarth, grant no. 956170, an H2020 Research
-Infrastructure of the European Commission. George Datseris is funded by...
+Infrastructure of the European Commission. George Datseris is funded by UKRI's Engineering and 
+Physical Sciences Research Council, grant no. EP/Y01653X/1 (grant agreement for a EU
+Marie Sklodowska-Curie Postdoctoral Fellowship).
 
 # References
