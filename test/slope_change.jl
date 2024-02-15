@@ -46,7 +46,3 @@ end
         @test out == flag
     end
 end
-
-# Test if MOE is below a given threshold
-# Threshold need to before
-# slope_std = std(diff(x) ./ diff(eachindex(x)))
