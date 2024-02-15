@@ -1,5 +1,21 @@
 import LsqFit
 
+"""
+    SlopeChangeConfig <: ChangesConfig
+    SlopeChangeConfig(; indicator = nothing, kw...)
+
+A configuration that can be given to [`estimate_changes`](@ref).
+It estimates a change of slope in the timeseries by fitting two
+connected linear segments to the timeseries,
+returning the results (i.e., the two-linear fit) as [`SlopeChangeResult`](@ref).
+
+## Keyword arguments
+- `indicator = nothing`: if not nothing, it should be a function `f(x) -> Real`.
+  The slope fitting is then done over an indicator of the timeseries, which itself
+  is estimated via a sliding window exactly as in [`SlidingWindowConfig`](@ref).
+- `width_ind, stride_ind, whichtime`: exactly as in [`SlidingWindowConfig`](@ref)
+  if `indicator` is not `nothing`.
+"""
 @kwdef struct SlopeChangeConfig{I, W} <: ChangesConfig
     indicators::I = nothing
     width_ind::Int = 100
@@ -56,6 +72,25 @@ function twolinear(t, p)
     return @. ifelse(t < tcrit, a + b*t, c + d*t)
 end
 
+"""
+    SlopeChangeResults <: ChangesResults
+
+A struct containing the output of [`estimate_changes`](@ref) used with
+[`SlopeChangeConfig`](@ref). It can be used for further analysis, visualization,
+or given to [`significant_transitions`](@ref). The only significance type
+that you can use this with [`significant_transitions`](@ref) is
+[`SlopeChangeSignificance`](@ref).
+
+It has the following fields that the user may access
+
+- `x`: the input timeseries.
+- `t`: the time vector of the input timeseries.
+- `x_indicator`, the indicator timeseries.
+- `t_indicator`, the time vector of the indicator timeseries.
+- `t_change`, the time the slope changes
+- `fitparams = a, b, c, d`, the fitted linear coefficients, `a + b*t` before
+  `t_change` and `c + d*t` after `t_change`.
+"""
 struct SlopeChangeResults{T, X, W, L} <: ChangesResults
     t # we don't parameterize these; they are only used for plotting
     x
