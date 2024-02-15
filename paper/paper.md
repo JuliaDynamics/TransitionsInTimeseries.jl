@@ -21,7 +21,7 @@ affiliations:
    index: 1
  - name: Geosciences Institute, CSIC-UCM.
    index: 2
- - name: University of Exeter.
+ - name: Department of Mathematics and Statistics, University of Exeter.
    index: 3
 date: 13 February 2024
 bibliography: paper.bib
