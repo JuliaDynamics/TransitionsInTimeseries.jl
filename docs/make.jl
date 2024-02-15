@@ -19,6 +19,7 @@ pages = [
     "Examples" => example_pages,
     "api.md",
     "refs.md",
+    "devdocs.md",
 ]
 
 import Downloads
