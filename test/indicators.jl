@@ -23,7 +23,7 @@ end
 
 # Test kolmogorov_smirnov by sampling different distributions
 @testset "kolmogorov_smirnov" begin
-    n = 100
+    n = 1000
 
     distributions = [Uniform(), Normal(), Binomial()]
     for (i, d1) in enumerate(distributions)
