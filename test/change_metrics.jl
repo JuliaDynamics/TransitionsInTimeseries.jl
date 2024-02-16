@@ -14,7 +14,7 @@ using TransitionsInTimeseries, Test, Random, Distributions
     @test isapprox(m_hat_noisy, m, atol = 1e-2)
 end
 
-@test "correlations" begin
+@testset "correlations" begin
     x = 0:0.01:2π
     y = sin.(x)
     @test spearman(x) == 1
