@@ -21,6 +21,7 @@ end
     @test metricc(y_hifreq[1:nt]) < 0.05
 end
 
+# Test kolmogorov_smirnov by sampling different distributions
 @testset "kolmogorov_smirnov" begin
     n = 100
 
@@ -28,12 +29,18 @@ end
     for (i, d1) in enumerate(distributions)
         for (j, d2) in enumerate(distributions)
             x = vcat(rand(d1, n), rand(d2, n))
-            ks = kolmogorov_smirnov(x)
             if i == j
-                @test ks > 0.1
+                @test kolmogorov_smirnov(x) > 0.1
             else
-                @test ks < 1e-8
+                @test kolmogorov_smirnov(x) < 1e-8
             end
         end
     end
+end
+
+# Example from Bandt & Pompe (2002), https://www.aptech.com/blog/permutation-entropy/
+@testset "permutation_entropy" begin
+    x = [4, 7, 9, 10, 6, 11, 3]
+    perment = permutation_entropy(m=3)
+    @test isapprox(perment(x), 0.58876216)
 end
