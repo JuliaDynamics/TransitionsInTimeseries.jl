@@ -16,6 +16,7 @@ using FFTW
 
 using Reexport
 @reexport using TimeseriesSurrogates
+@reexport using ComplexityMeasures
 
 include("misc/params.jl")
 include("misc/windowing.jl")
