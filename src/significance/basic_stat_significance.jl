@@ -10,6 +10,8 @@ are deemed significant.
 If `tail = :both` then either condition is checked.
 """
 struct ThresholdSignificance{T<:Real}
+    # TODO: threshold<:Real does not make sense. We should have as many thresholds as metrics.
+    # TODO: once fixed, change the tests accordingly
     threshold::T
     tail::Symbol
 end
@@ -24,6 +26,8 @@ function significant_transitions(res::IndicatorsChangesResults, signif::Threshol
             @. flag = x > t
         elseif signif.tail == :left
             @. flag = x < t
+        # FIXME: the case below does not make sense, since it always returns 1
+        # It should rather be using two distinct thresholds
         elseif signif.tail == :both
             @. flag = (x < t) | (x > t)
         else
@@ -90,7 +94,7 @@ in which case a different value is used for each change metric.
 See also [`QuantileSignificance`](@ref).
 """
 Base.@kwdef struct SigmaSignificance{P}
-    factor::P = 0.95
+    factor::P = 0.95    # TODO: Default value should be an integer, Typically 1, 2 or 3.
     tail::Symbol = :both
 end
 
@@ -115,3 +119,5 @@ function significant_transitions(res::IndicatorsChangesResults, signif::SigmaSig
     end
     return flags
 end
+
+# TODO: compare2tail() should prevent the duplicated if-else checking the tails above
