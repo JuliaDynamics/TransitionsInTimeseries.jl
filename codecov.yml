@@ -1,3 +1,6 @@
 # sample regex patterns
 ignore:
   - "ext/*"
+  - "src/misc/load_data.jl"
+  - "src/misc/params.jl"
+  - "src/visualizations.jl"
