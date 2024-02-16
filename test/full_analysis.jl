@@ -1,4 +1,4 @@
-using TransitionsInTimeseries, Test, Statistics, Random
+using TransitionsInTimeseries, Test, Statistics, Random, Distributions
 
 @testset "missmatch in length" begin
     indicators = (mean, var)
@@ -8,7 +8,7 @@ using TransitionsInTimeseries, Test, Statistics, Random
 end
 
 @testset "sliding ridge regression" begin
-    n = 1001
+    n = 10001
     t = collect(1.0:n)
     x = copy(t)
     w = 100
