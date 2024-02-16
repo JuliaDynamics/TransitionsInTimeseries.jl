@@ -11,14 +11,16 @@ end
     n = 1001
     t = collect(1.0:n)
     x = copy(t)
+    w = 100
+    s = 1
     sqsum(x) = sum(x.^2)    # used only for QuantileSignificance
 
     indicators = (mean, var, sqsum)
     change_metric = (RidgeRegressionSlope(), RidgeRegressionSlope(), RidgeRegressionSlope())
 
     config = SlidingWindowConfig(indicators, change_metric;
-        width_ind = 100, stride_ind = 1,
-        width_cha = 100, stride_cha = 1, whichtime = last,
+        width_ind = w, stride_ind = s,
+        width_cha = w, stride_cha = s, whichtime = last,
     )
 
     res = estimate_indicator_changes(config, x, t)
