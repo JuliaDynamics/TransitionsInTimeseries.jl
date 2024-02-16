@@ -70,8 +70,8 @@ a transition, an increase of the variance and the AR1 regression coefficient of 
 time series, which is a consequence of Critical Slowing Down
 (CSD, [@scheffer_early-warning_2009]) and is here measured by Kendall's $\tau$ coefficient.
 To assess whether this increase is significant, one can perform a statistical test, for
-instance by performing the same computations on 1,000 surrogates of the original time series.
-The increase in variance and AR1 coefficient can be
+instance by performing the same computations on 1,000 surrogates of the original time series
+[@haaga_timeseriessurrogatesjl_2022]. The increase in variance and AR1 coefficient can be
 considered significant if the original time series classifies in the uppermost 5% of the
 surrogates, corresponding to a p-value $p<0.05$. All these steps can be performed, along with a
 visualisation of the results within a few lines only:
