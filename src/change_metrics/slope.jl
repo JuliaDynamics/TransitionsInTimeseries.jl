@@ -2,6 +2,7 @@
 # Trend metrics
 #####################################################
 using StatsBase: corkendall, corspearman
+import Base.nameof
 
 """
     kendalltau(x::AbstractVector)
@@ -32,6 +33,9 @@ Base.@kwdef struct RidgeRegressionSlope <: PrecomputableFunction
     lambda::Real = 0.0
 end
 
+nameof(metric::RidgeRegressionSlope) = :RidgeRegressionSlope
+
+
 """
     PrecomputedRidgeRegressionSlope
 
@@ -47,6 +51,8 @@ struct PrecomputedRidgeRegressionSlope{T} <: Function
     equispaced::Bool
     regression_matrix::Matrix{T}
 end
+
+nameof(metric::PrecomputedRidgeRegressionSlope) = :PrecomputedRidgeRegressionSlope
 
 function precompute(rr::RidgeRegressionSlope, t::AbstractVector{T}) where {T<:Real}
     regression_matrix = ridgematrix(t, rr.lambda)
