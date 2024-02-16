@@ -49,7 +49,7 @@ export PrecomputableFunction, precompute
 export ar1_whitenoise
 export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis # from StatsBase
-export permutation_entropy
+export permutation_entropy, kolmogorov_smirnov
 export kendalltau, spearman
 export ridgematrix, RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export difference_of_means, difference_of_maxes
