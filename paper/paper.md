@@ -87,8 +87,8 @@ indicators = (var, ar1_whitenoise)
 change_metrics = (kendalltau, kendalltau)
 
 # Configuration with adequate parameters of the sliding window over a segment
-config = SegmentedWindowConfig(indicators, change_metrics, [t[1]], [t[end]];
-   width_ind = length(residual) ÷ 2, whichtime = last, min_width_cha = 100)
+config = SegmentedWindowConfig(indicators, change_metrics, [time[1]], [time[end]];
+    width_ind = length(residual) ÷ 2, whichtime = last, min_width_cha = 100)
 
 # Compute the metrics over sliding windows and their significance
 results = estimate_indicator_changes(config, data, time)
@@ -142,39 +142,10 @@ time. Finally, the robustness of the results with respect to a parameter, e.g. t
 of the sliding window, can be easily studied thanks to the simple syntax, thus contributing
 to the reliability of the results.
 
-## Versatility
-
-TransitionsInTimeseries.jl detaches the degrees of freedom that are available to the user
-from the analysis pipeline. Methods for detection and prediction can thus be applied equally
-well, since both typically rely on the computation of statistical measures over windows of
-the timeseries. This is of great importance, since a new prediction technique needs to first
-be tested on hindcasting tasks, which requires a reliable detection and timing
-of previous transitions. To illustrate this, a detection task can be performed by merely
-modifying the indicators, change metrics and window type of the code shown above:
-
-```julia
-# Here the data should not be detrended
-time, data = load_data()
-
-indicators = (nothing, nothing)
-change_metrics = (difference_of_mean(), difference_of_max())
-config = SlidingWindowConfig(indicators, change_metrics;
-   width_cha = 50, whichtime = midpoint)
-```
-
-This example showcases that steps of the analysis pipeline can be skipped altogether, as
-done here for the computation of indicators, since the change
-metric of the original timeseries is already sufficient to detect a transition by comparing
-the difference in mean and maximum values between the two halves of the sliding window.
-Furthermore, the user can define their own `IndicatorChangesConfig` - for instance instead of
-`SlidingWindowConfig` - and are therefore capable of adding new ways of computing the
-relevant metrics. Finally, different ways of testing for significance can be interchangeably
-used, therefore expanding the versatility of the software beyond the surrogate analysis.
-
 ## Extensibility
 
 An important aspect of the modularity mentioned above, is that self-written functions can be
-passed as indicators or change metrics to the analysis pipeline. Thus, researchers can easily
+passed as indicators or change metrics. Thus, researchers can easily
 test new methods without any programming overhead, nor modification of the source code. To
 illustrate this, the code shown above can include the skewness as indicator of the
 transition by modifying a few lines:
@@ -182,7 +153,7 @@ transition by modifying a few lines:
 ```julia
 skewness(x::Vector) = mean( (x .- mean(x))^3 ) / mean( (x .- mean(x))^2 )^1.5
 indicators = (var, ar1_whitenoise, skewness)
-change_metrics = (RidgeRegressionSlope(), RidgeRegressionSlope(), RidgeRegressionSlope())
+change_metrics = (kendalltau, kendalltau, kendalltau)
 ```
 
 There is no complexity restriction on the self-programmed functions, as long as they comply
@@ -197,6 +168,46 @@ instead. TransitionsInTimeseries.jl therefore offers an extremely wide and
 potentially unlimited library of indicators. Furthermore, TimeseriesSurrogates.jl
 [@haaga_timeseriessurrogatesjl_2022] is used to create surrogates of the timeseries,
 thus offering optimized routines with numerous surrogate types.
+
+
+## Versatility
+
+### Choosing a pipeline
+
+TransitionsInTimeseries.jl covers methods for prediction as well as detection of transitions,
+which is unprecedented to our knowledge. This relies on the definition of different analysis pipelines, which
+consist in a `ChangesConfig` determining the behavior of `estimate_indicator_changes` via
+multiple dispatch. For instance, a detection
+task can be performed by replacing the `SegmentedWindowConfig` by a `SlidingWindowConfig`
+in the code above:
+
+```julia
+# Here the data should not be detrended
+time, data = load_data()
+
+indicators = (nothing, nothing)
+change_metrics = (difference_of_mean(), difference_of_max())
+config = SlidingWindowConfig(indicators, change_metrics;
+   width_cha = 50, whichtime = midpoint)
+results = estimate_indicator_changes(config, data, time)
+```
+
+We here skip the computation of indicators and compare the difference in mean and maximum
+values between the two halves of the sliding window, which gives a particularly high value
+in the case of an abrupt transition and is therefore suited for some detection tasks.
+Most importantly, this examples shows that the user can choose the type of analysis pipeline,
+along with its underlying parameters (e.g. sliding window width). Similarly, different
+ways of testing for significance are provided and can be interchangeably used.
+
+### Creating your own pipeline
+
+Besides choosing among the already provided analysis pipelines,
+the user can implement their own one by defining a new `ChangesConfig` and
+the corresponding behavior of `estimate_indicator_changes`. This makes it particularly
+easy to leverage pre-existing functionalities of TransitionsInTimeseries.jl
+with a minimal restriction on the structure. As explained in the devdocs, the latter eases
+the integration of new methods into a unified framework. This also holds for the
+significance pipeline and makes TransitionsInTimeseries.jl particularly versatile.
 
 # Comparison to already existing alternatives
 
