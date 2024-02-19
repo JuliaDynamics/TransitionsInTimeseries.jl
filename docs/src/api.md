@@ -6,7 +6,6 @@
 ChangesConfig
 SlidingWindowConfig
 SegmentedWindowConfig
-SlopeChangeConfig
 estimate_changes
 ChangesResults
 SlidingWindowResults
