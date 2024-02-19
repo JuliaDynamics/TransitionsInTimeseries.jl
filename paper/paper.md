@@ -134,7 +134,7 @@ results generation and peer reviewing.
 
 ## Reliability
 
-In high-impact context mentioned in the introduction, it is crucial to avoid errors.
+In the high-impact context mentioned in the introduction, it is crucial to avoid errors.
 TransitionsInTimeseries.jl is therefore tested via continuous integration on a large test
 suite, thus providing a reliable research framework. Furthermore, a centralized code base
 implies that any new user is a new test, thus increasing the reliability of the code over
