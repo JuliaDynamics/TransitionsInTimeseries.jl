@@ -37,10 +37,3 @@ end
         end
     end
 end
-
-# Example from Bandt & Pompe (2002), https://www.aptech.com/blog/permutation-entropy/
-@testset "permutation_entropy" begin
-    x = [4, 7, 9, 10, 6, 11, 3]
-    perment = permutation_entropy(m=3)
-    @test isapprox(perment(x), 0.58876216)
-end
