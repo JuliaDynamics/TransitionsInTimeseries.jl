@@ -33,7 +33,7 @@ Transitions of nonlinear dynamical systems can significantly impact individuals
 and society. Examples of this are ubiquitous and include the onset of cardiac arrhythmia
 [@tse_mechanisms_2016], the deglaciation of Earth about 20,000 years ago [@wolff_changes_2010]
 and the recent price collapse of many cryptocurrencies [@ismail_detecting_2020]. The systems
-displaying such transitions are therefore usually monitored by measuring state variables
+displaying such transitions are usually monitored by measuring state variables
 that are believed to be representative of the underlying process. Researchers analyze the
 resulting timeseries with various methods to detect past transitions and predict
 future ones.
@@ -45,9 +45,11 @@ a lot of attention, both inside and outside of the scientific community. For ins
 work predicting a collapse of the Atlantic Meridional Overturning Circulation between 2025
 and 2095 has led to no less than 870 news outlets and 4100 tweets [@ditlevsen_warning_2023],
 largely because of the substantial implications of such a collapse for human societies.
-However, some published work is not reproducible despite their strong policy implications.
+A common concern in the scientific community is that published work on the topic is difficult
+to reproduce, despite the impact it implies for humanity.
 This can be largely addressed by a unifying software that is accessible, performant,
-reproducible, reliable and extensible, and we therefore propose TransitionsInTimeseries.jl.
+reproducible, reliable and extensible. Such a software does not exist yet, but here 
+we propose TransitionsInTimeseries.jl to fill this gap.
 We believe this is a major step towards establishing a software as standard, widely used
 by academics working on transitions in timeseries.
 
@@ -55,9 +57,9 @@ by academics working on transitions in timeseries.
 
 ## Accessibility
 
-### Fully open-source
+### Open-source
 
-TransitionsInTimeseries.jl is a free and fully open-source software written in Julia and
+TransitionsInTimeseries.jl is a free and open-source software, written in Julia and
 developed on GitHub, which allows any user to track the full history of the changes made
 to the software as well as to suggest new ones by opening a pull request or an issue.
 
@@ -132,7 +134,7 @@ results generation and peer reviewing.
 
 ## Reliability
 
-In high-impact context mentioned above, errors are to be avoided with particular care.
+In high-impact context mentioned in the introduction, it is crucial to avoid errors.
 TransitionsInTimeseries.jl is therefore tested via continuous integration on a large test
 suite, thus providing a reliable research framework. Furthermore, a centralized code base
 implies that any new user is a new test, thus increasing the reliability of the code over
@@ -184,28 +186,17 @@ change_metrics = (RidgeRegressionSlope(), RidgeRegressionSlope(), RidgeRegressio
 ```
 
 There is no complexity restriction on the self-programmed functions, as long as they comply
-with the structure of taking a vector as input and returning a scalar as output. Finally,
-users can modify the fully-open source code, written in native Julia and thus offering a good
-legibility compared to other high-performance languages.
+with the structure of taking a vector as input and returning a scalar as output.
 
 ## Integration
 
 TransitionsInTimeseries.jl is designed to be well integrated into the Julia ecosystem.
 Functions can be imported from other packages and subsequently passed as indicators or
-change metrics. For instance, the skewness implemented above can be loaded from another julia
-package instead of being programmed by the user:
-
-```julia
-using StatsBase
-indicators = (var, ar1_whitenoise, StatsBase.skewness)
-```
-
-TransitionsInTimeseries.jl therefore offers an extremely wide and
+change metrics. For instance, the skewness implemented above can be loaded from StatsBase.jl
+instead. TransitionsInTimeseries.jl therefore offers an extremely wide and
 potentially unlimited library of indicators. Furthermore, TimeseriesSurrogates.jl
 [@haaga_timeseriessurrogatesjl_2022] is used to create surrogates of the timeseries,
-thus offering optimized routines with numerous surrogate types. Finally,
-`plot_changes_significance` showcased in [Fig. 1](@figure1) relies on Makie.jl, which allows
-the user to customize the figures according to their needs.
+thus offering optimized routines with numerous surrogate types.
 
 # Comparison to already existing alternatives
 
