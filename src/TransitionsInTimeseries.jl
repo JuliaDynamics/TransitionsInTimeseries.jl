@@ -34,7 +34,6 @@ include("significance/slope_significance.jl")
 
 include("indicators/critical_slowing_down.jl")
 include("indicators/distribution_distance.jl")
-include("indicators/nlts.jl")
 include("indicators/spectral.jl")
 include("indicators/statistics.jl")
 
@@ -51,7 +50,7 @@ export PrecomputableFunction, precompute
 export ar1_whitenoise
 export LowfreqPowerSpectrum, PrecomputedLowfreqPowerSpectrum
 export mean, std, var, skewness, kurtosis # from StatsBase
-export permutation_entropy
+export kolmogorov_smirnov
 export kendalltau, spearman
 export ridgematrix, RidgeRegressionSlope, PrecomputedRidgeRegressionSlope
 export difference_of_means, difference_of_maxes

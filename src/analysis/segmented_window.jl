@@ -97,10 +97,16 @@ function estimate_changes(config::SegmentedWindowConfig, x, t)
                 chametric = one2one ? precomp_change_metrics[k][i] :
                     precomp_change_metrics[k][1]
                 z = view(x_indicator[k], :, i)
-                windowmap!(indicator, z, xseg;
-                    width = config.width_ind, stride = config.stride_ind
-                )
-                x_change[k, i] = chametric(z)
+                if isnothing(indicator)
+                    z = xseg[config.width_ind:config.stride_ind:end]
+                else
+                    windowmap!(indicator, z, xseg;
+                        width = config.width_ind, stride = config.stride_ind
+                    )
+                end
+                if !isnothing(chametric)
+                    x_change[k, i] = chametric(z)
+                end
             end
         end
     end
