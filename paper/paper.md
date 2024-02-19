@@ -1,10 +1,10 @@
 ---
 title: 'TransitionInTimeSeries.jl: A performant, extensible and reliable software for
-reproducible detection and prediction of transitions in time series'
+reproducible detection and prediction of transitions in timeseries'
 tags:
  - Julia
  - nonlinear dynamics
- - time series analysis
+ - timeseries analysis
  - change point detection
  - resilience loss
  - critical slowing down
@@ -35,12 +35,12 @@ and society. Examples of this are ubiquitous and include the onset of cardiac ar
 and the recent price collapse of many cryptocurrencies [@ismail_detecting_2020]. The systems
 displaying such transitions are therefore usually monitored by measuring state variables
 that are believed to be representative of the underlying process. Researchers analyze the
-resulting time series with various methods to detect past transitions and predict
+resulting timeseries with various methods to detect past transitions and predict
 future ones.
 
 # Statement of need
 
-Over the last decades, methods to detect and predict transitions from time series have gained
+Over the last decades, methods to detect and predict transitions from timeseries have gained
 a lot of attention, both inside and outside of the scientific community. For instance, recent
 work predicting a collapse of the Atlantic Meridional Overturning Circulation between 2025
 and 2095 has led to no less than 870 news outlets and 4100 tweets [@ditlevsen_warning_2023],
@@ -49,7 +49,7 @@ However, some published work is not reproducible despite their strong policy imp
 This can be largely addressed by a unifying software that is accessible, performant,
 reproducible, reliable and extensible, and we therefore propose TransitionsInTimeseries.jl.
 We believe this is a major step towards establishing a software as standard, widely used
-by academics working on transitions in time series.
+by academics working on transitions in timeseries.
 
 # TransitionsInTimeseries.jl
 
@@ -64,15 +64,15 @@ to the software as well as to suggest new ones by opening a pull request or an i
 ### Ease of use
 
 TransitionsInTimeseries.jl is accessible to any scientist thanks to the convenience functions
-it provides to detect and predict transitions in time series
+it provides to detect and predict transitions in timeseries
 with only a few lines of code. A frequent prediction technique relies on observing, prior to
 a transition, an increase of the variance and the AR1 regression coefficient of the detrended
-time series, which is a consequence of Critical Slowing Down
+timeseries, which is a consequence of Critical Slowing Down
 (CSD, [@scheffer_early-warning_2009]) and is here measured by Kendall's $\tau$ coefficient.
 To assess whether this increase is significant, one can perform a statistical test, for
-instance by performing the same computations on 1,000 surrogates of the original time series
+instance by performing the same computations on 1,000 surrogates of the original timeseries
 [@haaga_timeseriessurrogatesjl_2022]. The increase in variance and AR1 coefficient can be
-considered significant if the original time series classifies in the uppermost 5% of the
+considered significant if the original timeseries classifies in the uppermost 5% of the
 surrogates, corresponding to a p-value $p<0.05$. All these steps can be performed, along with a
 visualisation of the results within a few lines only:
 
@@ -145,7 +145,7 @@ to the reliability of the results.
 TransitionsInTimeseries.jl detaches the degrees of freedom that are available to the user
 from the analysis pipeline. Methods for detection and prediction can thus be applied equally
 well, since both typically rely on the computation of statistical measures over windows of
-the time series. This is of great importance, since a new prediction technique needs to first
+the timeseries. This is of great importance, since a new prediction technique needs to first
 be tested on hindcasting tasks, which requires a reliable detection and timing
 of previous transitions. To illustrate this, a detection task can be performed by merely
 modifying the indicators, change metrics and window type of the code shown above:
@@ -162,7 +162,7 @@ config = SlidingWindowConfig(indicators, change_metrics;
 
 This example showcases that steps of the analysis pipeline can be skipped altogether, as
 done here for the computation of indicators, since the change
-metric of the original time series is already sufficient to detect a transition by comparing
+metric of the original timeseries is already sufficient to detect a transition by comparing
 the difference in mean and maximum values between the two halves of the sliding window.
 Furthermore, the user can define their own `IndicatorChangesConfig` - for instance instead of
 `SlidingWindowConfig` - and are therefore capable of adding new ways of computing the
@@ -202,7 +202,7 @@ indicators = (var, ar1_whitenoise, StatsBase.skewness)
 
 TransitionsInTimeseries.jl therefore offers an extremely wide and
 potentially unlimited library of indicators. Furthermore, TimeseriesSurrogates.jl
-[@haaga_timeseriessurrogatesjl_2022] is used to create surrogates of the time series,
+[@haaga_timeseriessurrogatesjl_2022] is used to create surrogates of the timeseries,
 thus offering optimized routines with numerous surrogate types. Finally,
 `plot_changes_significance` showcased in [Fig. 1](@figure1) relies on Makie.jl, which allows
 the user to customize the figures according to their needs.
@@ -229,7 +229,7 @@ performed each computation 100 times and show the resulting run times in [Fig. 2
 It appears that all computation are faster in TransitionsInTimeseries, with a speed-up factor
 ranging from 0 to 3 orders of magnitude. The implementation of the deep-learning classifiers
 for transition prediction developed in [@bury_deep_2021], as well as dealing with
-multidimensional time series, are part of future developments of TransitionsInTimeseries.jl.
+multidimensional timeseries, are part of future developments of TransitionsInTimeseries.jl.
 
 ![Performance comparison between `ewstools` and TransitionsInTimeseries.jl.\label{fig: fig1}](figures/figure2.png)
 
