@@ -2,7 +2,7 @@
     SegmentedWindowConfig <: IndicatorsChangeConfig
     SegmentedWindowConfig(indicators, change_metrics, tseg_start, tseg_end; kwargs...)
 
-A configuration that can be given to [`estimate_indicator_changes`](@ref).
+A configuration that can be given to [`estimate_changes`](@ref).
 It estimates transitions by estimating indicators and changes in user-defined
 window segments as follows:
 
@@ -23,7 +23,7 @@ The results output corresponding to `SlidingWindowConfig` is [`SegmentedWindowRe
 - `min_width_cha::Int=typemax(Int)`: minimal width required to perform the change metric estimation.
   If a segment is not sufficiently long, the change metric is `NaN`.
 """
-struct SegmentedWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
+struct SegmentedWindowConfig{F, G, W<:Function} <: ChangesConfig
     indicators::F
     change_metrics::G
     tseg_start::Vector
@@ -62,7 +62,7 @@ function SegmentedWindowConfig(
     )
 end
 
-function estimate_indicator_changes(config::SegmentedWindowConfig, x, t)
+function estimate_changes(config::SegmentedWindowConfig, x, t)
     X, T = eltype(x), eltype(t)
     (; indicators, change_metrics, tseg_start, tseg_end) = config
     n_ind = length(indicators)
@@ -122,9 +122,9 @@ function segment_time(t::AbstractVector, t1, t2)
 end
 
 """
-    SegmentedWindowResults <: IndicatorsChangesResults
+    SegmentedWindowResults <: ChangesResults
 
-A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+A struct containing the output of [`estimate_changes`](@ref) used with
 [`SegmentedWindowConfig`](@ref). It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 
@@ -148,7 +148,7 @@ It has the following fields that the user may access
 - `precomp_change_metrics` vector containing the precomputed change metrics of each segment.
 """
 struct SegmentedWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X},
-    W, Z} <: IndicatorsChangesResults
+    W, Z} <: ChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::Vector{Vector{T}}

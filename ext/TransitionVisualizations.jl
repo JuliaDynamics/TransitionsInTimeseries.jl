@@ -6,10 +6,10 @@ using TransitionsInTimeseries, Makie
 const default_accent_linewidth = 3
 const default_colors = ["#7143E0", "#0A9A84", "#191E44", "#AF9327", "#701B80", "#2E6137"]
 
-default_indicator_label(res::IndicatorsChangesResults) = [shortname(
+default_indicator_label(res::ChangesResults) = [shortname(
     ind) for ind in res.config.indicators]
 
-default_chametric_label(res::IndicatorsChangesResults) = [shortname(
+default_chametric_label(res::ChangesResults) = [shortname(
     cha_metric) for cha_metric in res.config.change_metrics]
 
 shortname(metric) = string(nameof(metric))
@@ -85,7 +85,7 @@ function init_rowwise_visualisation(res, colors, indicator_names,
     raxs[end].xlabel = "Time"
     Makie.rowgap!(fig.layout, 10)
 
-    elements = [LineElement(color = (colors[1], transparency), linewidth = lw) for 
+    elements = [LineElement(color = (colors[1], transparency), linewidth = lw) for
         (lw, transparency) in [(accent_linewidth, 1), (1, 0.5)]]
     labels = ["original signal", "surro signals"]
     width = 0.5

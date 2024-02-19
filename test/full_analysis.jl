@@ -118,7 +118,7 @@ end
     config = SlidingWindowConfig(nothing, (difference_of_means, difference_of_maxes);
         width_cha = 100, stride_cha = 50)
 
-    res = estimate_indicator_changes(config, z)
+    res = estimate_changes(config, z)
 
     c = res.x_change[:, 1]
 

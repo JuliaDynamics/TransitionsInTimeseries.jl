@@ -1,8 +1,8 @@
 """
-    SlidingWindowConfig <: IndicatorsChangesConfig
+    SlidingWindowConfig <: ChangesConfig
     SlidingWindowConfig(indicators, change_metrics; kwargs...)
 
-A configuration that can be given to [`estimate_indicator_changes`](@ref).
+A configuration that can be given to [`estimate_changes`](@ref).
 It estimates transitions by a sliding window approach:
 
 1. Estimate the timeseries of an indicator by sliding a window over the input timeseries.
@@ -32,7 +32,7 @@ the change metrics are estimated directly from input data.
 - `width_cha::Int=50, stride_cha::Int=1`: width and stride given to [`WindowViewer`](@ref)
   to compute the change metric timeseries from the indicator timeseries.
 - `whichtime = midpoint`: The time vector corresponding to the indicators / change metric
-  timeseries is obtained from `t` in [`estimate_indicator_changes`](@ref) using the keyword
+  timeseries is obtained from `t` in [`estimate_changes`](@ref) using the keyword
   `whichtime`. Options include:
     - `last`: use the last timepoint of each window
     - `midpoint`: use the mid timepoint of each time window
@@ -46,7 +46,7 @@ the change metrics are estimated directly from input data.
   such as `mean` or `median`.
 - `T = Float64`: Element type of input timeseries to initialize some computations.
 """
-struct SlidingWindowConfig{F, G, W<:Function} <: IndicatorsChangesConfig
+struct SlidingWindowConfig{F, G, W<:Function} <: ChangesConfig
     indicators::F
     change_metrics::G
     width_ind::Int
@@ -96,7 +96,7 @@ end
 # and the other overwrites in place. This makes it easier
 # to apply for surrogates as well!
 
-function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachindex(x))
+function estimate_changes(config::SlidingWindowConfig, x, t = eachindex(x))
     (; indicators, change_metrics) = config
     # initialize time vectors
     if isnothing(indicators)
@@ -142,9 +142,9 @@ function estimate_indicator_changes(config::SlidingWindowConfig, x, t = eachinde
 end
 
 """
-    SlidingWindowResults <: IndicatorsChangesResults
+    SlidingWindowResults <: ChangesResults
 
-A struct containing the output of [`estimate_indicator_changes`](@ref) used with
+A struct containing the output of [`estimate_changes`](@ref) used with
 [`SlidingWindowConfig`](@ref). It can be used for further analysis, visualization,
 or given to [`significant_transitions`](@ref).
 
@@ -162,7 +162,7 @@ It has the following fields that the user may access
 - `config::SlidingWindowConfig`, what was used for the analysis.
 """
 struct SlidingWindowResults{TT, T<:Real, X<:Real, XX<:AbstractVector{X}, IT,
-    W} <: IndicatorsChangesResults
+    W} <: ChangesResults
     t::TT # original time vector; most often it is `Base.OneTo`.
     x::XX
     t_indicator::IT

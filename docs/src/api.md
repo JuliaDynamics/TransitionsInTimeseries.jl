@@ -3,11 +3,11 @@
 ## Main analysis functions
 
 ```@docs
-IndicatorsChangesConfig
+ChangesConfig
 SlidingWindowConfig
 SegmentedWindowConfig
-estimate_indicator_changes
-IndicatorsChangesResults
+estimate_changes
+ChangesResults
 SlidingWindowResults
 SegmentedWindowResults
 ```
@@ -16,7 +16,7 @@ SegmentedWindowResults
 
 ```@docs
 significant_transitions
-TransitionsSignificance
+Significance
 SurrogatesSignificance
 ThresholdSignificance
 SigmaSignificance

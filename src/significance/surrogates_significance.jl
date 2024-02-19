@@ -1,5 +1,5 @@
 """
-    SurrogatesSignificance <: TransitionsSignificance
+    SurrogatesSignificance <: Significance
     SurrogatesSignificance(; kwargs...)
 
 A configuration struct for significance testing [`significant_transitions`](@ref)
@@ -15,7 +15,7 @@ using timeseries surrogates.
 
 ## Description
 
-When used with [`IndicatorsChangesResults`](@ref), significance is estimated as follows:
+When used with [`ChangesResults`](@ref), significance is estimated as follows:
 `n` surrogates from the input timeseries are generated using `surromethod`, which is
 any `Surrogate` subtype provided by
 [TimeseriesSurrogates.jl](https://juliadynamics.github.io/TimeseriesSurrogates.jl/dev/api/).
@@ -34,13 +34,13 @@ higher change metric values. This is the case for statistics
 that quantify entropy. For statistics that quantify autocorrelation, use `tail = :right`
 instead. For anything else, use the default `tail = :both`.
 An iterable of `tail` values can also be given, in which case a specific `tail`
-is used for each change metric in [`IndicatorsChangesResults`](@ref).
+is used for each change metric in [`ChangesResults`](@ref).
 
 Note that the raw p-values can be accessed in the field `.pvalues`, after calling the
 [`significant_transitions`](@ref) function with `SurrogatesSignificance`, in case you wish
 to obtain a different threshold of the p-values.
 """
-mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: TransitionsSignificance
+mutable struct SurrogatesSignificance{S<:Surrogate, T, R} <: Significance
     surrogate::S
     n::Int
     tail::T

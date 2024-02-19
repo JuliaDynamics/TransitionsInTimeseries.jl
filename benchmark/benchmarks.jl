@@ -56,11 +56,11 @@ config = SlidingWindowConfig(indicators, change_metrics;
     width_cha = 100, stride_cha = 1, whichtime = last,
 )
 
-res = estimate_indicator_changes(config, x, t)
+res = estimate_changes(config, x, t)
 signif = SurrogatesSignificance(n = 100, tail = :both, p = 0.1)
 flags = significant_transitions(res, signif)
 
-@btime estimate_indicator_changes($config, $x, $t)
+@btime estimate_changes($config, $x, $t)
 # 141.557 μs (4 allocations: 40.56 KiB)
 @btime significant_transitions($res, $signif)
 #=
