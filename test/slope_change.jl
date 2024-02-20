@@ -28,12 +28,11 @@ end
     @test tcross ≈ t1[end] atol = 1e-1
 end
 
-
 @testset "significance" begin
     function fakedata(σ = 0.5)
         x1 = σ*randn(rng, 100)
         x2 = σ*randn(rng, 100) .+ range(0, 5; length = 100)
-        x = vcat(x1, x2)
+        return vcat(x1, x2)
     end
 
     x = fakedata()
