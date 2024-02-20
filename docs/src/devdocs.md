@@ -5,7 +5,7 @@ All contributions come in the form of Pull Requests, for which we strongly advis
 
 ## New indicators or change metrics
 
-As explained already in e.g., [`SlidingIndicatorConfig`](@ref), new indicators or change metrics are standard Julia functions, so you only need to define such a function (and document it, test it, etc.).
+As explained already in e.g., [`SlidingWindowConfig`](@ref), new indicators or change metrics are standard Julia functions, so you only need to define such a function (and document it, test it, etc.).
 
 ## New pipeline for estimating changes
 
