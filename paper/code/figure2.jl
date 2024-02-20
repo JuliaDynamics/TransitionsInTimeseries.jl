@@ -23,7 +23,7 @@ function main()
         t0 = time()
         for i in 1:n
             # Compute the metrics over sliding windows and their significance
-            results = estimate_indicator_changes(config, x, t)
+            results = estimate_changes(config, x, t)
         end
         t_elapsed[i] = (time() - t0) / 2
     end
@@ -32,7 +32,7 @@ function main()
         width_ind = length(x) ÷ 2, stride_ind = 1, whichtime = last, min_width_cha = 1)
     t0 = time()
     for i in 1:n
-        results = estimate_indicator_changes(config, x, t)
+        results = estimate_changes(config, x, t)
     end
     t_elapsed[m+1] = (time() - t0) / 2
 

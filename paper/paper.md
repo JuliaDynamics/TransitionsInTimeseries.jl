@@ -48,7 +48,7 @@ largely because of the substantial implications of such a collapse for human soc
 A common concern in the scientific community is that published work on the topic is difficult
 to reproduce, despite the impact it implies for humanity.
 This can be largely addressed by a unifying software that is accessible, performant,
-reproducible, reliable and extensible. Such a software does not exist yet, but here 
+reproducible, reliable and extensible. Such a software does not exist yet, but here
 we propose TransitionsInTimeseries.jl to fill this gap.
 We believe this is a major step towards establishing a software as standard, widely used
 by academics working on transitions in timeseries.
@@ -91,7 +91,7 @@ config = SegmentedWindowConfig(indicators, change_metrics, [time[1]], [time[end]
     width_ind = length(residual) ÷ 2, whichtime = last, min_width_cha = 100)
 
 # Compute the metrics over sliding windows and their significance
-results = estimate_indicator_changes(config, data, time)
+results = estimate_changes(config, data, time)
 signif = SurrogatesSignificance(n = 1000, tail = :right, rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 
@@ -176,7 +176,7 @@ thus offering optimized routines with numerous surrogate types.
 
 TransitionsInTimeseries.jl covers methods for prediction as well as detection of transitions,
 which is unprecedented to our knowledge. This relies on the definition of different analysis pipelines, which
-consist in a `ChangesConfig` determining the behavior of `estimate_indicator_changes` via
+consist in a `ChangesConfig` determining the behavior of `estimate_changes` via
 multiple dispatch. For instance, a detection
 task can be performed by replacing the `SegmentedWindowConfig` by a `SlidingWindowConfig`
 in the code above:
@@ -189,7 +189,7 @@ indicators = (nothing, nothing)
 change_metrics = (difference_of_mean(), difference_of_max())
 config = SlidingWindowConfig(indicators, change_metrics;
    width_cha = 50, whichtime = midpoint)
-results = estimate_indicator_changes(config, data, time)
+results = estimate_changes(config, data, time)
 ```
 
 We here skip the computation of indicators and compare the difference in mean and maximum
@@ -203,7 +203,7 @@ ways of testing for significance are provided and can be interchangeably used.
 
 Besides choosing among the already provided analysis pipelines,
 the user can implement their own one by defining a new `ChangesConfig` and
-the corresponding behavior of `estimate_indicator_changes`. This makes it particularly
+the corresponding behavior of `estimate_changes`. This makes it particularly
 easy to leverage pre-existing functionalities of TransitionsInTimeseries.jl
 with a minimal restriction on the structure. As explained in the devdocs, the latter eases
 the integration of new methods into a unified framework. This also holds for the
