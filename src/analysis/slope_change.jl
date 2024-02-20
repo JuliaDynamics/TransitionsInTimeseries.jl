@@ -7,7 +7,7 @@ import LsqFit
 A configuration that can be given to [`estimate_changes`](@ref).
 It estimates a change of slope in the timeseries by fitting two
 connected linear segments to the timeseries,
-returning the results (i.e., the two-linear fit) as [`SlopeChangeResults`](@ref).
+returning the results (i.e., the two-linear fits) as [`SlopeChangeResults`](@ref).
 
 ## Keyword arguments
 - `indicator = nothing`: if not nothing, it should be a function `f(x) -> Real`.
