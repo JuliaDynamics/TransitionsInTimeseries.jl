@@ -1,4 +1,5 @@
 using TransitionsInTimeseries, Test, Random, TimeseriesSurrogates, Distributions
+using StableRNGs
 
 # Check if AR1 regression parameter from a known AR1 process with white noise
 # is successfully estimated.
@@ -24,11 +25,11 @@ end
 # Test kolmogorov_smirnov by sampling different distributions
 @testset "kolmogorov_smirnov" begin
     n = 1000
-
+    rng = StableRNG(1234)
     distributions = [Uniform(), Normal(), Binomial()]
     for (i, d1) in enumerate(distributions)
         for (j, d2) in enumerate(distributions)
-            x = vcat(rand(d1, n), rand(d2, n))
+            x = vcat(rand(rng, d1, n), rand(rng, d2, n))
             if i == j
                 @test kolmogorov_smirnov(x) > 0.1
             else

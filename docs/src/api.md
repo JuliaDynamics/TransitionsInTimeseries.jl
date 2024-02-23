@@ -3,13 +3,31 @@
 ## Main analysis functions
 
 ```@docs
-ChangesConfig
-SlidingWindowConfig
-SegmentedWindowConfig
 estimate_changes
+ChangesConfig
 ChangesResults
+```
+
+### Sliding window
+
+```@docs
+SlidingWindowConfig
 SlidingWindowResults
+```
+
+### Segmented window
+
+```@docs
+SegmentedWindowConfig
 SegmentedWindowResults
+```
+
+
+### Slope change
+
+```@docs
+SlopeChangeConfig
+SlopeChangeResults
 ```
 
 ## Significance testing
@@ -21,9 +39,13 @@ SurrogatesSignificance
 ThresholdSignificance
 SigmaSignificance
 QuantileSignificance
+SlopeChangeSignificance
 ```
 
 ## [Indicators](@id indicators)
+
+Note that any Julia function can be an indicator or change metric,
+so the list here is only just a couple of indicators directly implemented in this package.
 
 ### Value distribution
 

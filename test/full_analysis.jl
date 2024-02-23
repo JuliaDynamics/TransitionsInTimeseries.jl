@@ -23,7 +23,7 @@ end
         width_cha = w, stride_cha = s, whichtime = last,
     )
 
-    res = estimate_indicator_changes(config, x, t)
+    res = estimate_changes(config, x, t)
     ni, nc = length(res.t_indicator), length(res.t_change)
 
     # Mean of identity is identity with offset; its trend is the stride for x=t
@@ -83,7 +83,7 @@ end
         width_ind = w, stride_ind = s, min_width_cha = 30, whichtime = last,
     )
 
-    res = estimate_indicator_changes(config, x, t)
+    res = estimate_changes(config, x, t)
 
     # Mean of identity is identity with offset; its trend is the stride for x=t
     mean_ground_truth = range((w+1)/2, step = s, length = length(t) - w + 1)
