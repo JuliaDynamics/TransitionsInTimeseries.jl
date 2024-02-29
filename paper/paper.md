@@ -236,7 +236,7 @@ multidimensional timeseries, are part of future developments of TransitionsInTim
 # Documentation
 
 The documentation of TransitionsInTimseries.jl is available at
-[https://docs.juliahub.com/General/TransitionsInTimeseries/stable/]
+<https://docs.juliahub.com/General/TransitionsInTimeseries/stable/>
 
 # Acknowledgements
 
