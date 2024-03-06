@@ -81,7 +81,7 @@ results = estimate_changes(config, x, rs)
 # Let's now plot the change metrics of the indicators
 
 function plot_change_metrics()
-    fig, ax = lines(rs, x; axis = (ylabel = "input",), figure = (resolution = (600, 600),))
+    fig, ax = lines(rs, x; axis = (ylabel = "input",), figure = (size = (600, 600),))
     hidexdecorations!(ax; grid = false)
     ## plot all change metrics
     for (i, c) in enumerate(eachcol(results.x_change))

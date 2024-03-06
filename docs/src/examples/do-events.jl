@@ -124,7 +124,7 @@ function kyr_xticks(tticks_yr)
 end
 
 function plot_do(traw, xraw, tfilt, xfilt, t, r, t_transitions, xlims, xticks)
-    fig = Figure(resolution = (1600, 1200), fontsize = 24)
+    fig = Figure(size = (1600, 1200), fontsize = 24)
 
     ## Original timeseries with transition marked by vertical lines
     ax1 = Axis(fig[1, 1], xlabel = L"Time (kyr) $\,$", ylabel = L"$\delta^{18}$O (permil)",

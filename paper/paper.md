@@ -12,17 +12,15 @@ tags:
 authors:
  - name: Jan Swierczek-Jereczek
    orcid: 0000-0003-2213-0423
-   affiliation: "1, 2"
+   affiliation: 1
  - name: George Datseris
    orcid: 0000-0003-0872-7098
-   affiliation: 3
+   affiliation: 2
 affiliations:
 - name: Department of Earth Physics and Astrophysics, Complutense University of Madrid.
   index: 1
-- name: Geosciences Institute, CSIC-UCM.
-  index: 2
 - name: Department of Mathematics and Statistics, University of Exeter.
-  index: 3
+  index: 2
 date: 13 February 2024
 bibliography: paper.bib
 ---
@@ -238,7 +236,7 @@ multidimensional timeseries, are part of future developments of TransitionsInTim
 # Documentation
 
 The documentation of TransitionsInTimseries.jl is available at
-[https://docs.juliahub.com/General/TransitionsInTimeseries/stable/]
+<https://docs.juliahub.com/General/TransitionsInTimeseries/stable/>
 
 # Acknowledgements
 
