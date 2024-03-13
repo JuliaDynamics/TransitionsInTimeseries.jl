@@ -1,5 +1,5 @@
 ---
-title: 'TransitionInTimeSeries.jl: A performant, extensible and reliable software for
+title: 'TransitionsInTimeseries.jl: A performant, extensible and reliable software for
 reproducible detection and prediction of transitions in timeseries'
 tags:
  - Julia
