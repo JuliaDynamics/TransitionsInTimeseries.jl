@@ -6,17 +6,16 @@
 [![codecov](https://codecov.io/gh/JuliaDynamics/TransitionsInTimeseries.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaDynamics/TransitionsInTimeseries.jl)
 [![Package Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/TransitionsInTimeseries)](https://pkgs.genieframework.com?packages=TransitionsInTimeseries)
 
-A Julia package for estimating transitions (from one dynamic regime or stable state to another) in timeseries and testing the statistical significance of found transitions. It integrates with the entire Julia ecosystem of timeseries analysis, and hence offers thousands of metrics that can indicate transitions right out of the box. It also offers a variety of analysis pipelines for identifying transitions and a variety of statistical pipelines for testing for significance.
 
-In contrast to other existing software with similar target application, TransitionsInTimeseries.jl defines a generic interface for how to find transitions and how to test for significance. Within this interface, it is easy to expand the software in three orthogonal ways:
+TransitionsInTimeseries.jl is a free and open-source software to easily analyse transitions within timeseries in a reproducible, performant, extensible and reliable way. In contrast to other existing software with similar target application, TransitionsInTimeseries.jl defines a generic interface for how to find transitions and how to test for significance. Within this interface, it is easy to expand the software in three orthogonal ways:
 
-1. Add new indicators that work with the existing analysis pipelines for finding transitions
-2. Add new analysis pipelines for finding transitions
-3. Add new ways for testing whether already found transitions are significant
+1. Provide the analysis pipelines with new indicators, which can be either self-written or imported from other packages. In particular, the latter offers thousands of metrics that can indicate transitions right out of the box.
+2. Add new analysis pipelines for finding transitions.
+3. Add new ways for significance testing.
 
-This package is currently under active development and not yet registered in the Julia general registry. To install it, first go into package-manager mode in the Julia REPL (press `]`) and then run
+TransitionsInTimeseries is a registered Julia package and can be installed by running:
 ```
-add https://github.com/JuliaDynamics/TransitionsInTimeseries.jl
+] add TransitionsInTimeseries
 ```
 
 All further information is provided in the documentation, which you can either find [online](https://juliadynamics.github.io/TransitionsInTimeseries.jl/dev/) or build locally by running the `docs/make.jl` file.

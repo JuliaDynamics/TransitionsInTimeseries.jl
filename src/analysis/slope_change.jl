@@ -38,7 +38,7 @@ function estimate_changes(config::ChangesConfig, x, t = eachindex(x))
             width = config.width_ind, stride = config.stride_ind
         )
     end
-    p0 = guess_initial_p(x, t)
+    p0 = guess_initial_p(x_indicator, t_indicator)
     fit = LsqFit.curve_fit(twolinear, t_indicator, x_indicator, p0)
     pbest = LsqFit.coef(fit)
     a, b, c, d = pbest

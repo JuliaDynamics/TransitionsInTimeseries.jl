@@ -23,15 +23,21 @@ end
 
 @testset "indicator" begin
     y = cumsum(x)
-    config = SlopeChangeConfig(indicators = y -> y[2] - y[1], width_ind = 2)
+    config = SlopeChangeConfig(indicators = y -> y[2] - y[1], width_ind = 2, whichtime = last)
     res = estimate_changes(config, y, t)
-    @test tcross ≈ t1[end] atol = 1e-1
+    a, b, c, d = res.fitparams
+
+    tcross = first(res.t_change)
+    @test tcross ≈ t1[end] atol = 2e-1
+    @test b ≈ 1 atol = 1e-1
+    @test d ≈ -1 atol = 1e-1
 end
 
 @testset "significance" begin
     function fakedata(σ = 0.5)
         x1 = σ*randn(rng, 100)
         x2 = σ*randn(rng, 100) .+ range(0, 5; length = 100)
+        # 1st: slope = 0, 2nd: slope = 0.05
         return vcat(x1, x2)
     end
 
@@ -39,7 +45,8 @@ end
     for (flag, σ) in zip((true, false), (0.5, 5.0))
         x = fakedata(σ)
         res = estimate_changes(SlopeChangeConfig(), x)
-        signif = SlopeChangeSignificance(; moe_slope = 0.1, moe_offset = 1.0)
+        signif = SlopeChangeSignificance(; moe_slope = 0.1, moe_offset = 1.0,
+            slope_diff = 0.03)  # according to only 0.05 slope difference in data
         out = significant_transitions(res, signif)
         @test first(out) == flag
     end

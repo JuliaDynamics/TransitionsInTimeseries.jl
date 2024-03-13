@@ -28,6 +28,6 @@ function significant_transitions(res::SlopeChangeResults, signif::SlopeChangeSig
         moe[2] ≤ signif.moe_slope &&
         moe[4] ≤ signif.moe_slope)
 
-    slopeflag = abs(res.fitparams[2] - res.fitparams[4]) > moe_slope
+    slopeflag = abs(res.fitparams[2] - res.fitparams[4]) > signif.slope_diff
     return [moeflag && slopeflag]
 end
