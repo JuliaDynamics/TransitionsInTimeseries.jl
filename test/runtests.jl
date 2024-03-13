@@ -9,4 +9,5 @@ testfile(file, testname=defaultname(file)) = @testset "$testname" begin; include
     testfile("indicators.jl")
     testfile("change_metrics.jl")
     testfile("full_analysis.jl")
+    testfile("slope_change.jl")
 end
