@@ -1,7 +1,7 @@
 # Developer's documentation
 
 This documentation addresses users that would like to contribute to the software by either solving bugs, improving documentation, or adding new methods.
-All contributions come in the form of Pull Requests, for which we strongly advise to follow [good practices in scientific code](https://github.com/JuliaDynamics/GoodScientificCodeWorkshop), which means that they properly formatted, documented, tested, etc.
+All contributions come in the form of Pull Requests, for which we strongly advise to follow [good practices in scientific code](https://github.com/JuliaDynamics/GoodScientificCodeWorkshop), which means that they are properly formatted, documented, tested, etc.
 
 ## New indicators or change metrics
 
