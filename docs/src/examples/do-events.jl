@@ -189,7 +189,7 @@ signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro
 flags = significant_transitions(results, signif)
 
 #=
-That's it! We can now visulaise our results with a generic function that we will re-use later:
+That's it! We can now visualise our results with a generic function that we will re-use later:
 =#
 
 function plot_segment_analysis!(axs, results, signif)
@@ -222,7 +222,7 @@ In contrast, we here respectively find 9/16 true positives
 for the variance and 3/16 for AC1. We can track down the discrepancies to be in the
 surrogate testing, since the indicator timeseries computed here are almost exactly
 similar to those of [boers-early-warning-2018](@cite). This mismatch points
-out that packages like TransitionsInTimeseries.jl are wishful for research to be
+out that packages like TransitionsInTimeseries.jl are desirable for research to be
 reproducible, especially since CSD is gaining attention - not only within the
 scientific community but also in popular media.
 
@@ -254,19 +254,30 @@ plot_segment_analysis!(axs, results, signif)
 fig
 
 #=
-For the variance and AC1, we here respectively find 6 and 3 positives, although the transitions are still far ahead. This shows that what CSD captures is a potential widening induced by a shift of the forcing parameter rather than the actual transition. We therefore believe, as already suggested in some studies, that "resilience-loss indicators" is a more accurate name than "early-warning signals" when using CSD.
+For the variance and AC1, we here respectively find 6 and 3 positives, although the transitions are still far ahead.
+This shows that what CSD captures is a potential widening induced by a shift of the forcing parameter rather than the actual transition.
+We therefore believe, as already suggested in some studies,
+that "resilience-loss indicators" is a more accurate name than "early-warning signals" when using CSD.
 
-We draw attention upon the fact that the $\delta^{18}O$ timeseries is noisy and sparsely re-sampled. Furthermore, interpolating over time introduces a potential bias in the statistics, even if performed on a coarse grid. The NGRIP data therefore represents an example that should be handled with care - as many others where CSD analysis has been applied on transitions in the field of geoscience. To contrast with this, we propose to perform the same analysis on synthethic DO data, obtained from an Earth Model of Intermediate Complexity (EMIC).
+We draw attention upon the fact that the $\delta^{18}O$ timeseries is noisy and sparsely re-sampled.
+Furthermore, interpolating over time introduces a potential bias in the statistics, even if performed on a coarse grid.
+The NGRIP data therefore represents an example that should be handled with care - as many others where CSD analysis has been applied on transitions in the field of geoscience.
+To contrast with this, we propose to perform the same analysis on synthethic DO data, obtained from an Earth Model of Intermediate Complexity (EMIC).
 
 !!! warning "Degrees of freedom"
-    These sources of error come along the usual problem of arbitrarily choosing (1) a filtering method, (2) windowing parameters and (3) appropriate metrics (for instance when the forcing noise is suspected to be correlated). This leads to a large number of degrees of freedom (DoF). Although sensible guesses are possible here, checking that results are robust w.r.t. the DoF should be a standard practice.
+    These sources of error come along the usual problem of arbitrarily choosing (1) a filtering method, (2) windowing parameters and (3) appropriate metrics (for instance when the forcing noise is suspected to be correlated).
+    This leads to a large number of degrees of freedom (DoF).
+    Although sensible guesses are possible here, checking that results are robust w.r.t. the DoF should be a standard practice.
 
 !!! info "Future improvement"
-    Supporting the computations for uneven timeseries is a planned improvement of TransitionsInTimeseries.jl. This will avoid the need of regridding data on coarse grids and will prevent from introducing any bias.
+    Supporting the computations for uneven timeseries is a planned improvement of TransitionsInTimeseries.jl.
+    This will avoid the need of regridding data on coarse grids and will prevent from introducing any bias.
 
 ## Hindcasting simulated DO-events
 
-In CLIMBER-X, the EMIC described in [willeit-earth-2022](@cite), DO-like events can be triggered by forcing the North Atlantic with a (white noise) freshwater input. Simulated DO-like events present the big advantage of being evenly sampled in time and free of measurement noise. We run this analysis over two exemplary simulation outputs:
+In CLIMBER-X, the EMIC described in [willeit-earth-2022](@cite), DO-like events can be triggered by forcing the North Atlantic with a (white noise) freshwater input.
+Simulated DO-like events present the big advantage of being evenly sampled in time and free of measurement noise.
+We run this analysis over two exemplary simulation outputs:
 =#
 
 t_transitions = [[1, 1850, 2970, 3970, 5070, 5810, 7050, 8050],

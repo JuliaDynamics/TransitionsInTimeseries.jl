@@ -45,7 +45,7 @@ fig
 
 # ## Using a simpler change metric
 
-# Now, let's compute and various indicators and their changes,
+# Now, let's compute various indicators and their changes,
 # focusing on the permutation entropy as an indicator. We use
 # order 4 here, because we know that to detect changes in a period `m` we would need
 # an order ≥ `m+1` permutation entropy.
