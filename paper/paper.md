@@ -77,8 +77,11 @@ surrogates, corresponding to a p-value $p<0.05$. All these steps can be performe
 visualisation of the results within a few lines only:
 
 ```julia
+using TransitionsInTimeseries, CairoMakie, Random
+
 # Loading and preprocessing the data needs to be done by the user
 time, data = load_data()
+residual = data - filt(data)
 
 # Choose the indicators and how to measure their change over time
 indicators = (var, ar1_whitenoise)
@@ -90,7 +93,7 @@ config = SegmentedWindowConfig(indicators, change_metrics, [time[1]], [time[end]
 
 # Compute the metrics over sliding windows and their significance
 results = estimate_changes(config, data, time)
-signif = SurrogatesSignificance(n = 1000, tail = :right, rng = Xoshiro(1995))
+signif = SurrogatesSignificance(n = 1000, tail = (:right, :right), rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 
 # Visualize the results
@@ -183,7 +186,7 @@ in the code above:
 # Here the data should not be detrended
 time, data = load_data()
 
-indicators = (nothing, nothing)
+indicators = nothing
 change_metrics = (difference_of_mean(), difference_of_max())
 config = SlidingWindowConfig(indicators, change_metrics;
    width_cha = 50, whichtime = midpoint)
