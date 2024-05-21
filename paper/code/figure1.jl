@@ -1,6 +1,6 @@
 using TransitionsInTimeseries, DelimitedFiles, CairoMakie, Random
 
-# Run ewstools-tuto-1.csv first to generate ricker.csv
+# Run ewstools-tuto-1.csv first to generate ewstools_ricker.csv
 x = readdlm("../data/ewstools_ricker.csv", ',')[:, end]
 x = x[isnan.(x) .== 0]
 t = eachindex(x)
