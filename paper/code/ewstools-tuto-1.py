@@ -59,5 +59,5 @@ t0 = time.time()
 surro = ewstools.core.block_bootstrap(ts.state.residuals, n, bs_type='Stationary', block_size=10)
 t_elapsed[7] = time.time() - t0
 
-np.savetxt('ricker.csv', ts.state[['residuals']].values)
-np.savetxt('t_elapsed.csv', t_elapsed)
+np.savetxt('../data/ewstools_ricker.csv', ts.state[['residuals']].values)
+np.savetxt('../data/ewstools_perfo.csv', t_elapsed)
