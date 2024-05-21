@@ -44,12 +44,15 @@ work predicting a collapse of the Atlantic Meridional Overturning Circulation be
 and 2095 has led to no less than 870 news outlets and 4100 tweets [@ditlevsen_warning_2023],
 largely because of the substantial implications of such a collapse for human societies.
 A common concern in the scientific community is that published work on the topic is difficult
-to reproduce, despite the impact it implies for humanity.
-This can be largely addressed by a unifying software that is accessible, performant,
-reproducible, reliable and extensible. Such a software does not exist yet, but here
-we propose TransitionsInTimeseries.jl to fill this gap.
-We believe this is a major step towards establishing a software as standard, widely used
-by academics working on transitions in timeseries.
+to reproduce, despite the impact it implies for humanity. Additionally, existing softwares
+[@dakos_methods_2012, @bury_ewstools_2023] are well suited to apply some state-of-the-art
+techniques but lack the possibility of being easily extended by the users, thus making them
+unsuited for some research task.
+Both of these issues can be largely addressed by a unifying software that is accessible,
+performant, reproducible, reliable and extensible. Such a software does not exist yet, but
+here we propose TransitionsInTimeseries.jl to fill this gap. We believe this is a major step
+towards establishing a software as standard, widely used by academics working on transitions
+in timeseries.
 
 # TransitionsInTimeseries.jl
 
@@ -92,7 +95,7 @@ config = SegmentedWindowConfig(indicators, change_metrics, [time[1]], [time[end]
     width_ind = length(residual) ÷ 2, whichtime = last, min_width_cha = 100)
 
 # Compute the metrics over sliding windows and their significance
-results = estimate_changes(config, data, time)
+results = estimate_changes(config, residual, time)
 signif = SurrogatesSignificance(n = 1000, tail = (:right, :right), rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 
@@ -121,7 +124,7 @@ TransitionsInTimeseries.jl is written in Julia, which offers both a simple synta
 performance. Additionally, all performance-relevant steps have been optimized and
 parallelized when possible, as, for instance, the significance testing relying on surrogates.
 In the final section of this article, we present a comparison to `ewstools`, showing that
-TransitionsInTimeseries.jl offers a significant speed-up in all the studied cases.
+TransitionsInTimeseries.jl offers a significant speed-up in most the studied cases.
 
 ## Reproducibility
 
@@ -176,11 +179,9 @@ thus offering optimized routines with numerous surrogate types.
 ### Choosing a pipeline
 
 TransitionsInTimeseries.jl covers methods for prediction as well as detection of transitions,
-which is unprecedented to our knowledge. This relies on the definition of different analysis pipelines, which
-consist in a `ChangesConfig` determining the behavior of `estimate_changes` via
-multiple dispatch. For instance, a detection
-task can be performed by replacing the `SegmentedWindowConfig` by a `SlidingWindowConfig`
-in the code above:
+which is unprecedented to our knowledge. This relies on the definition of different analysis
+pipelines, which consist in a `ChangesConfig` determining the behavior of `estimate_changes`
+via multiple dispatch. For instance, a detection task can be performed by replacing the `SegmentedWindowConfig` by a `SlidingWindowConfig` in the code above:
 
 ```julia
 # Here the data should not be detrended
@@ -213,10 +214,9 @@ significance pipeline and makes TransitionsInTimeseries.jl particularly versatil
 # Comparison to already existing alternatives
 
 `earlywarnings` [@dakos_methods_2012] and `spatialwarnings` are toolboxes written in R
-providing many tools to predict transitions.
-These are early and valuable efforts but are (1) restricted to
-prediction tasks, (2) written in a less performant language, (3) not parallelised, (4) not
-designed for convenient reproducibility and (5) not extensible.
+providing many tools to predict transitions. These are early and valuable efforts but
+are (1) restricted to prediction tasks, (2) written in a less performant language,
+(3) not parallelised, (4) not designed for convenient reproducibility and (5) not extensible.
 
 `ewstools` [@bury_ewstools_2023] is a Python/TensorFlow package offering similar
 functionalities as `earlywarnings`, as well as a deep-learning approach to predicting
@@ -227,11 +227,11 @@ detection and prediction tasks. We believe that this is now covered by
 TransitionsInTimeseries.jl.
 
 Using TransitionsInTimeseries.jl, we reproduced the computations showcased in Tutorial 1
-and Tutorial 2 of the `ewstools` documentation, along with the block bootstrapping. We
-performed each computation 100 times and show the resulting run times in [Fig. 2](@figure2).
-It appears that all computation are faster in TransitionsInTimeseries, with a speed-up factor
-ranging from 0 to 3 orders of magnitude. The implementation of the deep-learning classifiers
-for transition prediction developed in [@bury_deep_2021], as well as dealing with
+and Tutorial 2 of the `ewstools` documentation, along with the block bootstrapping. The
+runtimes of both softwares are benchmarked in [Fig. 2](@figure2).
+It appears that most computations are faster in TransitionsInTimeseries, with a speed-up
+factor ranging from 0 to 3.5 orders of magnitude. The implementation of the deep-learning
+classifiers for transition prediction developed in [@bury_deep_2021], as well as dealing with
 multidimensional timeseries, are part of future developments of TransitionsInTimeseries.jl.
 
 ![Performance comparison between `ewstools` and TransitionsInTimeseries.jl.\label{fig: fig1}](figures/figure2.png)
@@ -244,8 +244,8 @@ The documentation of TransitionsInTimseries.jl is available at
 # Acknowledgements
 
 Jan Swierczek-Jereczek is funded by CriticalEarth, grant no. 956170, an H2020 Research
-Infrastructure of the European Commission. George Datseris is funded by UKRI's Engineering and
-Physical Sciences Research Council, grant no. EP/Y01653X/1 (grant agreement for a EU
+Infrastructure of the European Commission. George Datseris is funded by UKRI's Engineering
+and Physical Sciences Research Council, grant no. EP/Y01653X/1 (grant agreement for a EU
 Marie Sklodowska-Curie Postdoctoral Fellowship).
 
 # References
