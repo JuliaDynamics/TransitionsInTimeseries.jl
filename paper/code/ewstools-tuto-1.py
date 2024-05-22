@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ewstools
 from ewstools.models import simulate_ricker
+from importlib.metadata import version
+
+if version('ewstools') != '2.1.0':
+    raise ValueError('Please install version 2.1.0 of ewstools')
 
 def ewstools_setup():
     # Initialize time series and spectrum computation

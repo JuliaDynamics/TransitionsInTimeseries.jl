@@ -227,8 +227,8 @@ detection and prediction tasks. We believe that this is now covered by
 TransitionsInTimeseries.jl.
 
 Using TransitionsInTimeseries.jl, we reproduced the computations showcased in Tutorial 1
-and Tutorial 2 of the `ewstools` documentation, along with the block bootstrapping. The
-runtimes of both softwares are benchmarked in [Fig. 2](@figure2).
+and Tutorial 2 of the `ewstools` (v2.1.0) documentation, along with the block bootstrapping.
+The runtimes of both softwares are benchmarked in [Fig. 2](@figure2).
 It appears that most computations are faster in TransitionsInTimeseries, with a speed-up
 factor ranging from 0 to 3.5 orders of magnitude. The implementation of the deep-learning
 classifiers for transition prediction developed in [@bury_deep_2021], as well as dealing with
