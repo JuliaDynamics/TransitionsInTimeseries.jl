@@ -7,10 +7,10 @@ differences in `t` are compared with `isapprox(; kwargs...)` and if all are appr
 the same then `true` is returned.
 """
 function isequispaced(t::AbstractVector; kwargs...)
-    # TODO: assert 1 based indexing
-    s = t[2] - t[1]
-    for i in 3:length(t)
-        sn = t[i] - t[i-1]
+    fi = firstindex(t)
+    s = t[fi+1] - t[fi]
+    for i in 2:length(t)-1
+        sn = t[fi+i] - t[fi+i-1]
         isapprox(sn, s; kwargs...) || return false
     end
     return true
@@ -19,9 +19,10 @@ isequispaced(t::AbstractRange; reltol = 1e-6) = true
 
 equispaced_step(t::AbstractRange) = step(t)
 function equispaced_step(t::AbstractVector)
+    fi = firstindex(t)
     s = zero(eltype(t))
-    for i in 2:length(t)
-        s += t[i] - t[i-1]
+    for i in 1:length(t)-1
+        s += t[fi+i] - t[fi+i-1]
     end
     return s/(length(t)-1)
 end
