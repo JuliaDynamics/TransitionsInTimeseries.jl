@@ -1,6 +1,8 @@
 using TransitionsInTimeseries, DelimitedFiles, CairoMakie, Random
 
-x = readdlm("ewstools-tuto-1.csv", ',')[:, end]
+# Run ewstools-tuto-1.csv first to generate ewstools_ricker.csv
+x = readdlm("../data/ewstools_ricker.csv", ',')[:, end]
+x = x[isnan.(x) .== 0]
 t = eachindex(x)
 
 # Choose the indicators and how to measure their change over time
@@ -12,5 +14,4 @@ results = estimate_changes(config, x, t)
 signif = SurrogatesSignificance(n = 1000, tail = [:right, :right], rng = Xoshiro(1995))
 flags = significant_transitions(results, signif)
 fig = plot_changes_significance(results, signif)
-ylims!(contents(fig[2, 1])[2], (0.037, 0.045))
 save("../figures/figure1.png", fig)
