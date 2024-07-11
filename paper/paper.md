@@ -14,7 +14,7 @@ authors:
    orcid: 0000-0003-2213-0423
    affiliation: 1
  - name: George Datseris
-   orcid: 0000-0003-0872-7098
+   orcid: 0000-0002-6427-2385
    affiliation: 2
 affiliations:
 - name: Department of Earth Physics and Astrophysics, Complutense University of Madrid.
