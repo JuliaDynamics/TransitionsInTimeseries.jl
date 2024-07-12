@@ -234,7 +234,7 @@ factor ranging from 0 to 3.5 orders of magnitude. The implementation of the deep
 classifiers for transition prediction developed in [@bury_deep_2021], as well as dealing with
 multidimensional timeseries, are part of future developments of TransitionsInTimeseries.jl.
 
-![Performance comparison between `ewstools` and TransitionsInTimeseries.jl.\label{fig: fig1}](figures/figure2.png)
+![Performance comparison between `ewstools` and TransitionsInTimeseries.jl.\label{fig: fig2}](figures/figure2.png)
 
 # Documentation
 
