@@ -45,7 +45,7 @@ and 2095 has led to no less than 870 news outlets and 4100 tweets [@ditlevsen_wa
 largely because of the substantial implications of such a collapse for human societies.
 A common concern in the scientific community is that published work on the topic is difficult
 to reproduce, despite the impact it implies for humanity. Additionally, existing softwares
-[@dakos_methods_2012,@bury_ewstools_2023] are well suited to apply some state-of-the-art
+[@dakos_methods_2012; @bury_ewstools_2023] are well suited to apply some state-of-the-art
 techniques but lack the possibility of being easily extended by the users, thus making them
 unsuited for some research task.
 Both of these issues can be largely addressed by a unifying software that is accessible,
