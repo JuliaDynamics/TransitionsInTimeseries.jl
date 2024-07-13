@@ -1,0 +1,36 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Swierczek-Jereczek
+  given-names: Jan
+  orcid: "https://orcid.org/0000-0003-2213-0423"
+- family-names: Datseris
+  given-names: George
+  orcid: "https://orcid.org/0000-0002-6427-2385"
+doi: 10.5281/zenodo.12731309
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Swierczek-Jereczek
+    given-names: Jan
+    orcid: "https://orcid.org/0000-0003-2213-0423"
+  - family-names: Datseris
+    given-names: George
+    orcid: "https://orcid.org/0000-0002-6427-2385"
+  date-published: 2024-07-13
+  doi: 10.21105/joss.06464
+  issn: 2475-9066
+  issue: 99
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 6464
+  title: "TransitionsInTimeseries.jl: A performant, extensible and
+    reliable software for reproducible detection and prediction of
+    transitions in timeseries"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.06464"
+  volume: 9
+title: "TransitionsInTimeseries.jl: A performant, extensible and
+  reliable software for reproducible detection and prediction of
+  transitions in timeseries"
