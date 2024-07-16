@@ -5,7 +5,7 @@
 [![CI](https://github.com/JuliaDynamics/TransitionsInTimeseries.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/TransitionsInTimeseries.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/JuliaDynamics/TransitionsInTimeseries.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaDynamics/TransitionsInTimeseries.jl)
 [![Package Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/TransitionsInTimeseries)](https://pkgs.genieframework.com?packages=TransitionsInTimeseries)
-
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06464/status.svg)](https://doi.org/10.21105/joss.06464)
 
 TransitionsInTimeseries.jl is a free and open-source software to easily analyse transitions within timeseries in a reproducible, performant, extensible and reliable way. In contrast to other existing software with similar target application, TransitionsInTimeseries.jl defines a generic interface for how to find transitions and how to test for significance. Within this interface, it is easy to expand the software in three orthogonal ways:
 
