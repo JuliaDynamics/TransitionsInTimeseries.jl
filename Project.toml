@@ -1,7 +1,7 @@
 name = "TransitionsInTimeseries"
 uuid = "5f5b98ec-1183-43e0-887a-12fdc55c52f7"
 authors = ["Jan Swierczek-Jereczek <jan.jereczek@gmail.com>", "George Datseris <datseris.george@gmail.com>"]
-version = "0.1.3"
+version = "0.1.4"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
