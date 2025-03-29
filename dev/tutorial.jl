@@ -30,8 +30,14 @@ with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable m
 =#
 
 using TransitionsInTimeseries, CairoMakie
+using Downloads, DelimitedFiles
 
-t, x_linear, x_nlinear = load_linear_vs_doublewell()
+## load some data
+url = "https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/"*
+"timeseries/linear_vs_doublewell.csv"
+data = readdlm(Downloads.download(url), ',', Float64, skipstart = 1)
+t, x_linear, x_nlinear = view(data, :, 1), view(data, :, 2), view(data, :, 3)
+
 fig, ax = lines(t, x_linear)
 lines!(ax, t, x_nlinear)
 ax.title = "raw data"
@@ -194,9 +200,9 @@ The following blocks illustrate how the above extensive example is re-created in
 
 using TransitionsInTimeseries, CairoMakie
 
-t, x_linear, x_nlinear = load_linear_vs_doublewell()
 
 ## input timeseries and time
+t, x_linear, x_nlinear
 input = x_nl_fluct = diff(x_nlinear)
 t = t[2:end]
 
