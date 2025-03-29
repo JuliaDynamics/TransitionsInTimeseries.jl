@@ -9,7 +9,6 @@ end TransitionsInTimeseries
 
 using LinearAlgebra
 using Random
-using Downloads
 using InteractiveUtils
 using FFTW
 
