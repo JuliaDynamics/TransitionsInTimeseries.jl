@@ -30,6 +30,7 @@ with $x_{l}$ the state of the linear model, $x_{nl}$ the state of the bistable m
 =#
 
 using TransitionsInTimeseries, CairoMakie
+using Downloads, DelimitedFiles
 
 ## load some data
 url = "https://raw.githubusercontent.com/JuliaDynamics/JuliaDynamics/master/"*
