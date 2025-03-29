@@ -122,12 +122,6 @@ windowmap
 windowmap!
 ```
 
-## Load data
-
-```@docs
-load_linear_vs_doublewell()
-```
-
 ## Visualization
 
 ```@docs

@@ -9,8 +9,6 @@ end TransitionsInTimeseries
 
 using LinearAlgebra
 using Random
-using Downloads
-using DelimitedFiles
 using InteractiveUtils
 using FFTW
 
@@ -66,8 +64,5 @@ export SlopeChangeConfig, SlopeChangeResults, SlopeChangeSignificance
 # timeseries
 export isequispaced, equispaced_step
 export default_window_width
-
-# load_data.jl
-export load_linear_vs_doublewell
 
 end # module TransitionsInTimeseries
