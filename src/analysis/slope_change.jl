@@ -10,9 +10,10 @@ connected linear segments to the timeseries,
 returning the results (i.e., the two-linear fits) as [`SlopeChangeResults`](@ref).
 
 ## Keyword arguments
-- indicator = nothing: if not nothing. Otherwise it should be a function f(x) -> Real.
+- `indicator = nothing`: a function f(x) -> Real.
   The slope fitting is then done over an indicator of the timeseries, which itself
   is estimated via a sliding window exactly as in [`SlidingWindowConfig`](@ref).
+  When this is `nothing` the slope change is applied to the timeseries directly.
 - `width_ind, stride_ind, whichtime`: exactly as in [`SlidingWindowConfig`](@ref)
   if `indicator` is not `nothing`.
 """
@@ -85,10 +86,10 @@ It has the following fields that the user may access:
 
 - `x`: the input timeseries.
 - `t`: the time vector of the input timeseries.
-- `x_indicator`, the indicator timeseries.
-- `t_indicator`, the time vector of the indicator timeseries.
-- `t_change`, the time the slope changes.
-- `fitparams = a, b, c, d`, the fitted linear coefficients, `a + b*t` before.
+- `x_indicator`: the indicator timeseries.
+- `t_indicator`: the time vector of the indicator timeseries.
+- `t_change`: the time the slope changes.
+- `fitparams = a, b, c, d`: the fitted linear coefficients, `a + b*t` before
   `t_change` and `c + d*t` after `t_change`.
 """
 struct SlopeChangeResults{T, X, W, L} <: ChangesResults

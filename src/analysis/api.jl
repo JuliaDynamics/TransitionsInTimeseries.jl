@@ -9,6 +9,7 @@ Existing subtypes of `ChangesConfig` are:
 
  - [`SlidingWindowConfig`](@ref).
  - [`SegmentedWindowConfig`](@ref).
+ - [`SlopeChangeConfig`](@ref).
 """
 abstract type ChangesConfig end
 
